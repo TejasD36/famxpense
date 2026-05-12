@@ -1,4 +1,5 @@
 import '../core.dart';
+import '../features/auth/presentation/bloc/auth_bloc.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -19,19 +20,30 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      builder: (context, state) {
-        return MaterialApp.router(
-          title: 'FamXpense',
-          debugShowCheckedModeBanner: false,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<AuthBloc>()),
 
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: state.themeMode,
+        BlocProvider(create: (_) => sl<ThemeCubit>()),
+      ],
 
-          routerConfig: _router,
-        );
-      },
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, state) {
+          return MaterialApp.router(
+            title: 'FamXpense',
+
+            debugShowCheckedModeBanner: false,
+
+            theme: AppTheme.light,
+
+            darkTheme: AppTheme.dark,
+
+            themeMode: state.themeMode,
+
+            routerConfig: _router,
+          );
+        },
+      ),
     );
   }
 }

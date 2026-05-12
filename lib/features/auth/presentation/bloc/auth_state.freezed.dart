@@ -12,11 +12,17 @@ part of 'auth_state.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$AuthState {
+mixin _$AuthState implements DiagnosticableTreeMixin {
 
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -28,7 +34,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState()';
 }
 
@@ -89,10 +95,7 @@ return initial(_that);case AuthLoading():
 return loading(_that);case AuthAuthenticated():
 return authenticated(_that);case AuthUnauthenticated():
 return unauthenticated(_that);case AuthError():
-return error(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
+return error(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -131,7 +134,7 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( AuthUserModel user)?  authenticated,TResult Function()?  unauthenticated,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( UserEntity user)?  authenticated,TResult Function()?  unauthenticated,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AuthInitial() when initial != null:
 return initial();case AuthLoading() when loading != null:
@@ -156,17 +159,14 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( AuthUserModel user)  authenticated,required TResult Function()  unauthenticated,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( UserEntity user)  authenticated,required TResult Function()  unauthenticated,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case AuthInitial():
 return initial();case AuthLoading():
 return loading();case AuthAuthenticated():
 return authenticated(_that.user);case AuthUnauthenticated():
 return unauthenticated();case AuthError():
-return error(_that.message);case _:
-  throw StateError('Unexpected subclass');
-
-}
+return error(_that.message);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -180,7 +180,7 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( AuthUserModel user)?  authenticated,TResult? Function()?  unauthenticated,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( UserEntity user)?  authenticated,TResult? Function()?  unauthenticated,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case AuthInitial() when initial != null:
 return initial();case AuthLoading() when loading != null:
@@ -198,7 +198,7 @@ return error(_that.message);case _:
 /// @nodoc
 
 
-class AuthInitial implements AuthState {
+class AuthInitial with DiagnosticableTreeMixin implements AuthState {
   const AuthInitial();
   
 
@@ -206,6 +206,12 @@ class AuthInitial implements AuthState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState.initial'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -217,7 +223,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState.initial()';
 }
 
@@ -230,7 +236,7 @@ String toString() {
 /// @nodoc
 
 
-class AuthLoading implements AuthState {
+class AuthLoading with DiagnosticableTreeMixin implements AuthState {
   const AuthLoading();
   
 
@@ -238,6 +244,12 @@ class AuthLoading implements AuthState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState.loading'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -249,7 +261,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState.loading()';
 }
 
@@ -262,11 +274,11 @@ String toString() {
 /// @nodoc
 
 
-class AuthAuthenticated implements AuthState {
+class AuthAuthenticated with DiagnosticableTreeMixin implements AuthState {
   const AuthAuthenticated(this.user);
   
 
- final  AuthUserModel user;
+ final  UserEntity user;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
@@ -275,6 +287,12 @@ class AuthAuthenticated implements AuthState {
 $AuthAuthenticatedCopyWith<AuthAuthenticated> get copyWith => _$AuthAuthenticatedCopyWithImpl<AuthAuthenticated>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState.authenticated'))
+    ..add(DiagnosticsProperty('user', user));
+}
 
 @override
 bool operator ==(Object other) {
@@ -286,7 +304,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,user);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState.authenticated(user: $user)';
 }
 
@@ -298,11 +316,11 @@ abstract mixin class $AuthAuthenticatedCopyWith<$Res> implements $AuthStateCopyW
   factory $AuthAuthenticatedCopyWith(AuthAuthenticated value, $Res Function(AuthAuthenticated) _then) = _$AuthAuthenticatedCopyWithImpl;
 @useResult
 $Res call({
- AuthUserModel user
+ UserEntity user
 });
 
 
-
+$UserEntityCopyWith<$Res> get user;
 
 }
 /// @nodoc
@@ -318,17 +336,26 @@ class _$AuthAuthenticatedCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') $Res call({Object? user = null,}) {
   return _then(AuthAuthenticated(
 null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as AuthUserModel,
+as UserEntity,
   ));
 }
 
-
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserEntityCopyWith<$Res> get user {
+  
+  return $UserEntityCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
 }
 
 /// @nodoc
 
 
-class AuthUnauthenticated implements AuthState {
+class AuthUnauthenticated with DiagnosticableTreeMixin implements AuthState {
   const AuthUnauthenticated();
   
 
@@ -336,6 +363,12 @@ class AuthUnauthenticated implements AuthState {
 
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState.unauthenticated'))
+    ;
+}
 
 @override
 bool operator ==(Object other) {
@@ -347,7 +380,7 @@ bool operator ==(Object other) {
 int get hashCode => runtimeType.hashCode;
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState.unauthenticated()';
 }
 
@@ -360,7 +393,7 @@ String toString() {
 /// @nodoc
 
 
-class AuthError implements AuthState {
+class AuthError with DiagnosticableTreeMixin implements AuthState {
   const AuthError(this.message);
   
 
@@ -373,6 +406,12 @@ class AuthError implements AuthState {
 $AuthErrorCopyWith<AuthError> get copyWith => _$AuthErrorCopyWithImpl<AuthError>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AuthState.error'))
+    ..add(DiagnosticsProperty('message', message));
+}
 
 @override
 bool operator ==(Object other) {
@@ -384,7 +423,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,message);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'AuthState.error(message: $message)';
 }
 

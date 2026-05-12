@@ -1,16 +1,14 @@
 import '../../xcore.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-
-  final _passwordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -18,15 +16,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
 
-    _passwordController.dispose();
-
     super.dispose();
   }
 
-  void _login() {
+  void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    context.read<AuthBloc>().add(AuthEvent.login(email: _emailController.text.trim(), password: _passwordController.text.trim()));
+    context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: _emailController.text.trim()));
   }
 
   @override
@@ -34,8 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          authenticated: (_) {
-            context.go(AppRoute.dashboard.path);
+          unauthenticated: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
+
+            Navigator.pop(context);
           },
 
           error: (message) {
@@ -45,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
 
       child: Scaffold(
-        appBar: AppBar(title: const Text('Login')),
+        appBar: AppBar(title: const Text('Forgot Password')),
 
         body: Center(
           child: SingleChildScrollView(
@@ -61,7 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    const Text('Welcome Back', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    const Text('Reset Password', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+
+                    const SizedBox(height: 16),
+
+                    const Text('Enter your email address and we will send you a password reset link.'),
 
                     const SizedBox(height: 32),
 
@@ -81,24 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _passwordController,
-
-                      obscureText: true,
-
-                      decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter password';
-                        }
-
-                        return null;
-                      },
-                    ),
-
                     const SizedBox(height: 24),
 
                     BlocBuilder<AuthBloc, AuthState>(
@@ -106,23 +90,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         final isLoading = state is AuthLoading;
 
                         return ElevatedButton(
-                          onPressed: isLoading ? null : _login,
+                          onPressed: isLoading ? null : _submit,
 
                           child: isLoading
                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
-                              : const Text('Login'),
+                              : const Text('Send Reset Link'),
                         );
                       },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    TextButton(
-                      onPressed: () {
-                        context.go(AppRoute.register.path);
-                      },
-
-                      child: const Text('Create Account'),
                     ),
                   ],
                 ),

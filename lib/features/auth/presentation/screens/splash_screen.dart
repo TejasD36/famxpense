@@ -1,8 +1,4 @@
-import '../../../../app/theme/app_color.dart';
-import '../../../../core.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+import '../../xcore.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,28 +17,34 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.white,
-      body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          state.whenOrNull(
-            authenticated: (_) async {
-              await Future.delayed(const Duration(seconds: 2));
-              if (context.mounted) context.goNamed(AppRoute.dashboard.name);
-            },
-            unauthenticated: () async {
-              await Future.delayed(const Duration(seconds: 2));
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        state.whenOrNull(
+          authenticated: (_) {
+            context.go(AppRoute.dashboard.path);
+          },
 
-              if (context.mounted) context.goNamed(AppRoute.login.name);
-            },
-          );
-        },
-        child: Center(
+          unauthenticated: () {
+            context.go(AppRoute.login.path);
+          },
+        );
+      },
+
+      child: const Scaffold(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+
             children: [
-              Lottie.asset('assets/lottie/splash-animation.json'),
-              Text('My Notes', style: Theme.of(context).textTheme.headlineSmall),
+              Icon(Icons.account_balance_wallet_rounded, size: 80),
+
+              SizedBox(height: 16),
+
+              Text('FamXpense', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+
+              SizedBox(height: 24),
+
+              CircularProgressIndicator(),
             ],
           ),
         ),

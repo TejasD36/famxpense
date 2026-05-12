@@ -1,9 +1,9 @@
-import '../repositories/auth_repository.dart';
+import '../../xcore.dart';
 
-class LogoutUseCase {
-  LogoutUseCase(this._repository);
-
+class LogoutUsecase {
   final AuthRepository _repository;
+
+  LogoutUsecase(this._repository);
 
   Future<void> call() {
     return _repository.logout();

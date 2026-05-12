@@ -1,12 +1,11 @@
-import '../../data/models/auth_user_model.dart';
-import '../repositories/auth_repository.dart';
+import '../../xcore.dart';
 
-class LoginUseCase {
-  LoginUseCase(this._repository);
-
+class LoginUsecase {
   final AuthRepository _repository;
 
-  Future<AuthUserModel?> call({required String email, required String password}) {
+  LoginUsecase(this._repository);
+
+  Future<UserEntity> call({required String email, required String password}) {
     return _repository.login(email: email, password: password);
   }
 }

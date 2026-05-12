@@ -1,40 +1,50 @@
-import '../../domain/repositories/auth_repository.dart';
-import '../models/auth_user_model.dart';
+import '../../xcore.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl();
-  // AuthRepositoryImpl(this._localDataSource);
+  final AuthRemoteDatasource _remoteDatasource;
 
-  // final AuthLocalDataSource _localDataSource;
+  final AuthLocalDatasource _localDatasource;
+
+  AuthRepositoryImpl({required AuthRemoteDatasource remoteDatasource, required AuthLocalDatasource localDatasource})
+    : _remoteDatasource = remoteDatasource,
+      _localDatasource = localDatasource;
 
   @override
-  Future<AuthUserModel?> getSavedUser() async {
-    return null;
-    // return _localDataSource.getSavedUser();
+  Future<UserEntity> register({required String name, String? nickname, required String email, required String password}) async {
+    final userDto = await _remoteDatasource.register(name: name, nickname: nickname, email: email, password: password);
+
+    await _localDatasource.saveUserId(userDto.id);
+
+    return userDto.toEntity();
   }
 
   @override
-  Future<AuthUserModel?> login({required String email, required String password}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+  Future<UserEntity> login({required String email, required String password}) async {
+    final userDto = await _remoteDatasource.login(email: email, password: password);
 
-    late final AuthUserModel user;
+    await _localDatasource.saveUserId(userDto.id);
 
-    if (email == 'admin@notes.com' && password == 'admin123') {
-      user = const AuthUserModel(userId: 'admin_1', email: 'admin@notes.com', role: 'admin');
-    } else if (email == 'user@notes.com' && password == 'user123') {
-      user = const AuthUserModel(userId: 'user_1', email: 'user@notes.com', role: 'user');
-    } else {
-      return null;
-    }
+    return userDto.toEntity();
+  }
 
-    // await _localDataSource.saveUser(user);
-
-    return user;
+  @override
+  Future<void> forgotPassword({required String email}) async {
+    await _remoteDatasource.forgotPassword(email: email);
   }
 
   @override
   Future<void> logout() async {
-    return;
-    // return _localDataSource.clear();
+    await _remoteDatasource.logout();
+
+    await _localDatasource.clearSession();
+  }
+
+  @override
+  Future<UserEntity?> getCurrentUser() async {
+    final userDto = await _remoteDatasource.getCurrentUser();
+
+    if (userDto == null) return null;
+
+    return userDto.toEntity();
   }
 }

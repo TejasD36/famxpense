@@ -1,59 +1,100 @@
-import '../../../../core.dart';
-import '../../domain/usecases/check_auth_status_usecase.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/logout_usecase.dart';
-import 'auth_event.dart';
-import 'auth_state.dart';
+import '../../xcore.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final RegisterUsecase _registerUsecase;
+
+  final LoginUsecase _loginUsecase;
+
+  final LogoutUsecase _logoutUsecase;
+
+  final ForgotPasswordUsecase _forgotPasswordUsecase;
+
+  final GetCurrentUserUsecase _getCurrentUserUsecase;
+
   AuthBloc({
-    required CheckAuthStatusUseCase checkAuthStatusUseCase,
-    required LoginUseCase loginUseCase,
-    required LogoutUseCase logoutUseCase,
-  }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
-       _loginUseCase = loginUseCase,
-       _logoutUseCase = logoutUseCase,
-       super(const AuthState.initial()) {
-    on<AuthCheckAuthStatus>(_onCheckAuthStatus);
-    on<AuthLogin>(_onLogin);
-    on<AuthLogout>(_onLogout);
+    required RegisterUsecase registerUsecase,
+    required LoginUsecase loginUsecase,
+    required LogoutUsecase logoutUsecase,
+    required ForgotPasswordUsecase forgotPasswordUsecase,
+    required GetCurrentUserUsecase getCurrentUserUsecase,
+  }) : _registerUsecase = registerUsecase,
+       _loginUsecase = loginUsecase,
+       _logoutUsecase = logoutUsecase,
+       _forgotPasswordUsecase = forgotPasswordUsecase,
+       _getCurrentUserUsecase = getCurrentUserUsecase,
+       super(const AuthInitial()) {
+    on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+
+    on<LoginEvent>(_onLogin);
+
+    on<RegisterEvent>(_onRegister);
+
+    on<ForgotPasswordEvent>(_onForgotPassword);
+
+    on<LogoutEvent>(_onLogout);
   }
 
-  final CheckAuthStatusUseCase _checkAuthStatusUseCase;
-  final LoginUseCase _loginUseCase;
-  final LogoutUseCase _logoutUseCase;
+  Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
 
-  Future<void> _onCheckAuthStatus(AuthCheckAuthStatus event, Emitter<AuthState> emit) async {
-    emit(const AuthState.loading());
+    try {
+      final user = await _getCurrentUserUsecase();
 
-    final user = await _checkAuthStatusUseCase();
-
-    if (user != null) {
-      emit(AuthState.authenticated(user));
-    } else {
-      emit(const AuthState.unauthenticated());
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(const AuthUnauthenticated());
+      }
+    } catch (_) {
+      emit(const AuthUnauthenticated());
     }
   }
 
-  Future<void> _onLogin(AuthLogin event, Emitter<AuthState> emit) async {
-    emit(const AuthState.loading());
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
 
-    final user = await _loginUseCase(email: event.email, password: event.password);
+    try {
+      final user = await _loginUsecase(email: event.email, password: event.password);
 
-    if (user == null) {
-      emit(const AuthState.error('Invalid email or password'));
-      emit(const AuthState.unauthenticated());
-      return;
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
-
-    emit(AuthState.authenticated(user));
   }
 
-  Future<void> _onLogout(AuthLogout event, Emitter<AuthState> emit) async {
-    emit(const AuthState.loading());
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
 
-    await _logoutUseCase();
+    try {
+      final user = await _registerUsecase(name: event.name, nickname: event.nickname, email: event.email, password: event.password);
 
-    emit(const AuthState.unauthenticated());
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onForgotPassword(ForgotPasswordEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    try {
+      await _forgotPasswordUsecase(email: event.email);
+
+      emit(const AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    try {
+      await _logoutUsecase();
+
+      emit(const AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
   }
 }
