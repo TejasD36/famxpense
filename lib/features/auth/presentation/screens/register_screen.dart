@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       listener: (context, state) {
         state.whenOrNull(
           authenticated: (_) {
-            context.go(AppRoute.dashboard.path);
+            context.go(AppRoute.home.path);
           },
 
           error: (message) {

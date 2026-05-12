@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) {
         state.whenOrNull(
           authenticated: (_) {
-            context.go(AppRoute.dashboard.path);
+            context.go(AppRoute.home.path);
           },
 
           error: (message) {

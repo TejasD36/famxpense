@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
       listener: (context, state) {
         state.whenOrNull(
           authenticated: (_) {
-            context.go(AppRoute.dashboard.path);
+            context.go(AppRoute.home.path);
           },
 
           unauthenticated: () {
