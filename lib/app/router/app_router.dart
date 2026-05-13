@@ -3,9 +3,12 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
-import '../../features/dashboard/presentation/screens/home_screen.dart';
+import '../../features/expenses/presentation/blocs/activity/activity_bloc.dart';
+import '../../features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
+import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
 import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
+import '../../features/expenses/presentation/screens/home_screen.dart';
 import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../navigation/main_navigation.dart';
@@ -36,7 +39,17 @@ class AppRouter {
           branches: [
             /// HOME
             StatefulShellBranch(
-              routes: [GoRoute(path: AppRoute.home.path, name: AppRoute.home.name, builder: (_, _) => const HomeScreen())],
+              routes: [
+                GoRoute(
+                  path: AppRoute.home.path,
+
+                  name: AppRoute.home.name,
+
+                  builder: (_, _) {
+                    return BlocProvider(create: (_) => sl<HomeBloc>(), child: const HomeScreen());
+                  },
+                ),
+              ],
             ),
 
             /// GROUPS
@@ -46,7 +59,17 @@ class AppRouter {
 
             /// ACTIVITY
             StatefulShellBranch(
-              routes: [GoRoute(path: AppRoute.activity.path, name: AppRoute.activity.name, builder: (_, _) => const ActivityScreen())],
+              routes: [
+                GoRoute(
+                  path: AppRoute.activity.path,
+
+                  name: AppRoute.activity.name,
+
+                  builder: (_, _) {
+                    return BlocProvider(create: (_) => sl<ActivityBloc>(), child: const ActivityScreen());
+                  },
+                ),
+              ],
             ),
 
             /// PROFILE
@@ -57,7 +80,15 @@ class AppRouter {
         ),
 
         /// STANDALONE
-        GoRoute(path: AppRoute.addExpense.path, name: AppRoute.addExpense.name, builder: (_, _) => const AddExpenseScreen()),
+        GoRoute(
+          path: AppRoute.addExpense.path,
+
+          name: AppRoute.addExpense.name,
+
+          builder: (_, _) {
+            return BlocProvider(create: (_) => sl<AddExpenseBloc>(), child: const AddExpenseScreen());
+          },
+        ),
       ],
     );
   }

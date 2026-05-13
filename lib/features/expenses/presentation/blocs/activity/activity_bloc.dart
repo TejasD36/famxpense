@@ -1,4 +1,4 @@
-import '../../xcore.dart';
+import '../../../xcore.dart';
 
 part 'activity_bloc.freezed.dart';
 part 'activity_event.dart';
