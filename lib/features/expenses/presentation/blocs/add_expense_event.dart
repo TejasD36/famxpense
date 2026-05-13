@@ -1,6 +1,4 @@
-import '../../xcore.dart';
-
-part 'add_expense_event.freezed.dart';
+part of 'add_expense_bloc.dart';
 
 @freezed
 sealed class AddExpenseEvent with _$AddExpenseEvent {

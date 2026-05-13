@@ -1,5 +1,9 @@
 import '../../xcore.dart';
 
+part 'add_expense_bloc.freezed.dart';
+part 'add_expense_event.dart';
+part 'add_expense_state.dart';
+
 class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
   final AddExpenseUsecase _addExpenseUsecase;
 

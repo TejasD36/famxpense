@@ -1,5 +1,4 @@
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../xcore.dart';
 
 class DashboardScreen extends StatelessWidget {

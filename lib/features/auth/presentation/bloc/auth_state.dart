@@ -1,6 +1,4 @@
-import '../../xcore.dart';
-
-part 'auth_state.freezed.dart';
+part of 'auth_bloc.dart';
 
 @freezed
 sealed class AuthState with _$AuthState {

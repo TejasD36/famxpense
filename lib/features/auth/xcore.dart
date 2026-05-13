@@ -11,8 +11,6 @@ export 'domain/usecases/login_usecase.dart';
 export 'domain/usecases/logout_usecase.dart';
 export 'domain/usecases/register_usecase.dart';
 export 'presentation/bloc/auth_bloc.dart';
-export 'presentation/bloc/auth_event.dart';
-export 'presentation/bloc/auth_state.dart';
 export 'presentation/screens/forgot_password_screen.dart';
 export 'presentation/screens/login_screen.dart';
 export 'presentation/screens/register_screen.dart';

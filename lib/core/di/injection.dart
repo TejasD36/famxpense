@@ -16,7 +16,7 @@ import '../../features/expenses/data/datasources/expense_local_datasource_impl.d
 import '../../features/expenses/data/repositories/expense_repository_impl.dart';
 import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
-import '../../features/expenses/presentation/bloc/add_expense_bloc.dart';
+import '../../features/expenses/presentation/blocs/add_expense_bloc.dart';
 
 final sl = GetIt.instance;
 

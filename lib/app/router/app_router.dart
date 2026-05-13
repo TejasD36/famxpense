@@ -1,10 +1,10 @@
 import '../../core.dart';
-import '../../features/activity/presentation/screens/activity_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/dashboard/presentation/screens/home_screen.dart';
+import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';

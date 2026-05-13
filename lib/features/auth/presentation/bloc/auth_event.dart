@@ -1,6 +1,4 @@
-import '../../xcore.dart';
-
-part 'auth_event.freezed.dart';
+part of 'auth_bloc.dart';
 
 @freezed
 sealed class AuthEvent with _$AuthEvent {
