@@ -3,6 +3,12 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:famxpense/shared/enums/account_type.dart';
+import 'package:famxpense/shared/enums/expense_type.dart';
+import 'package:famxpense/shared/enums/notification_type.dart';
+import 'package:famxpense/shared/enums/settlement_status.dart';
+import 'package:famxpense/shared/enums/split_type.dart';
+import 'package:famxpense/shared/enums/sync_status.dart';
 import 'package:famxpense/shared/transformers/dtos/account/account_dto.dart';
 import 'package:famxpense/shared/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
 import 'package:famxpense/shared/transformers/dtos/expense/draft_expense_dto.dart';
@@ -17,14 +23,20 @@ import 'package:famxpense/shared/transformers/dtos/user/user_dto.dart';
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(AccountDtoAdapter());
+    registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
     registerAdapter(DraftExpenseDtoAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
+    registerAdapter(ExpenseTypeAdapter());
     registerAdapter(GroupDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
+    registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
     registerAdapter(SettlementDtoAdapter());
+    registerAdapter(SettlementStatusAdapter());
+    registerAdapter(SplitTypeAdapter());
+    registerAdapter(SyncStatusAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }
@@ -32,14 +44,20 @@ extension HiveRegistrar on HiveInterface {
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(AccountDtoAdapter());
+    registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
     registerAdapter(DraftExpenseDtoAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
+    registerAdapter(ExpenseTypeAdapter());
     registerAdapter(GroupDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
+    registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
     registerAdapter(SettlementDtoAdapter());
+    registerAdapter(SettlementStatusAdapter());
+    registerAdapter(SplitTypeAdapter());
+    registerAdapter(SyncStatusAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }
