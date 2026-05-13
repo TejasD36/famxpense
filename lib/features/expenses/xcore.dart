@@ -1,3 +1,10 @@
 export '../../core.dart';
 export 'data/datasources/draft_expense_local_datasource.dart';
 export 'data/datasources/expense_local_datasource.dart';
+export 'data/repositories/expense_repository_impl.dart';
+export 'domain/repositories/expense_repository.dart';
+export 'domain/usecases/add_expense_usecase.dart';
+export 'presentation/bloc/add_expense_bloc.dart';
+export 'presentation/bloc/add_expense_event.dart';
+export 'presentation/bloc/add_expense_state.dart';
+export 'presentation/screens/add_expense_screen.dart';

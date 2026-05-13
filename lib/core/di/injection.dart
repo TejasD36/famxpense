@@ -1,8 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:get_it/get_it.dart';
-
-import '../../app/theme/theme_cubit.dart';
+import '../../core.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/auth_local_datasource_impl.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -15,6 +11,12 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/expenses/data/datasources/expense_local_datasource.dart';
+import '../../features/expenses/data/datasources/expense_local_datasource_impl.dart';
+import '../../features/expenses/data/repositories/expense_repository_impl.dart';
+import '../../features/expenses/domain/repositories/expense_repository.dart';
+import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
+import '../../features/expenses/presentation/bloc/add_expense_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -32,24 +34,25 @@ Future<void> initDependencies() async {
   /// DATASOURCES
 
   sl.registerLazySingleton<AuthLocalDatasource>(() => AuthLocalDatasourceImpl());
-
   sl.registerLazySingleton<AuthRemoteDatasource>(() => AuthRemoteDatasourceImpl(firebaseAuth: sl(), firestore: sl()));
+
+  sl.registerLazySingleton<ExpenseLocalDatasource>(() => ExpenseLocalDatasourceImpl());
 
   /// REPOSITORIES
 
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), localDatasource: sl()));
 
+  sl.registerLazySingleton<ExpenseRepository>(() => ExpenseRepositoryImpl(localDatasource: sl()));
+
   /// USECASES
 
   sl.registerLazySingleton(() => RegisterUsecase(sl()));
-
   sl.registerLazySingleton(() => LoginUsecase(sl()));
-
   sl.registerLazySingleton(() => LogoutUsecase(sl()));
-
   sl.registerLazySingleton(() => ForgotPasswordUsecase(sl()));
-
   sl.registerLazySingleton(() => GetCurrentUserUsecase(sl()));
+
+  sl.registerLazySingleton(() => AddExpenseUsecase(sl()));
 
   /// BLOCS
 
@@ -57,4 +60,6 @@ Future<void> initDependencies() async {
     () =>
         AuthBloc(registerUsecase: sl(), loginUsecase: sl(), logoutUsecase: sl(), forgotPasswordUsecase: sl(), getCurrentUserUsecase: sl()),
   );
+
+  sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
 }

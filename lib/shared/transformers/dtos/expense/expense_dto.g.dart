@@ -13,7 +13,9 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
   @override
   ExpenseDto read(BinaryReader reader) {
     final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read()};
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
     return ExpenseDto(
       id: fields[0] as String,
       title: fields[1] as String,
@@ -74,7 +76,10 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is ExpenseDtoAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      identical(this, other) ||
+      other is ExpenseDtoAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 // **************************************************************************
@@ -89,7 +94,9 @@ _ExpenseDto _$ExpenseDtoFromJson(Map<String, dynamic> json) => _ExpenseDto(
   paidByUserId: json['paidByUserId'] as String,
   expenseType: $enumDecode(_$ExpenseTypeEnumMap, json['expenseType']),
   splitType: $enumDecode(_$SplitTypeEnumMap, json['splitType']),
-  participants: (json['participants'] as List<dynamic>).map((e) => ExpenseParticipantDto.fromJson(e as Map<String, dynamic>)).toList(),
+  participants: (json['participants'] as List<dynamic>)
+      .map((e) => ExpenseParticipantDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
   groupId: json['groupId'] as String?,
   accountId: json['accountId'] as String?,
   expenseDate: DateTime.parse(json['expenseDate'] as String),
@@ -99,26 +106,38 @@ _ExpenseDto _$ExpenseDtoFromJson(Map<String, dynamic> json) => _ExpenseDto(
   isDisabled: json['isDisabled'] as bool? ?? false,
 );
 
-Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'note': instance.note,
-  'amount': instance.amount,
-  'paidByUserId': instance.paidByUserId,
-  'expenseType': _$ExpenseTypeEnumMap[instance.expenseType]!,
-  'splitType': _$SplitTypeEnumMap[instance.splitType]!,
-  'participants': instance.participants,
-  'groupId': instance.groupId,
-  'accountId': instance.accountId,
-  'expenseDate': instance.expenseDate.toIso8601String(),
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt.toIso8601String(),
-  'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
-  'isDisabled': instance.isDisabled,
+Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'note': instance.note,
+      'amount': instance.amount,
+      'paidByUserId': instance.paidByUserId,
+      'expenseType': _$ExpenseTypeEnumMap[instance.expenseType]!,
+      'splitType': _$SplitTypeEnumMap[instance.splitType]!,
+      'participants': instance.participants,
+      'groupId': instance.groupId,
+      'accountId': instance.accountId,
+      'expenseDate': instance.expenseDate.toIso8601String(),
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
+      'isDisabled': instance.isDisabled,
+    };
+
+const _$ExpenseTypeEnumMap = {
+  ExpenseType.personal: 'personal',
+  ExpenseType.shared: 'shared',
+  ExpenseType.group: 'group',
 };
 
-const _$ExpenseTypeEnumMap = {ExpenseType.personal: 'personal', ExpenseType.shared: 'shared', ExpenseType.group: 'groups'};
+const _$SplitTypeEnumMap = {
+  SplitType.equal: 'equal',
+  SplitType.manual: 'manual',
+};
 
-const _$SplitTypeEnumMap = {SplitType.equal: 'equal', SplitType.manual: 'manual'};
-
-const _$SyncStatusEnumMap = {SyncStatus.synced: 'synced', SyncStatus.pending: 'pending', SyncStatus.failed: 'failed'};
+const _$SyncStatusEnumMap = {
+  SyncStatus.synced: 'synced',
+  SyncStatus.pending: 'pending',
+  SyncStatus.failed: 'failed',
+};
