@@ -1,8 +1,8 @@
 export '../../core.dart';
-export 'data/datasources/auth_local_datasource.dart';
-export 'data/datasources/auth_local_datasource_impl.dart';
-export 'data/datasources/auth_remote_datasource.dart';
-export 'data/datasources/auth_remote_datasource_impl.dart';
+export 'data/datasources/local/auth_local_datasource.dart';
+export 'data/datasources/local/auth_local_datasource_impl.dart';
+export 'data/datasources/remote/auth_remote_datasource.dart';
+export 'data/datasources/remote/auth_remote_datasource_impl.dart';
 export 'data/repositories/auth_repository_impl.dart';
 export 'domain/repositories/auth_repository.dart';
 export 'domain/usecases/forgot_password_usecase.dart';

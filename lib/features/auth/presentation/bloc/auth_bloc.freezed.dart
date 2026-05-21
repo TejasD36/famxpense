@@ -134,7 +134,7 @@ return logout(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  checkAuthStatus,TResult Function( String email,  String password)?  login,TResult Function( String name,  String? nickname,  String email,  String password)?  register,TResult Function( String email)?  forgotPassword,TResult Function()?  logout,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  checkAuthStatus,TResult Function( String email,  String password)?  login,TResult Function( String name,  String nickname,  String email,  String password)?  register,TResult Function( String email)?  forgotPassword,TResult Function()?  logout,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CheckAuthStatusEvent() when checkAuthStatus != null:
 return checkAuthStatus();case LoginEvent() when login != null:
@@ -159,7 +159,7 @@ return logout();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  checkAuthStatus,required TResult Function( String email,  String password)  login,required TResult Function( String name,  String? nickname,  String email,  String password)  register,required TResult Function( String email)  forgotPassword,required TResult Function()  logout,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  checkAuthStatus,required TResult Function( String email,  String password)  login,required TResult Function( String name,  String nickname,  String email,  String password)  register,required TResult Function( String email)  forgotPassword,required TResult Function()  logout,}) {final _that = this;
 switch (_that) {
 case CheckAuthStatusEvent():
 return checkAuthStatus();case LoginEvent():
@@ -180,7 +180,7 @@ return logout();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  checkAuthStatus,TResult? Function( String email,  String password)?  login,TResult? Function( String name,  String? nickname,  String email,  String password)?  register,TResult? Function( String email)?  forgotPassword,TResult? Function()?  logout,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  checkAuthStatus,TResult? Function( String email,  String password)?  login,TResult? Function( String name,  String nickname,  String email,  String password)?  register,TResult? Function( String email)?  forgotPassword,TResult? Function()?  logout,}) {final _that = this;
 switch (_that) {
 case CheckAuthStatusEvent() when checkAuthStatus != null:
 return checkAuthStatus();case LoginEvent() when login != null:
@@ -311,11 +311,11 @@ as String,
 
 
 class RegisterEvent with DiagnosticableTreeMixin implements AuthEvent {
-  const RegisterEvent({required this.name, this.nickname, required this.email, required this.password});
+  const RegisterEvent({required this.name, required this.nickname, required this.email, required this.password});
   
 
  final  String name;
- final  String? nickname;
+ final  String nickname;
  final  String email;
  final  String password;
 
@@ -355,7 +355,7 @@ abstract mixin class $RegisterEventCopyWith<$Res> implements $AuthEventCopyWith<
   factory $RegisterEventCopyWith(RegisterEvent value, $Res Function(RegisterEvent) _then) = _$RegisterEventCopyWithImpl;
 @useResult
 $Res call({
- String name, String? nickname, String email, String password
+ String name, String nickname, String email, String password
 });
 
 
@@ -372,11 +372,11 @@ class _$RegisterEventCopyWithImpl<$Res>
 
 /// Create a copy of AuthEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? name = null,Object? nickname = freezed,Object? email = null,Object? password = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? name = null,Object? nickname = null,Object? email = null,Object? password = null,}) {
   return _then(RegisterEvent(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,nickname: freezed == nickname ? _self.nickname : nickname // ignore: cast_nullable_to_non_nullable
-as String?,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,nickname: null == nickname ? _self.nickname : nickname // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,
   ));

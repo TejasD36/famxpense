@@ -25,6 +25,7 @@ abstract final class HiveInitializer {
       ..registerAdapter(SyncStatusAdapter())
       ..registerAdapter(AccountTypeAdapter())
       ..registerAdapter(SettlementStatusAdapter())
+      ..registerAdapter(PartnershipStatusAdapter())
       ..registerAdapter(NotificationTypeAdapter());
   }
 

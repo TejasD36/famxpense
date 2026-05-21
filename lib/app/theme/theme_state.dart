@@ -1,5 +1,3 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
 import '../../core.dart';
 
 part 'theme_state.freezed.dart';

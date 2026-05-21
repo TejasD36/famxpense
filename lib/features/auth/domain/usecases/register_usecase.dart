@@ -5,7 +5,7 @@ class RegisterUsecase {
 
   RegisterUsecase(this._repository);
 
-  Future<UserEntity> call({required String name, String? nickname, required String email, required String password}) {
+  Future<UserEntity> call({required String name, required String nickname, required String email, required String password}) {
     return _repository.register(name: name, nickname: nickname, email: email, password: password);
   }
 }

@@ -9,7 +9,8 @@ import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
 import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/expenses/presentation/screens/home_screen.dart';
-import '../../features/groups/presentation/screens/groups_screen.dart';
+import '../../features/partners/presentation/screens/add_partner_screen.dart';
+import '../../features/partners/presentation/screens/partners_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../navigation/main_navigation.dart';
 
@@ -54,7 +55,7 @@ class AppRouter {
 
             /// GROUPS
             StatefulShellBranch(
-              routes: [GoRoute(path: AppRoute.groups.path, name: AppRoute.groups.name, builder: (_, _) => const GroupsScreen())],
+              routes: [GoRoute(path: AppRoute.groups.path, name: AppRoute.groups.name, builder: (_, _) => const PartnersScreen())],
             ),
 
             /// ACTIVITY
@@ -89,6 +90,8 @@ class AppRouter {
             return BlocProvider(create: (_) => sl<AddExpenseBloc>(), child: const AddExpenseScreen());
           },
         ),
+
+        GoRoute(path: AppRoute.addPartner.path, name: AppRoute.addPartner.name, builder: (_, _) => const AddPartnerScreen()),
       ],
     );
   }

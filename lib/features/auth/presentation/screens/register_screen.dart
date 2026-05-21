@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import '../../xcore.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -42,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       AuthEvent.register(
         name: _nameController.text.trim(),
 
-        nickname: _nicknameController.text.trim().isEmpty ? null : _nicknameController.text.trim(),
+        nickname: _nicknameController.text.trim(),
 
         email: _emailController.text.trim(),
 
@@ -106,7 +108,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _nicknameController,
 
-                      decoration: const InputDecoration(labelText: 'Nickname (Optional)', border: OutlineInputBorder()),
+                      textInputAction: TextInputAction.next,
+
+                      textCapitalization: TextCapitalization.none,
+
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9_]')),
+
+                        TextInputFormatter.withFunction((oldValue, newValue) {
+                          return TextEditingValue(text: newValue.text.toLowerCase(), selection: newValue.selection);
+                        }),
+                      ],
+
+                      decoration: const InputDecoration(
+                        labelText: 'Nickname',
+
+                        hintText: 'e.g. kingtp',
+
+                        prefixText: '@',
+
+                        border: OutlineInputBorder(),
+                      ),
+
+                      validator: (value) {
+                        final nickname = value?.trim() ?? '';
+
+                        if (nickname.isEmpty) {
+                          return 'Nickname is required';
+                        }
+
+                        if (nickname.length < 3) {
+                          return 'Minimum 3 characters';
+                        }
+
+                        if (nickname.length > 20) {
+                          return 'Maximum 20 characters';
+                        }
+
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 16),

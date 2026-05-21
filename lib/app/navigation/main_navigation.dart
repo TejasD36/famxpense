@@ -34,7 +34,7 @@ class MainNavigation extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
 
-          BottomNavigationBarItem(icon: Icon(Icons.groups_rounded), label: 'Groups'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Partners'),
 
           BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Activity'),
 

@@ -1,8 +1,8 @@
 import '../../../features/expenses/data/datasources/local/expense_local_datasource.dart';
 import '../../../features/expenses/data/datasources/remote/expense_remote_datasource.dart';
 import '../../../features/expenses/data/transformers/mappers/expense_remote_mapper.dart';
+import '../../../shared/data/transformers/mappers/expense/expense_mapper.dart';
 import '../../../shared/enums/sync_status.dart';
-import '../../../shared/transformers/mappers/expense/expense_mapper.dart';
 import '../../logger/app_logger.dart';
 
 class SyncService {

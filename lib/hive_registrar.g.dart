@@ -3,6 +3,16 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:famxpense/shared/data/transformers/dtos/account/account_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/expense/draft_expense_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/group/group_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/notification/notification_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/partnership/partnership_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/user/user_dto.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/notification_type.dart';
@@ -10,16 +20,6 @@ import 'package:famxpense/shared/enums/partnership_status.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
 import 'package:famxpense/shared/enums/split_type.dart';
 import 'package:famxpense/shared/enums/sync_status.dart';
-import 'package:famxpense/shared/transformers/dtos/account/account_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/expense/draft_expense_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/expense/expense_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/expense/expense_participant_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/group/group_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/notification/notification_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/partnership/partnership_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/settlement/settlement_dto.dart';
-import 'package:famxpense/shared/transformers/dtos/user/user_dto.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {

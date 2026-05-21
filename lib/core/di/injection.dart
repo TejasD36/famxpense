@@ -1,8 +1,8 @@
 import '../../core.dart';
-import '../../features/auth/data/datasources/auth_local_datasource.dart';
-import '../../features/auth/data/datasources/auth_local_datasource_impl.dart';
-import '../../features/auth/data/datasources/auth_remote_datasource.dart';
-import '../../features/auth/data/datasources/auth_remote_datasource_impl.dart';
+import '../../features/auth/data/datasources/local/auth_local_datasource.dart';
+import '../../features/auth/data/datasources/local/auth_local_datasource_impl.dart';
+import '../../features/auth/data/datasources/remote/auth_remote_datasource.dart';
+import '../../features/auth/data/datasources/remote/auth_remote_datasource_impl.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/forgot_password_usecase.dart';
@@ -22,6 +22,12 @@ import '../../features/expenses/domain/usecases/get_current_month_expenses_useca
 import '../../features/expenses/presentation/blocs/activity/activity_bloc.dart';
 import '../../features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
 import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
+import '../../features/partners/data/datasources/remote/partnership_remote_datasource.dart';
+import '../../features/partners/data/datasources/remote/partnership_remote_datasource_impl.dart';
+import '../../features/partners/data/repositories/partnership_repository_impl.dart';
+import '../../features/partners/domain/repositories/partnership_repository.dart';
+import '../../features/partners/domain/usecases/get_partnerships_usecase.dart';
+import '../../features/partners/domain/usecases/send_partnership_request_usecase.dart';
 import '../services/sync/sync_service.dart';
 
 final sl = GetIt.instance;
@@ -47,8 +53,8 @@ Future<void> initDependencies() async {
   /// REPOSITORIES
 
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), localDatasource: sl()));
-
   sl.registerLazySingleton<ExpenseRepository>(() => ExpenseRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
+  sl.registerLazySingleton<PartnershipRepository>(() => PartnershipRepositoryImpl(remoteDatasource: sl()));
 
   /// USECASES
 
@@ -60,6 +66,9 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton(() => AddExpenseUsecase(sl()));
   sl.registerLazySingleton(() => GetCurrentMonthExpensesUsecase(sl()));
+  sl.registerLazySingleton(() => SendPartnershipRequestUsecase(sl()));
+
+  sl.registerLazySingleton(() => GetPartnershipsUsecase(sl()));
 
   /// BLOCS
 
@@ -75,6 +84,7 @@ Future<void> initDependencies() async {
   /// REMOTE DATASOURCE
 
   sl.registerLazySingleton<ExpenseRemoteDatasource>(() => ExpenseRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<PartnershipRemoteDatasource>(() => PartnershipRemoteDatasourceImpl(firestore: sl()));
 
   /// Services
   sl.registerLazySingleton(() => SyncService(localDatasource: sl(), remoteDatasource: sl()));

@@ -191,11 +191,9 @@ class ProfileScreen extends StatelessWidget {
 
                               Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
 
-                              if (user.nickname != null) ...[
-                                const SizedBox(height: 4),
+                              const SizedBox(height: 4),
 
-                                Text('@${user.nickname}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                              ],
+                              Text('@${user.nickname}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
 
                               const SizedBox(height: 12),
 

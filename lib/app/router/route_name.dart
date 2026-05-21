@@ -1,21 +1,15 @@
 enum AppRoute {
   splash('/', 'splash'),
-
   login('/login', 'login'),
-
   register('/register', 'register'),
-
   forgotPassword('/forgotPassword', 'forgotPassword'),
-
   home('/home', 'home'),
-
   groups('/groups', 'groups'),
-
   activity('/activity', 'activity'),
-
   profile('/profile', 'profile'),
-
-  addExpense('/addExpense', 'addExpense');
+  addExpense('/addExpense', 'addExpense'),
+  partners('/partners', 'partners'),
+  addPartner('/partners/add', 'addPartner');
 
   final String path;
 
