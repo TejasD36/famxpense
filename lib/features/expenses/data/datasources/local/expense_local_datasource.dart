@@ -1,4 +1,4 @@
-import '../../xcore.dart';
+import '../../../xcore.dart';
 
 abstract interface class ExpenseLocalDatasource {
   Future<void> saveExpense(ExpenseDto expense);

@@ -1,4 +1,4 @@
-import '../../xcore.dart';
+import '../../../xcore.dart';
 
 class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto> implements ExpenseLocalDatasource {
   ExpenseLocalDatasourceImpl() : super(Hive.box<ExpenseDto>(HiveBoxes.expenses));
@@ -10,9 +10,9 @@ class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto> implements 
 
   @override
   Future<void> saveExpenses(List<ExpenseDto> expenses) async {
-    for (final expense in expenses) {
-      await saveExpense(expense);
-    }
+    final map = {for (final expense in expenses) expense.id: expense};
+
+    await box.putAll(map);
   }
 
   @override

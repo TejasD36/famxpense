@@ -45,7 +45,9 @@ class _LoginScreenState extends State<LoginScreen> {
       },
 
       child: Scaffold(
-        appBar: AppBar(title: const Text('Login')),
+        appBar: AppBar(
+          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Login')),
+        ),
 
         body: Center(
           child: SingleChildScrollView(

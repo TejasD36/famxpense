@@ -146,8 +146,9 @@ class ProfileScreen extends StatelessWidget {
       },
 
       child: Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
-
+        appBar: AppBar(
+          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Profile')),
+        ),
         body: SafeArea(
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {

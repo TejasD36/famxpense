@@ -18,7 +18,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Activity')),
+      appBar: AppBar(
+        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Activity')),
+      ),
 
       body: BlocBuilder<ActivityBloc, ActivityState>(
         builder: (context, state) {

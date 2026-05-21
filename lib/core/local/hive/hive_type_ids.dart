@@ -15,6 +15,7 @@ abstract final class HiveTypeIds {
   static const int accountType = 13;
   static const int settlementStatus = 14;
   static const int notificationType = 15;
+  static const int partnershipStatus = 16;
 }
 
 // @HiveType(typeId: HiveTypeIds.user)

@@ -1,3 +1,4 @@
+import '../../../../core/services/sync/sync_service.dart';
 import '../../xcore.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,13 +19,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        state.whenOrNull(
-          authenticated: (_) {
+      listener: (context, state) async {
+        await state.whenOrNull(
+          authenticated: (user) async {
+            /// SYNC ALL DATA
+
+            await sl<SyncService>().syncExpenses(userId: user.id);
+
+            if (!context.mounted) {
+              return;
+            }
+
             context.go(AppRoute.home.path);
           },
 
-          unauthenticated: () {
+          unauthenticated: () async {
             context.go(AppRoute.login.path);
           },
         );

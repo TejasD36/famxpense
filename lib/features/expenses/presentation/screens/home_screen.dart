@@ -1,3 +1,5 @@
+import '../../../../core/services/sync/sync_service.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../xcore.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,7 +35,19 @@ class _HomeScreenState extends State<HomeScreen> {
               loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses) {
                 return RefreshIndicator(
                   onRefresh: () async {
-                    context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                    final authState = context.read<AuthBloc>().state;
+
+                    await authState.whenOrNull(
+                      authenticated: (user) async {
+                        /// SYNC FIRST
+                        await sl<SyncService>().syncExpenses(userId: user.id);
+
+                        /// RELOAD DASHBOARD
+                        if (context.mounted) {
+                          context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                        }
+                      },
+                    );
                   },
                   child: ListView(
                     padding: const EdgeInsets.all(20),

@@ -1,4 +1,4 @@
-import '../../xcore.dart';
+import '../../../xcore.dart';
 
 class DraftExpenseLocalDatasourceImpl extends BaseHiveService<DraftExpenseDto> implements DraftExpenseLocalDatasource {
   DraftExpenseLocalDatasourceImpl() : super(Hive.box<DraftExpenseDto>(HiveBoxes.draftExpenses));

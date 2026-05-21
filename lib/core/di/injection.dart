@@ -11,8 +11,10 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/expenses/data/datasources/expense_local_datasource.dart';
-import '../../features/expenses/data/datasources/expense_local_datasource_impl.dart';
+import '../../features/expenses/data/datasources/local/expense_local_datasource.dart';
+import '../../features/expenses/data/datasources/local/expense_local_datasource_impl.dart';
+import '../../features/expenses/data/datasources/remote/expense_remote_datasource.dart';
+import '../../features/expenses/data/datasources/remote/expense_remote_datasource_impl.dart';
 import '../../features/expenses/data/repositories/expense_repository_impl.dart';
 import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
@@ -20,6 +22,7 @@ import '../../features/expenses/domain/usecases/get_current_month_expenses_useca
 import '../../features/expenses/presentation/blocs/activity/activity_bloc.dart';
 import '../../features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
 import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
+import '../services/sync/sync_service.dart';
 
 final sl = GetIt.instance;
 
@@ -45,7 +48,7 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), localDatasource: sl()));
 
-  sl.registerLazySingleton<ExpenseRepository>(() => ExpenseRepositoryImpl(localDatasource: sl()));
+  sl.registerLazySingleton<ExpenseRepository>(() => ExpenseRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
 
   /// USECASES
 
@@ -68,4 +71,11 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
   sl.registerFactory(() => ActivityBloc(getExpensesUsecase: sl()));
   sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl()));
+
+  /// REMOTE DATASOURCE
+
+  sl.registerLazySingleton<ExpenseRemoteDatasource>(() => ExpenseRemoteDatasourceImpl(firestore: sl()));
+
+  /// Services
+  sl.registerLazySingleton(() => SyncService(localDatasource: sl(), remoteDatasource: sl()));
 }

@@ -1,0 +1,7 @@
+import '../../../xcore.dart';
+
+abstract interface class ExpenseRemoteDatasource {
+  Future<void> createExpense(ExpenseRemoteDto expense);
+  Future<List<ExpenseRemoteDto>> fetchExpenses({required String userId});
+  Future<List<ExpenseRemoteDto>> getExpenses({required String userId});
+}

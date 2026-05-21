@@ -6,6 +6,7 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/notification_type.dart';
+import 'package:famxpense/shared/enums/partnership_status.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
 import 'package:famxpense/shared/enums/split_type.dart';
 import 'package:famxpense/shared/enums/sync_status.dart';
@@ -33,6 +34,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
+    registerAdapter(PartnershipStatusAdapter());
     registerAdapter(SettlementDtoAdapter());
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
@@ -54,6 +56,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
+    registerAdapter(PartnershipStatusAdapter());
     registerAdapter(SettlementDtoAdapter());
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
