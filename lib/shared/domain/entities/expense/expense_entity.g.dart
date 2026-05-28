@@ -13,6 +13,7 @@ _ExpenseEntity _$ExpenseEntityFromJson(Map<String, dynamic> json) =>
       note: json['note'] as String?,
       amount: (json['amount'] as num).toDouble(),
       paidByUserId: json['paidByUserId'] as String,
+      ownerUserId: json['ownerUserId'] as String,
       expenseType: $enumDecode(_$ExpenseTypeEnumMap, json['expenseType']),
       splitType: $enumDecode(_$SplitTypeEnumMap, json['splitType']),
       participants: (json['participants'] as List<dynamic>)
@@ -36,6 +37,7 @@ Map<String, dynamic> _$ExpenseEntityToJson(_ExpenseEntity instance) =>
       'note': instance.note,
       'amount': instance.amount,
       'paidByUserId': instance.paidByUserId,
+      'ownerUserId': instance.ownerUserId,
       'expenseType': _$ExpenseTypeEnumMap[instance.expenseType]!,
       'splitType': _$SplitTypeEnumMap[instance.splitType]!,
       'participants': instance.participants,

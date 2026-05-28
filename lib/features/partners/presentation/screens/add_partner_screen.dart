@@ -1,4 +1,5 @@
 import '../../xcore.dart';
+import '../blocs/partner_bloc.dart';
 
 class AddPartnerScreen extends StatefulWidget {
   const AddPartnerScreen({super.key});
@@ -10,16 +11,6 @@ class AddPartnerScreen extends StatefulWidget {
 class _AddPartnerScreenState extends State<AddPartnerScreen> {
   final _searchController = TextEditingController();
 
-  bool _isLoading = false;
-
-  _SearchState _searchState = _SearchState.initial;
-
-  /// DUMMY SEARCH RESULT
-
-  String nickname = '';
-
-  String email = '';
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -27,46 +18,14 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
     super.dispose();
   }
 
-  Future<void> _searchUser() async {
+  void _searchUser() {
     final query = _searchController.text.trim();
 
     if (query.isEmpty) {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    /// DUMMY LOGIC
-
-    if (query == 'rahul' || query == 'rahul@gmail.com') {
-      nickname = 'rahul';
-
-      email = 'rahul@gmail.com';
-
-      _searchState = _SearchState.found;
-    } else if (query == 'amit') {
-      nickname = 'amit';
-
-      email = 'amit@gmail.com';
-
-      _searchState = _SearchState.connected;
-    } else if (query == 'rohit') {
-      nickname = 'rohit';
-
-      email = 'rohit@gmail.com';
-
-      _searchState = _SearchState.pending;
-    } else {
-      _searchState = _SearchState.notFound;
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
+    context.read<PartnerBloc>().add(PartnerEvent.searchUser(query: query));
   }
 
   @override
@@ -97,9 +56,7 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                         onPressed: () {
                           _searchController.clear();
 
-                          setState(() {
-                            _searchState = _SearchState.initial;
-                          });
+                          context.read<PartnerBloc>().add(const PartnerEvent.clearSearch());
                         },
 
                         icon: const Icon(Icons.close_rounded),
@@ -116,93 +73,128 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
             SizedBox(
               width: double.infinity,
 
-              child: FilledButton(
-                onPressed: _isLoading ? null : _searchUser,
-
-                child: _isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Search'),
-              ),
+              child: FilledButton(onPressed: _searchUser, child: const Text('Search')),
             ),
 
             const SizedBox(height: 28),
 
             /// RESULTS
             Expanded(
-              child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: _buildContent()),
+              child: BlocBuilder<PartnerBloc, PartnerState>(
+                builder: (context, state) {
+                  return state.when(
+                    /// INITIAL
+                    initial: () {
+                      return const PartnerEmptyView(
+                        title: 'Search Partners',
+
+                        subtitle:
+                            'Search using nickname '
+                            'or email to connect.',
+                      );
+                    },
+
+                    /// LOADING
+                    loading: () {
+                      return const Center(child: CircularProgressIndicator());
+                    },
+
+                    /// ERROR
+                    error: (message) {
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+
+                        children: [
+                          const PartnerEmptyView(
+                            title: 'User Not Found',
+
+                            subtitle:
+                                'Invite them to join '
+                                'FamXpense.',
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          FilledButton.icon(
+                            onPressed: () {
+                              /// SHARE INVITE LATER
+                            },
+
+                            icon: const Icon(Icons.share_rounded),
+
+                            label: const Text('Invite'),
+                          ),
+                        ],
+                      );
+                    },
+
+                    /// LOADED
+                    loaded: (searchedUser, connectedPartners, incomingRequests, outgoingRequests) {
+                      /// USER NOT FOUND
+
+                      if (searchedUser == null) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+
+                          children: [
+                            const PartnerEmptyView(
+                              title: 'User Not Found',
+
+                              subtitle:
+                                  'Invite them to join '
+                                  'FamXpense.',
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            FilledButton.icon(
+                              onPressed: () {
+                                /// SHARE INVITE LATER
+                              },
+
+                              icon: const Icon(Icons.share_rounded),
+
+                              label: const Text('Invite'),
+                            ),
+                          ],
+                        );
+                      }
+
+                      /// CHECK CONNECTION STATUS
+
+                      final isConnected = connectedPartners.any((e) {
+                        return e.senderId == searchedUser.id || e.receiverId == searchedUser.id;
+                      });
+
+                      final isPending = outgoingRequests.any((e) {
+                        return e.receiverId == searchedUser.id;
+                      });
+
+                      return PartnerTile(
+                        nickname: searchedUser.nickname,
+
+                        email: searchedUser.email,
+
+                        trailing: isConnected
+                            ? const Chip(label: Text('Connected'))
+                            : isPending
+                            ? const Chip(label: Text('Pending'))
+                            : FilledButton(
+                                onPressed: () {
+                                  context.read<PartnerBloc>().add(PartnerEvent.sendRequest(user: searchedUser));
+                                },
+
+                                child: const Text('Add'),
+                              ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildContent() {
-    switch (_searchState) {
-      case _SearchState.initial:
-        return const PartnerEmptyView(
-          title: 'Search Partners',
-
-          subtitle:
-              'Search using nickname '
-              'or email to connect.',
-        );
-
-      case _SearchState.found:
-        return PartnerTile(
-          nickname: nickname,
-
-          email: email,
-
-          trailing: FilledButton(onPressed: () {}, child: const Text('Add')),
-        );
-
-      case _SearchState.connected:
-        return PartnerTile(
-          nickname: nickname,
-
-          email: email,
-
-          trailing: const Chip(label: Text('Connected')),
-        );
-
-      case _SearchState.pending:
-        return PartnerTile(
-          nickname: nickname,
-
-          email: email,
-
-          trailing: const Chip(label: Text('Pending')),
-        );
-
-      case _SearchState.notFound:
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-
-          children: [
-            const PartnerEmptyView(
-              title: 'User Not Found',
-
-              subtitle:
-                  'Invite them to join '
-                  'FamXpense.',
-            ),
-
-            const SizedBox(height: 24),
-
-            FilledButton.icon(
-              onPressed: () {
-                /// SHARE INVITE LATER
-              },
-
-              icon: const Icon(Icons.share_rounded),
-
-              label: const Text('Invite'),
-            ),
-          ],
-        );
-    }
-  }
 }
-
-enum _SearchState { initial, found, connected, pending, notFound }

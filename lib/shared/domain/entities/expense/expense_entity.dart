@@ -11,6 +11,7 @@ sealed class ExpenseEntity with _$ExpenseEntity {
     String? note,
     required double amount,
     required String paidByUserId,
+    required String ownerUserId,
     required ExpenseType expenseType,
     required SplitType splitType,
     required List<ExpenseParticipantEntity> participants,

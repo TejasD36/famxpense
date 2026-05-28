@@ -1,13 +1,18 @@
+import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
   final ExpenseLocalDatasource _localDatasource;
-
+  final AuthLocalDatasource _authLocalDatasource;
   final ExpenseRemoteDatasource _remoteDatasource;
 
-  ExpenseRepositoryImpl({required ExpenseLocalDatasource localDatasource, required ExpenseRemoteDatasource remoteDatasource})
-    : _localDatasource = localDatasource,
-      _remoteDatasource = remoteDatasource;
+  ExpenseRepositoryImpl({
+    required ExpenseLocalDatasource localDatasource,
+    required AuthLocalDatasource authLocalDatasource,
+    required ExpenseRemoteDatasource remoteDatasource,
+  }) : _localDatasource = localDatasource,
+       _authLocalDatasource = authLocalDatasource,
+       _remoteDatasource = remoteDatasource;
 
   @override
   Future<void> addExpense(ExpenseEntity expense) async {
@@ -42,14 +47,26 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
   @override
   Future<List<ExpenseEntity>> getExpenses() async {
-    final expenses = await _localDatasource.getExpenses();
+    final userId = _authLocalDatasource.getUserId();
+
+    if (userId == null) {
+      return [];
+    }
+
+    final expenses = await _localDatasource.getExpenses(ownerUserId: userId);
 
     return expenses.map((e) => e.toEntity()).toList();
   }
 
   @override
   Future<List<ExpenseEntity>> getCurrentMonthExpenses() async {
-    final expenses = await _localDatasource.getCurrentMonthExpenses();
+    final userId = _authLocalDatasource.getUserId();
+
+    if (userId == null) {
+      return [];
+    }
+
+    final expenses = await _localDatasource.getCurrentMonthExpenses(ownerUserId: userId);
 
     return expenses.map((e) => e.toEntity()).toList();
   }

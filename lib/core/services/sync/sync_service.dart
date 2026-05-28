@@ -21,7 +21,7 @@ class SyncService {
       /// STEP 1
       /// GET PENDING LOCAL EXPENSES
 
-      final pendingExpenses = await _localDatasource.getPendingExpenses();
+      final pendingExpenses = await _localDatasource.getPendingExpenses(ownerUserId: userId);
 
       AppLogger.sync(
         'Pending expenses: '

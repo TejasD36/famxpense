@@ -40,9 +40,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+
     final authState = context.read<AuthBloc>().state;
     String? userId;
     authState.whenOrNull(
@@ -62,6 +61,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
       amount: double.parse(_amountController.text.trim()),
       paidByUserId: userId!,
+      ownerUserId: userId!,
       expenseType: _expenseType,
       splitType: _splitType,
       participants: [ExpenseParticipantEntity(userId: userId!, amount: double.parse(_amountController.text.trim()))],

@@ -16,21 +16,27 @@ class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto> implements 
   }
 
   @override
-  Future<List<ExpenseDto>> getExpenses() async {
-    return getAll();
+  Future<List<ExpenseDto>> getExpenses({required String ownerUserId}) async {
+    return box.values.where((expense) {
+      return expense.ownerUserId == ownerUserId;
+    }).toList();
   }
 
   @override
-  Future<List<ExpenseDto>> getPendingExpenses() async {
-    return box.values.where((expense) => expense.syncStatus != SyncStatus.synced).toList();
+  Future<List<ExpenseDto>> getPendingExpenses({required String ownerUserId}) async {
+    return box.values.where((expense) {
+      return expense.ownerUserId == ownerUserId && expense.syncStatus != SyncStatus.synced;
+    }).toList();
   }
 
   @override
-  Future<List<ExpenseDto>> getCurrentMonthExpenses() async {
+  Future<List<ExpenseDto>> getCurrentMonthExpenses({required String ownerUserId}) async {
     final now = DateTime.now();
 
     return box.values.where((expense) {
-      return expense.expenseDate.month == now.month && expense.expenseDate.year == now.year;
+      final isCurrentMonth = expense.expenseDate.month == now.month && expense.expenseDate.year == now.year;
+
+      return expense.ownerUserId == ownerUserId && isCurrentMonth;
     }).toList();
   }
 
@@ -40,13 +46,13 @@ class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto> implements 
   }
 
   @override
-  Future<void> clearOldSyncedExpenses() async {
+  Future<void> clearOldSyncedExpenses({required String ownerUserId}) async {
     final now = DateTime.now();
 
     final itemsToDelete = box.values.where((expense) {
       final isCurrentMonth = expense.expenseDate.month == now.month && expense.expenseDate.year == now.year;
 
-      return !isCurrentMonth && expense.syncStatus == SyncStatus.synced;
+      return expense.ownerUserId == ownerUserId && !isCurrentMonth && expense.syncStatus == SyncStatus.synced;
     }).toList();
 
     for (final item in itemsToDelete) {

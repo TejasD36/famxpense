@@ -32,13 +32,14 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
       updatedAt: fields[12] as DateTime,
       syncStatus: fields[13] as SyncStatus,
       isDisabled: fields[14] == null ? false : fields[14] as bool,
+      ownerUserId: fields[15] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, ExpenseDto obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -68,7 +69,9 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
       ..writeByte(13)
       ..write(obj.syncStatus)
       ..writeByte(14)
-      ..write(obj.isDisabled);
+      ..write(obj.isDisabled)
+      ..writeByte(15)
+      ..write(obj.ownerUserId);
   }
 
   @override
@@ -104,6 +107,7 @@ _ExpenseDto _$ExpenseDtoFromJson(Map<String, dynamic> json) => _ExpenseDto(
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   syncStatus: $enumDecode(_$SyncStatusEnumMap, json['syncStatus']),
   isDisabled: json['isDisabled'] as bool? ?? false,
+  ownerUserId: json['ownerUserId'] as String,
 );
 
 Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) =>
@@ -123,6 +127,7 @@ Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) =>
       'updatedAt': instance.updatedAt.toIso8601String(),
       'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
       'isDisabled': instance.isDisabled,
+      'ownerUserId': instance.ownerUserId,
     };
 
 const _$ExpenseTypeEnumMap = {
