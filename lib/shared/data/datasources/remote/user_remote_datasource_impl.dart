@@ -1,5 +1,4 @@
 import '../../../../core.dart';
-import 'user_remote_datasource.dart';
 
 class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   final FirebaseFirestore _firestore;
@@ -22,6 +21,10 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
       /// NICKNAME SEARCH
 
       snapshot = await _firestore.collection(_collection).where('nicknameLowercase', isEqualTo: query.toLowerCase().trim()).limit(1).get();
+
+      if (snapshot.docs.isEmpty) {
+        snapshot = await _firestore.collection(_collection).where('nickname', isEqualTo: query.trim()).limit(1).get();
+      }
     }
 
     if (snapshot.docs.isEmpty) {

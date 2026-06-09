@@ -16,6 +16,10 @@ class _AppState extends State<App> {
     super.initState();
 
     _router = AppRouter.createRouter();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      sl<ThemeCubit>().loadTheme();
+    });
   }
 
   @override

@@ -20,13 +20,4 @@ class ExpenseRemoteDatasourceImpl implements ExpenseRemoteDatasource {
       return ExpenseRemoteDto.fromJson(doc.data());
     }).toList();
   }
-
-  @override
-  Future<List<ExpenseRemoteDto>> getExpenses({required String userId}) async {
-    final snapshot = await _firestore.collection(_expensesCollection).where('participantIds', arrayContains: userId).get();
-
-    return snapshot.docs.map((doc) {
-      return ExpenseRemoteDto.fromJson(doc.data());
-    }).toList();
-  }
 }

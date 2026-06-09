@@ -13,6 +13,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
     super.initState();
 
     context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+
+    sl<RefreshNotifier>().addListener(_onDataChanged);
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) {
+      context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+    }
   }
 
   @override

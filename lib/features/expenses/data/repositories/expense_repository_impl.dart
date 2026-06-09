@@ -1,18 +1,22 @@
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../debt_ledger/domain/usecases/compute_debt_usecase.dart';
 import '../../xcore.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
   final ExpenseLocalDatasource _localDatasource;
   final AuthLocalDatasource _authLocalDatasource;
   final ExpenseRemoteDatasource _remoteDatasource;
+  final ComputeDebtUsecase _computeDebtUsecase;
 
   ExpenseRepositoryImpl({
     required ExpenseLocalDatasource localDatasource,
     required AuthLocalDatasource authLocalDatasource,
     required ExpenseRemoteDatasource remoteDatasource,
+    required ComputeDebtUsecase computeDebtUsecase,
   }) : _localDatasource = localDatasource,
        _authLocalDatasource = authLocalDatasource,
-       _remoteDatasource = remoteDatasource;
+       _remoteDatasource = remoteDatasource,
+       _computeDebtUsecase = computeDebtUsecase;
 
   @override
   Future<void> addExpense(ExpenseEntity expense) async {
@@ -42,6 +46,20 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       );
 
       AppLogger.error('Expense upload error', e, stackTrace);
+    }
+
+    /// Compute debt for shared expenses
+    if (expense.expenseType == ExpenseType.shared) {
+      try {
+        await _computeDebtUsecase(
+          paidByUserId: expense.paidByUserId,
+          participants: expense.participants,
+          totalAmount: expense.amount,
+        );
+        AppLogger.success('Debt ledger updated');
+      } catch (e, stackTrace) {
+        AppLogger.error('Debt computation failed', e, stackTrace);
+      }
     }
   }
 

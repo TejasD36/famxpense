@@ -24,9 +24,12 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email.trim(), password: password);
 
-    final firebaseUser = credential.user!;
+    final firebaseUser = credential.user;
+    if (firebaseUser == null) {
+      throw Exception('Registration failed: no user returned from Firebase');
+    }
 
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
     final userDto = UserDto(
       id: firebaseUser.uid,
@@ -44,7 +47,15 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     /// STORE USER
 
-    await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(userDto.toJson());
+    try {
+      final data = userDto.toJson();
+      data['nicknameLowercase'] = nickname.trim().toLowerCase();
+      await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(data);
+    } catch (e) {
+      /// CLEANUP: remove Firebase Auth user if Firestore write fails
+      await firebaseUser.delete();
+      rethrow;
+    }
 
     return userDto;
   }
@@ -53,11 +64,19 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   Future<UserDto> login({required String email, required String password}) async {
     final credential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
 
-    final firebaseUser = credential.user!;
+    final firebaseUser = credential.user;
+    if (firebaseUser == null) {
+      throw Exception('Login failed: no user returned from Firebase');
+    }
 
     final doc = await _firestore.collection(_usersCollection).doc(firebaseUser.uid).get();
 
-    return UserDto.fromJson(doc.data()!);
+    final data = doc.data();
+    if (data == null) {
+      throw Exception('User data not found. Please contact support.');
+    }
+
+    return UserDto.fromJson(data);
   }
 
   @override
@@ -80,6 +99,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     if (!doc.exists) return null;
 
-    return UserDto.fromJson(doc.data()!);
+    final data = doc.data();
+    if (data == null) return null;
+
+    return UserDto.fromJson(data);
   }
 }

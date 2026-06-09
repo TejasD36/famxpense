@@ -12,7 +12,12 @@ extension ExpenseRemoteMapper on ExpenseEntity {
       splitType: splitType.name,
       ownerUserId: ownerUserId,
       participants: participants.map((e) {
-        return {'userId': e.userId, 'amount': e.amount};
+        return {
+          'userId': e.userId,
+          'amount': e.amount,
+          if (e.isSettled) 'isSettled': true,
+          if (e.settledAt != null) 'settledAt': e.settledAt!.toIso8601String(),
+        };
       }).toList(),
       participantIds: participants.map((e) => e.userId).toList(),
       groupId: groupId,
@@ -36,10 +41,15 @@ extension ExpenseRemoteDtoMapper on ExpenseRemoteDto {
       amount: amount,
       paidByUserId: paidByUserId,
       ownerUserId: ownerUserId,
-      expenseType: ExpenseType.values.byName(expenseType),
-      splitType: SplitType.values.byName(splitType),
+      expenseType: ExpenseType.values.where((e) => e.name == expenseType).firstOrNull ?? ExpenseType.personal,
+      splitType: SplitType.values.where((e) => e.name == splitType).firstOrNull ?? SplitType.equal,
       participants: participants.map((e) {
-        return ExpenseParticipantEntity(userId: e['userId'] as String, amount: (e['amount'] as num).toDouble());
+        return ExpenseParticipantEntity(
+          userId: e['userId'] as String,
+          amount: (e['amount'] as num).toDouble(),
+          isSettled: (e['isSettled'] as bool?) ?? false,
+          settledAt: e['settledAt'] != null ? DateTime.tryParse(e['settledAt'] as String) : null,
+        );
       }).toList(),
       groupId: groupId,
       accountId: accountId,

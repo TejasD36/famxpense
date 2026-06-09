@@ -10,5 +10,7 @@ sealed class AuthState with _$AuthState {
 
   const factory AuthState.unauthenticated() = AuthUnauthenticated;
 
+  const factory AuthState.passwordResetSent() = AuthPasswordResetSent;
+
   const factory AuthState.error(String message) = AuthError;
 }

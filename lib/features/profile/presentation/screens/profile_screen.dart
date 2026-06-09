@@ -1,4 +1,6 @@
 import '../../../../core.dart';
+import '../../../account/presentation/blocs/account_bloc.dart';
+import '../../../account/presentation/widgets/account_tile.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -153,11 +155,13 @@ class ProfileScreen extends StatelessWidget {
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               return state.when(
-                initial: () => const SizedBox(),
+                initial: () => const Center(child: CircularProgressIndicator()),
 
                 loading: () => const Center(child: CircularProgressIndicator()),
 
                 unauthenticated: () => const SizedBox(),
+
+                passwordResetSent: () => const SizedBox(),
 
                 error: (message) {
                   return Center(child: Text(message));
@@ -200,6 +204,49 @@ class ProfileScreen extends StatelessWidget {
                               Text(user.email, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                             ],
                           ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      /// Accounts
+                      BlocProvider<AccountBloc>(
+                        create: (_) => sl<AccountBloc>()..add(const AccountEvent.loadAccounts()),
+                        child: BlocBuilder<AccountBloc, AccountState>(
+                          builder: (context, state) {
+                            final accounts = state.maybeWhen(loaded: (a) => a, orElse: () => <AccountEntity>[]);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text('Accounts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                    const Spacer(),
+                                    TextButton.icon(
+                                      onPressed: () => context.pushNamed(AppRoute.addAccount.name),
+                                      icon: const Icon(Icons.add_rounded, size: 20),
+                                      label: const Text('Add'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                if (state.maybeWhen(loading: () => true, orElse: () => false))
+                                  const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                                else if (accounts.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 24),
+                                    child: Center(
+                                      child: Text('No accounts yet', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                    ),
+                                  )
+                                else
+                                  ...accounts.map((account) => AccountTile(
+                                    account: account,
+                                    onTap: () => context.pushNamed(AppRoute.accountDetail.name, extra: account),
+                                  )),
+                              ],
+                            );
+                          },
                         ),
                       ),
 

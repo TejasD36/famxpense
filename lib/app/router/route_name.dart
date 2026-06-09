@@ -9,7 +9,9 @@ enum AppRoute {
   profile('/profile', 'profile'),
   addExpense('/addExpense', 'addExpense'),
   partners('/partners', 'partners'),
-  addPartner('/partners/add', 'addPartner');
+  addPartner('/partners/add', 'addPartner'),
+  addAccount('/addAccount', 'addAccount'),
+  accountDetail('/accountDetail', 'accountDetail');
 
   final String path;
 

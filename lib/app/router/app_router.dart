@@ -1,4 +1,7 @@
 import '../../core.dart';
+import '../../features/account/presentation/blocs/account_bloc.dart';
+import '../../features/account/presentation/screens/add_account_screen.dart';
+import '../../features/account/presentation/screens/account_detail_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -11,6 +14,7 @@ import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/expenses/presentation/screens/home_screen.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/partners/presentation/screens/add_partner_screen.dart';
+import '../../features/partners/presentation/screens/partners_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../navigation/main_navigation.dart';
 
@@ -51,11 +55,20 @@ class AppRouter {
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: AppRoute.addPartner.path,
-                  name: AppRoute.addPartner.name,
+                  path: AppRoute.partners.path,
+                  name: AppRoute.partners.name,
                   builder: (_, _) {
-                    return BlocProvider(create: (_) => sl<PartnerBloc>(), child: const AddPartnerScreen());
+                    return BlocProvider(create: (_) => sl<PartnerBloc>(), child: const PartnersScreen());
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      name: AppRoute.addPartner.name,
+                      builder: (_, _) {
+                        return BlocProvider(create: (_) => sl<PartnerBloc>(), child: const AddPartnerScreen());
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -86,6 +99,20 @@ class AppRouter {
           name: AppRoute.addExpense.name,
           builder: (_, _) {
             return BlocProvider(create: (_) => sl<AddExpenseBloc>(), child: const AddExpenseScreen());
+          },
+        ),
+        GoRoute(
+          path: AppRoute.addAccount.path,
+          name: AppRoute.addAccount.name,
+          builder: (_, _) {
+            return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AddAccountScreen());
+          },
+        ),
+        GoRoute(
+          path: AppRoute.accountDetail.path,
+          name: AppRoute.accountDetail.name,
+          builder: (_, _) {
+            return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AccountDetailScreen());
           },
         ),
       ],

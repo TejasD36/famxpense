@@ -1,14 +1,12 @@
 import '../../core.dart';
 
 class ThemeCubit extends Cubit<ThemeState> {
-  ThemeCubit() : super(const ThemeState()) {
-    _loadTheme();
-  }
+  ThemeCubit() : super(const ThemeState());
 
   static const _boxName = 'settings_box';
   static const _themeKey = 'theme_mode';
 
-  Future<void> _loadTheme() async {
+  Future<void> loadTheme() async {
     final box = await Hive.openBox(_boxName);
 
     final value = box.get(_themeKey) as String?;

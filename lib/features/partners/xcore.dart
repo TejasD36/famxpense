@@ -6,6 +6,7 @@ export 'data/transformers/dtos/partnership_remote_dto.dart';
 export 'data/transformers/mappers/partnership_remote_mapper.dart';
 export 'domain/repositories/partnership_repository.dart';
 export 'domain/usecases/get_partnerships_usecase.dart';
+export 'domain/usecases/search_user_usecase.dart';
 export 'domain/usecases/send_partnership_request_usecase.dart';
 export 'presentation/screens/add_partner_screen.dart';
 export 'presentation/screens/partners_screen.dart';

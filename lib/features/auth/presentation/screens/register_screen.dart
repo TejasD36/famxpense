@@ -48,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         email: _emailController.text.trim(),
 
-        password: _passwordController.text.trim(),
+        password: _passwordController.text,
       ),
     );
   }
@@ -59,10 +59,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       listener: (context, state) {
         state.whenOrNull(
           authenticated: (_) {
+            if (!context.mounted) return;
             context.go(AppRoute.home.path);
           },
 
           error: (message) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
           },
         );
@@ -154,7 +156,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailController,
 
+                      keyboardType: TextInputType.emailAddress,
+
                       decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter email';
+                        }
+                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                          return 'Enter a valid email address';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -165,6 +179,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: true,
 
                       decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+
+                      onChanged: (_) {
+                        _confirmPasswordController.text.isNotEmpty
+                            ? _formKey.currentState?.validate()
+                            : null;
+                      },
                     ),
 
                     const SizedBox(height: 16),

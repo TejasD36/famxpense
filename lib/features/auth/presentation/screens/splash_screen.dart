@@ -33,6 +33,10 @@ class _SplashScreenState extends State<SplashScreen> {
             context.go(AppRoute.home.path);
           },
 
+          passwordResetSent: () {
+            context.go(AppRoute.login.path);
+          },
+
           unauthenticated: () async {
             context.go(AppRoute.login.path);
           },

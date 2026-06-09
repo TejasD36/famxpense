@@ -19,6 +19,8 @@ class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
     try {
       await _addExpenseUsecase(event.expense);
 
+      sl<RefreshNotifier>().notifyDataChanged();
+
       emit(const AddExpenseState.success());
     } catch (e) {
       emit(AddExpenseState.error(e.toString()));
