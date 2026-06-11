@@ -71,8 +71,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
 
       child: Scaffold(
-        appBar: AppBar(title: const Text('Register')),
-
+        appBar: AppBar(
+          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Register')),
+        ),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -181,9 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
 
                       onChanged: (_) {
-                        _confirmPasswordController.text.isNotEmpty
-                            ? _formKey.currentState?.validate()
-                            : null;
+                        _confirmPasswordController.text.isNotEmpty ? _formKey.currentState?.validate() : null;
                       },
                     ),
 

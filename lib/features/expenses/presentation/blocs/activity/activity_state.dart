@@ -6,7 +6,7 @@ sealed class ActivityState with _$ActivityState {
 
   const factory ActivityState.loading() = ActivityLoading;
 
-  const factory ActivityState.loaded(List<ExpenseEntity> expenses) = ActivityLoaded;
+  const factory ActivityState.loaded(List<ActivityItem> items) = ActivityLoaded;
 
   const factory ActivityState.empty() = ActivityEmpty;
 

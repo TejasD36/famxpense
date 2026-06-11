@@ -19,6 +19,7 @@ class MainNavigation extends StatelessWidget {
       floatingActionButton: isKeyboardVisible
           ? null
           : FloatingActionButton(
+              heroTag: 'add_expense_fab',
               shape: CircleBorder(),
               onPressed: () {
                 context.push(AppRoute.addExpense.path);

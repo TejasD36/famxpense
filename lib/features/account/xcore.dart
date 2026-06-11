@@ -1,6 +1,8 @@
 export '../../core.dart';
 export 'data/datasources/account_local_datasource.dart';
 export 'data/datasources/account_local_datasource_impl.dart';
+export 'data/datasources/manual_deposit_local_datasource.dart';
+export 'data/datasources/manual_deposit_local_datasource_impl.dart';
 export 'data/datasources/remote/account_remote_datasource.dart';
 export 'data/datasources/remote/account_remote_datasource_impl.dart';
 export 'data/repositories/account_repository_impl.dart';

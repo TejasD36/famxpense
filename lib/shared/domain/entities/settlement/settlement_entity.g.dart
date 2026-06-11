@@ -20,6 +20,7 @@ _SettlementEntity _$SettlementEntityFromJson(Map<String, dynamic> json) =>
       relatedExpenseIds: (json['relatedExpenseIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      accountId: json['accountId'] as String?,
     );
 
 Map<String, dynamic> _$SettlementEntityToJson(_SettlementEntity instance) =>
@@ -32,6 +33,7 @@ Map<String, dynamic> _$SettlementEntityToJson(_SettlementEntity instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'confirmedAt': instance.confirmedAt?.toIso8601String(),
       'relatedExpenseIds': instance.relatedExpenseIds,
+      'accountId': instance.accountId,
     };
 
 const _$SettlementStatusEnumMap = {

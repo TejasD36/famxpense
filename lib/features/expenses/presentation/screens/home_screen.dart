@@ -1,4 +1,5 @@
 import '../../../../core/services/sync/sync_service.dart';
+import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../debt_ledger/domain/usecases/get_debts_usecase.dart';
@@ -204,19 +205,43 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
-class _ExpenseTile extends StatelessWidget {
+class _ExpenseTile extends StatefulWidget {
   final ExpenseEntity expense;
   const _ExpenseTile({required this.expense});
+
+  @override
+  State<_ExpenseTile> createState() => _ExpenseTileState();
+}
+
+class _ExpenseTileState extends State<_ExpenseTile> {
+  String? _accountName;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final id = widget.expense.accountId;
+    if (id == null) return;
+    final dtos = await sl<AccountLocalDatasource>().getAccounts();
+    final name = dtos.where((a) => a.id == id).firstOrNull?.accountName;
+    if (mounted) setState(() => _accountName = name);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       child: ListTile(
-        leading: CircleAvatar(child: Icon(expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
-        title: Text(expense.title),
-        subtitle: Text(DateFormat('dd MMM yyyy').format(expense.expenseDate)),
-        trailing: Text('₹${expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        leading: CircleAvatar(child: Icon(widget.expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
+        title: Text(widget.expense.title),
+        subtitle: Text([
+          DateFormat('dd MMM yyyy').format(widget.expense.expenseDate),
+          ?_accountName,
+        ].join(' • ')),
+        trailing: Text('₹${widget.expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -280,6 +305,9 @@ class _DebtSummaryCards extends StatelessWidget {
             }
           }
         }
+
+        youAreOwed.removeWhere((e) => e.value <= 0);
+        youOwe.removeWhere((e) => e.value <= 0);
 
         if (youAreOwed.isEmpty && youOwe.isEmpty) return const SizedBox();
 
@@ -356,54 +384,149 @@ class _DebtSummaryCards extends StatelessWidget {
 
   void _showSettleDialog(BuildContext context, {required String userId, required String fromUserId, required String toUserId, required double amount}) {
     final controller = TextEditingController(text: amount.toStringAsFixed(0));
+    final homeBloc = context.read<HomeBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+    final bottomInset = MediaQuery.of(context).size.height * 0.1;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Settle Up'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter amount to settle:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Amount (₹)',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () async {
-              final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
-              if (settleAmount <= 0) return;
+      builder: (ctx) {
+        return FutureBuilder<List<AccountDto>>(
+          future: sl<AccountLocalDatasource>().getAccounts(),
+          builder: (context, snapshot) {
+            final userAccounts = (snapshot.data ?? [])
+                .where((a) => a.userId == fromUserId)
+                .toList();
+            String? selectedAccountId;
+            String? selectedAccountName;
 
-              final messenger = ScaffoldMessenger.of(context);
-              final homeBloc = context.read<HomeBloc>();
-              final navCtx = ctx;
+            return StatefulBuilder(
+              builder: (context, setDialogState) {
+                if (selectedAccountId == null && userAccounts.isNotEmpty) {
+                  selectedAccountId = userAccounts.first.id;
+                  selectedAccountName = userAccounts.first.accountName;
+                }
+                final selectedAccountBalance = selectedAccountId != null
+                    ? userAccounts.where((a) => a.id == selectedAccountId).firstOrNull?.currentBalance ?? 0
+                    : 0.0;
 
-              await sl<SettleDebtUsecase>()(
-                fromUserId: fromUserId,
-                toUserId: toUserId,
-                amount: settleAmount,
-              );
+                return AlertDialog(
+                  title: const Text('Settle Up'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Enter amount to settle:'),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: controller,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Amount (₹)',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onChanged: (_) => setDialogState(() {}),
+                      ),
+                      if (selectedAccountBalance > 0) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Balance: ₹${selectedAccountBalance.toStringAsFixed(0)}',
+                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      const Text('Pay from account:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      if (snapshot.connectionState != ConnectionState.done)
+                        const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)))
+                      else if (userAccounts.isEmpty)
+                        Text('No accounts available', style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant))
+                      else
+                        RadioGroup<String>(
+                          groupValue: selectedAccountId,
+                          onChanged: (v) {
+                            setDialogState(() {
+                              selectedAccountId = v;
+                              selectedAccountName = userAccounts.firstWhere((a) => a.id == v).accountName;
+                            });
+                          },
+                          child: Column(
+                            children: userAccounts.map((a) => ListTile(
+                              leading: Radio<String>(value: a.id),
+                              title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
+                              subtitle: Text('₹${a.currentBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 12)),
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              onTap: () {
+                                setDialogState(() {
+                                  selectedAccountId = a.id;
+                                  selectedAccountName = a.accountName;
+                                });
+                              },
+                            )).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                    FilledButton(
+                      onPressed: () async {
+                        final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
+                        if (settleAmount <= 0) {
+                          messenger.showSnackBar(SnackBar(
+                            content: const Text('Enter a valid amount'),
+                            behavior: SnackBarBehavior.floating,
+                          ));
+                          return;
+                        }
+                        if (settleAmount > amount) {
+                          messenger.showSnackBar(SnackBar(
+                            content: Text('Amount cannot exceed ₹${amount.toStringAsFixed(0)}'),
+                            behavior: SnackBarBehavior.floating,
+                          ));
+                          return;
+                        }
+                        if (selectedAccountId == null) {
+                          messenger.showSnackBar(SnackBar(
+                            content: const Text('Select an account to pay from'),
+                            behavior: SnackBarBehavior.floating,
+                          ));
+                          return;
+                        }
+                        if (settleAmount > selectedAccountBalance) {
+                          messenger.showSnackBar(SnackBar(
+                            content: Text('Insufficient balance in $selectedAccountName (₹${selectedAccountBalance.toStringAsFixed(0)})'),
+                            behavior: SnackBarBehavior.floating,
+                          ));
+                          return;
+                        }
 
-              Navigator.pop(navCtx);
-              messenger.showSnackBar(SnackBar(
-                content: const Text('Settled successfully'),
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-              ));
-              homeBloc.add(const HomeEvent.loadDashboard());
-            },
-            child: const Text('Settle'),
-          ),
-        ],
-      ),
+                        await sl<SettleDebtUsecase>()(
+                          fromUserId: fromUserId,
+                          toUserId: toUserId,
+                          amount: settleAmount,
+                          fromAccountId: selectedAccountId,
+                        );
+
+                        if (!ctx.mounted) return;
+                        Navigator.pop(ctx);
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('Settled successfully from $selectedAccountName'),
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.only(bottom: bottomInset),
+                        ));
+                        homeBloc.add(const HomeEvent.loadDashboard());
+                      },
+                      child: const Text('Settle'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 

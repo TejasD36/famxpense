@@ -131,6 +131,55 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
 
     /// Build participants
+    if (_expenseType == ExpenseType.shared && _splitType == SplitType.manual) {
+      final participantIds = <String>[currentUserId];
+      for (final p in _selectedPartners) {
+        participantIds.add(_partnerUserId(p, currentUserId));
+      }
+      final autoId = participantIds.length > 1 ? participantIds.last : null;
+      if (autoId != null) {
+        final sumOthers = _manualAmounts.entries
+            .where((e) => e.key != autoId)
+            .fold(0.0, (s, e) => s + e.value);
+        _manualAmounts[autoId] = amount - sumOthers;
+      }
+      final manualTotal = _manualAmounts.values.fold(0.0, (a, b) => a + b);
+      if ((manualTotal - amount).abs() > 0.01) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Total shares ₹${manualTotal.toStringAsFixed(0)} ≠ ₹${amount.toStringAsFixed(0)}'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ));
+        return;
+      }
+      for (final entry in _manualAmounts.entries) {
+        if (entry.value <= 0 && entry.key != autoId) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: const Text('Each participant must have a share greater than 0'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          ));
+          return;
+        }
+        if (entry.value > amount) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: const Text('A participant share cannot exceed the total amount'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          ));
+          return;
+        }
+      }
+      if (_manualAmounts.values.any((v) => v == 0)) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('One participant has 0 share. Please remove them or adjust amounts.'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ));
+        return;
+      }
+    }
+
     final participants = <ExpenseParticipantEntity>[
       ExpenseParticipantEntity(userId: currentUserId, amount: _computeShare(amount, currentUserId)),
       ..._selectedPartners.map((p) {
@@ -227,24 +276,26 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       context: context,
       isDismissible: true,
       builder: (_) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Split With', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                if (_connectedPartners.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: Text('No connected partners yet')),
-                  )
-                else
-                  ..._connectedPartners.map((p) {
-                    final isSelected = _selectedPartners.any((sp) => sp.id == p.id);
-                    final nickname = p.senderNickname;
+        builder: (context, setSheetState) {
+          final pickerUserId = sl<AuthLocalDatasource>().getUserId();
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Split With', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  if (_connectedPartners.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: Text('No connected partners yet')),
+                    )
+                  else
+                    ..._connectedPartners.map((p) {
+                      final isSelected = _selectedPartners.any((sp) => sp.id == p.id);
+                      final nickname = pickerUserId == p.senderId ? p.receiverNickname : p.senderNickname;
                     return CheckboxListTile(
                       value: isSelected,
                       title: Text('@$nickname'),
@@ -269,8 +320,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
+    ),
     );
     if (!mounted) return;
     setState(() {});
@@ -657,7 +709,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       _manualAmounts[pid] = val;
                       return TextEditingController(text: val.toStringAsFixed(0));
                     }),
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (val) {
+                      final parsed = double.tryParse(val.trim());
+                      _manualAmounts[pid] = parsed ?? 0;
+                      setState(() {});
+                    },
                   ),
                 ),
             ],

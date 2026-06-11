@@ -27,7 +27,8 @@ abstract final class HiveInitializer {
       ..registerAdapter(SettlementStatusAdapter())
       ..registerAdapter(PartnershipStatusAdapter())
       ..registerAdapter(NotificationTypeAdapter())
-      ..registerAdapter(DraftExpenseDtoAdapter());
+      ..registerAdapter(DraftExpenseDtoAdapter())
+      ..registerAdapter(ManualDepositDtoAdapter());
   }
 
   static Future<void> _openBoxes() async {
@@ -53,6 +54,8 @@ abstract final class HiveInitializer {
       Hive.openBox<DraftExpenseDto>(HiveBoxes.draftExpenses),
 
       Hive.openBox(HiveBoxes.settings),
+
+      Hive.openBox<ManualDepositDto>(HiveBoxes.manualDeposits),
     ]);
   }
 }

@@ -11,6 +11,7 @@ extension SettlementDtoMapper on SettlementDto {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       relatedExpenseIds: relatedExpenseIds,
+      accountId: accountId,
     );
   }
 }
@@ -26,6 +27,7 @@ extension SettlementEntityMapper on SettlementEntity {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       relatedExpenseIds: relatedExpenseIds,
+      accountId: accountId,
     );
   }
 }

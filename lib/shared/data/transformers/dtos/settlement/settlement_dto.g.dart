@@ -25,13 +25,14 @@ class SettlementDtoAdapter extends TypeAdapter<SettlementDto> {
       createdAt: fields[5] as DateTime,
       confirmedAt: fields[6] as DateTime?,
       relatedExpenseIds: (fields[7] as List?)?.cast<String>(),
+      accountId: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, SettlementDto obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class SettlementDtoAdapter extends TypeAdapter<SettlementDto> {
       ..writeByte(6)
       ..write(obj.confirmedAt)
       ..writeByte(7)
-      ..write(obj.relatedExpenseIds);
+      ..write(obj.relatedExpenseIds)
+      ..writeByte(8)
+      ..write(obj.accountId);
   }
 
   @override
@@ -79,6 +82,7 @@ _SettlementDto _$SettlementDtoFromJson(Map<String, dynamic> json) =>
       relatedExpenseIds: (json['relatedExpenseIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      accountId: json['accountId'] as String?,
     );
 
 Map<String, dynamic> _$SettlementDtoToJson(_SettlementDto instance) =>
@@ -91,6 +95,7 @@ Map<String, dynamic> _$SettlementDtoToJson(_SettlementDto instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'confirmedAt': instance.confirmedAt?.toIso8601String(),
       'relatedExpenseIds': instance.relatedExpenseIds,
+      'accountId': instance.accountId,
     };
 
 const _$SettlementStatusEnumMap = {

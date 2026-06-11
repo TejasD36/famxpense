@@ -5,9 +5,12 @@ import '../../../features/debt_ledger/data/datasources/remote/debt_ledger_remote
 import '../../../features/expenses/data/datasources/local/expense_local_datasource.dart';
 import '../../../features/expenses/data/datasources/remote/expense_remote_datasource.dart';
 import '../../../features/expenses/data/transformers/mappers/expense_remote_mapper.dart';
+import '../../../features/settlement/data/datasources/settlement_local_datasource.dart';
+import '../../../features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
 import '../../../shared/data/transformers/mappers/account/account_mapper.dart';
 import '../../../shared/data/transformers/mappers/debt_ledger/debt_ledger_mapper.dart';
 import '../../../shared/data/transformers/mappers/expense/expense_mapper.dart';
+import '../../../shared/data/transformers/mappers/settlement/settlement_mapper.dart';
 import '../../../shared/enums/sync_status.dart';
 import '../../logger/app_logger.dart';
 
@@ -18,6 +21,8 @@ class SyncService {
   final AccountRemoteDatasource _accountRemote;
   final DebtLedgerLocalDatasource _debtLedgerLocal;
   final DebtLedgerRemoteDatasource _debtLedgerRemote;
+  final SettlementLocalDatasource _settlementLocal;
+  final SettlementRemoteDatasource _settlementRemote;
 
   SyncService({
     required ExpenseLocalDatasource expenseLocal,
@@ -26,12 +31,16 @@ class SyncService {
     required AccountRemoteDatasource accountRemote,
     required DebtLedgerLocalDatasource debtLedgerLocal,
     required DebtLedgerRemoteDatasource debtLedgerRemote,
+    required SettlementLocalDatasource settlementLocal,
+    required SettlementRemoteDatasource settlementRemote,
   }) : _expenseLocal = expenseLocal,
        _expenseRemote = expenseRemote,
        _accountLocal = accountLocal,
        _accountRemote = accountRemote,
        _debtLedgerLocal = debtLedgerLocal,
-       _debtLedgerRemote = debtLedgerRemote;
+       _debtLedgerRemote = debtLedgerRemote,
+       _settlementLocal = settlementLocal,
+       _settlementRemote = settlementRemote;
 
   Future<bool> syncAll({required String userId}) async {
     AppLogger.sync('Full sync started');
@@ -40,6 +49,7 @@ class SyncService {
       await syncExpenses(userId: userId);
       await syncAccounts(userId: userId);
       await syncDebtLedgers(userId: userId);
+      await syncSettlements(userId: userId);
 
       AppLogger.success('Full sync completed');
       return true;
@@ -168,6 +178,42 @@ class SyncService {
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('Debt ledger sync failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> syncSettlements({required String userId}) async {
+    AppLogger.sync('Settlement sync started');
+
+    try {
+      final localSettlements = await _settlementLocal.getSettlements();
+      final localByUser = localSettlements.where((s) => s.fromUserId == userId || s.toUserId == userId).toList();
+
+      /// Upload local settlements to remote
+      for (final settlement in localByUser) {
+        try {
+          await _settlementRemote.createSettlement(settlement.toEntity());
+        } catch (e, stackTrace) {
+          AppLogger.warning('Failed uploading settlement: ${settlement.id}');
+          AppLogger.error('Settlement upload error', e, stackTrace);
+        }
+      }
+
+      /// Fetch remote settlements
+      final remoteSettlements = await _settlementRemote.fetchSettlements(userId: userId);
+      final localIds = localByUser.map((s) => s.id).toSet();
+
+      /// Save any remote-only settlements locally
+      for (final remote in remoteSettlements) {
+        if (!localIds.contains(remote.id)) {
+          await _settlementLocal.saveSettlement(remote.toDto());
+        }
+      }
+
+      AppLogger.success('Settlement sync completed (${remoteSettlements.length} remote)');
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error('Settlement sync failed', e, stackTrace);
       return false;
     }
   }

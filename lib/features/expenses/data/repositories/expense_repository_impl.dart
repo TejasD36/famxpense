@@ -1,3 +1,4 @@
+import '../../../account/domain/repositories/account_repository.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../debt_ledger/domain/usecases/compute_debt_usecase.dart';
 import '../../xcore.dart';
@@ -7,16 +8,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   final AuthLocalDatasource _authLocalDatasource;
   final ExpenseRemoteDatasource _remoteDatasource;
   final ComputeDebtUsecase _computeDebtUsecase;
+  final AccountRepository _accountRepository;
 
   ExpenseRepositoryImpl({
     required ExpenseLocalDatasource localDatasource,
     required AuthLocalDatasource authLocalDatasource,
     required ExpenseRemoteDatasource remoteDatasource,
     required ComputeDebtUsecase computeDebtUsecase,
+    required AccountRepository accountRepository,
   }) : _localDatasource = localDatasource,
        _authLocalDatasource = authLocalDatasource,
        _remoteDatasource = remoteDatasource,
-       _computeDebtUsecase = computeDebtUsecase;
+       _computeDebtUsecase = computeDebtUsecase,
+       _accountRepository = accountRepository;
 
   @override
   Future<void> addExpense(ExpenseEntity expense) async {
@@ -46,6 +50,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       );
 
       AppLogger.error('Expense upload error', e, stackTrace);
+    }
+
+    /// Deduct from account balance
+    if (expense.accountId != null) {
+      try {
+        final accounts = await _accountRepository.getAccounts(userId: expense.paidByUserId);
+        final account = accounts.firstWhere((a) => a.id == expense.accountId);
+        final newBalance = account.currentBalance - expense.amount;
+        await _accountRepository.updateBalance(expense.accountId!, newBalance);
+        AppLogger.success('Account balance deducted: ${account.accountName} → ₹$newBalance');
+      } catch (e, stackTrace) {
+        AppLogger.error('Account balance deduction failed', e, stackTrace);
+      }
     }
 
     /// Compute debt for shared expenses

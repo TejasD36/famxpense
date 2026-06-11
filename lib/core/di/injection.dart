@@ -1,6 +1,8 @@
 import '../../core.dart';
 import '../../features/account/data/datasources/account_local_datasource.dart';
 import '../../features/account/data/datasources/account_local_datasource_impl.dart';
+import '../../features/account/data/datasources/manual_deposit_local_datasource.dart';
+import '../../features/account/data/datasources/manual_deposit_local_datasource_impl.dart';
 import '../../features/account/data/datasources/remote/account_remote_datasource.dart';
 import '../../features/account/data/datasources/remote/account_remote_datasource_impl.dart';
 import '../../features/account/data/repositories/account_repository_impl.dart';
@@ -29,6 +31,8 @@ import '../../features/debt_ledger/data/repositories/debt_ledger_repository_impl
 import '../../features/debt_ledger/domain/repositories/debt_ledger_repository.dart';
 import '../../features/debt_ledger/domain/usecases/compute_debt_usecase.dart';
 import '../../features/debt_ledger/domain/usecases/get_debts_usecase.dart';
+import '../../features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
+import '../../features/settlement/data/datasources/remote/settlement_remote_datasource_impl.dart';
 import '../../features/settlement/data/datasources/settlement_local_datasource.dart';
 import '../../features/settlement/data/datasources/settlement_local_datasource_impl.dart';
 import '../../features/settlement/data/repositories/settlement_repository_impl.dart';
@@ -86,7 +90,7 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), localDatasource: sl(), userLocalDatasource: sl()));
   sl.registerLazySingleton<ExpenseRepository>(
-    () => ExpenseRepositoryImpl(localDatasource: sl(), authLocalDatasource: sl(), remoteDatasource: sl(), computeDebtUsecase: sl()),
+    () => ExpenseRepositoryImpl(localDatasource: sl(), authLocalDatasource: sl(), remoteDatasource: sl(), computeDebtUsecase: sl(), accountRepository: sl()),
   );
   sl.registerLazySingleton<PartnershipRepository>(() => PartnershipRepositoryImpl(remoteDatasource: sl()));
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(remoteDatasource: sl()));
@@ -115,7 +119,7 @@ Future<void> initDependencies() async {
   );
 
   sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
-  sl.registerFactory(() => ActivityBloc(getExpensesUsecase: sl()));
+  sl.registerFactory(() => ActivityBloc(getExpensesUsecase: sl(), settlementLocal: sl()));
   sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl()));
   sl.registerFactory(
     () => PartnerBloc(
@@ -148,12 +152,15 @@ Future<void> initDependencies() async {
       accountRemote: sl(),
       debtLedgerLocal: sl(),
       debtLedgerRemote: sl(),
+      settlementLocal: sl(),
+      settlementRemote: sl(),
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
 
   /// ACCOUNT
   sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());
+  sl.registerLazySingleton<ManualDepositLocalDatasource>(() => ManualDepositLocalDatasourceImpl());
   sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl()));
   sl.registerLazySingleton(() => GetAccountsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SaveAccountUsecase(repository: sl()));
@@ -170,6 +177,7 @@ Future<void> initDependencies() async {
 
   /// SETTLEMENT
   sl.registerLazySingleton<SettlementLocalDatasource>(() => SettlementLocalDatasourceImpl());
+  sl.registerLazySingleton<SettlementRemoteDatasource>(() => SettlementRemoteDatasourceImpl(firestore: sl()));
   sl.registerLazySingleton<SettlementRepository>(() => SettlementRepositoryImpl(localDatasource: sl()));
-  sl.registerLazySingleton(() => SettleDebtUsecase(settlementRepository: sl(), debtLedgerRepository: sl()));
+  sl.registerLazySingleton(() => SettleDebtUsecase(settlementRepository: sl(), debtLedgerRepository: sl(), accountRepository: sl()));
 }

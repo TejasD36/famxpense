@@ -332,12 +332,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<ExpenseEntity> expenses)?  loaded,TResult Function()?  empty,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<ActivityItem> items)?  loaded,TResult Function()?  empty,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case ActivityInitial() when initial != null:
 return initial();case ActivityLoading() when loading != null:
 return loading();case ActivityLoaded() when loaded != null:
-return loaded(_that.expenses);case ActivityEmpty() when empty != null:
+return loaded(_that.items);case ActivityEmpty() when empty != null:
 return empty();case ActivityError() when error != null:
 return error(_that.message);case _:
   return orElse();
@@ -357,12 +357,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<ExpenseEntity> expenses)  loaded,required TResult Function()  empty,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<ActivityItem> items)  loaded,required TResult Function()  empty,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case ActivityInitial():
 return initial();case ActivityLoading():
 return loading();case ActivityLoaded():
-return loaded(_that.expenses);case ActivityEmpty():
+return loaded(_that.items);case ActivityEmpty():
 return empty();case ActivityError():
 return error(_that.message);}
 }
@@ -378,12 +378,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<ExpenseEntity> expenses)?  loaded,TResult? Function()?  empty,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<ActivityItem> items)?  loaded,TResult? Function()?  empty,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case ActivityInitial() when initial != null:
 return initial();case ActivityLoading() when loading != null:
 return loading();case ActivityLoaded() when loaded != null:
-return loaded(_that.expenses);case ActivityEmpty() when empty != null:
+return loaded(_that.items);case ActivityEmpty() when empty != null:
 return empty();case ActivityError() when error != null:
 return error(_that.message);case _:
   return null;
@@ -473,14 +473,14 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 
 class ActivityLoaded with DiagnosticableTreeMixin implements ActivityState {
-  const ActivityLoaded(final  List<ExpenseEntity> expenses): _expenses = expenses;
+  const ActivityLoaded(final  List<ActivityItem> items): _items = items;
   
 
- final  List<ExpenseEntity> _expenses;
- List<ExpenseEntity> get expenses {
-  if (_expenses is EqualUnmodifiableListView) return _expenses;
+ final  List<ActivityItem> _items;
+ List<ActivityItem> get items {
+  if (_items is EqualUnmodifiableListView) return _items;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_expenses);
+  return EqualUnmodifiableListView(_items);
 }
 
 
@@ -495,21 +495,21 @@ $ActivityLoadedCopyWith<ActivityLoaded> get copyWith => _$ActivityLoadedCopyWith
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ActivityState.loaded'))
-    ..add(DiagnosticsProperty('expenses', expenses));
+    ..add(DiagnosticsProperty('items', items));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ActivityLoaded&&const DeepCollectionEquality().equals(other._expenses, _expenses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ActivityLoaded&&const DeepCollectionEquality().equals(other._items, _items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_expenses));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ActivityState.loaded(expenses: $expenses)';
+  return 'ActivityState.loaded(items: $items)';
 }
 
 
@@ -520,7 +520,7 @@ abstract mixin class $ActivityLoadedCopyWith<$Res> implements $ActivityStateCopy
   factory $ActivityLoadedCopyWith(ActivityLoaded value, $Res Function(ActivityLoaded) _then) = _$ActivityLoadedCopyWithImpl;
 @useResult
 $Res call({
- List<ExpenseEntity> expenses
+ List<ActivityItem> items
 });
 
 
@@ -537,10 +537,10 @@ class _$ActivityLoadedCopyWithImpl<$Res>
 
 /// Create a copy of ActivityState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? expenses = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? items = null,}) {
   return _then(ActivityLoaded(
-null == expenses ? _self._expenses : expenses // ignore: cast_nullable_to_non_nullable
-as List<ExpenseEntity>,
+null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+as List<ActivityItem>,
   ));
 }
 

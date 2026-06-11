@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettlementDto implements DiagnosticableTreeMixin {
 
-@HiveField(0) String get id;@HiveField(1) String get fromUserId;@HiveField(2) String get toUserId;@HiveField(3) double get amount;@HiveField(4) SettlementStatus get status;@HiveField(5) DateTime get createdAt;@HiveField(6) DateTime? get confirmedAt;@HiveField(7) List<String>? get relatedExpenseIds;
+@HiveField(0) String get id;@HiveField(1) String get fromUserId;@HiveField(2) String get toUserId;@HiveField(3) double get amount;@HiveField(4) SettlementStatus get status;@HiveField(5) DateTime get createdAt;@HiveField(6) DateTime? get confirmedAt;@HiveField(7) List<String>? get relatedExpenseIds;@HiveField(8) String? get accountId;
 /// Create a copy of SettlementDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $SettlementDtoCopyWith<SettlementDto> get copyWith => _$SettlementDtoCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettlementDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettlementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other.relatedExpenseIds, relatedExpenseIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettlementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other.relatedExpenseIds, relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(relatedExpenseIds));
+int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(relatedExpenseIds),accountId);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettlementDto(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds)';
+  return 'SettlementDto(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $SettlementDtoCopyWith<$Res>  {
   factory $SettlementDtoCopyWith(SettlementDto value, $Res Function(SettlementDto) _then) = _$SettlementDtoCopyWithImpl;
 @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String fromUserId,@HiveField(2) String toUserId,@HiveField(3) double amount,@HiveField(4) SettlementStatus status,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime? confirmedAt,@HiveField(7) List<String>? relatedExpenseIds
+@HiveField(0) String id,@HiveField(1) String fromUserId,@HiveField(2) String toUserId,@HiveField(3) double amount,@HiveField(4) SettlementStatus status,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime? confirmedAt,@HiveField(7) List<String>? relatedExpenseIds,@HiveField(8) String? accountId
 });
 
 
@@ -71,7 +71,7 @@ class _$SettlementDtoCopyWithImpl<$Res>
 
 /// Create a copy of SettlementDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fromUserId: null == fromUserId ? _self.fromUserId : fromUserId // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as double,status: null == status ? _self.status : status // ignore: cast_nullabl
 as SettlementStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,relatedExpenseIds: freezed == relatedExpenseIds ? _self.relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds, @HiveField(8)  String? accountId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettlementDto() when $default != null:
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds);case _:
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds, @HiveField(8)  String? accountId)  $default,) {final _that = this;
 switch (_that) {
 case _SettlementDto():
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds);}
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +202,10 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String fromUserId, @HiveField(2)  String toUserId, @HiveField(3)  double amount, @HiveField(4)  SettlementStatus status, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime? confirmedAt, @HiveField(7)  List<String>? relatedExpenseIds, @HiveField(8)  String? accountId)?  $default,) {final _that = this;
 switch (_that) {
 case _SettlementDto() when $default != null:
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds);case _:
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 @JsonSerializable()
 
 class _SettlementDto with DiagnosticableTreeMixin implements SettlementDto {
-  const _SettlementDto({@HiveField(0) required this.id, @HiveField(1) required this.fromUserId, @HiveField(2) required this.toUserId, @HiveField(3) required this.amount, @HiveField(4) required this.status, @HiveField(5) required this.createdAt, @HiveField(6) this.confirmedAt, @HiveField(7) final  List<String>? relatedExpenseIds}): _relatedExpenseIds = relatedExpenseIds;
+  const _SettlementDto({@HiveField(0) required this.id, @HiveField(1) required this.fromUserId, @HiveField(2) required this.toUserId, @HiveField(3) required this.amount, @HiveField(4) required this.status, @HiveField(5) required this.createdAt, @HiveField(6) this.confirmedAt, @HiveField(7) final  List<String>? relatedExpenseIds, @HiveField(8) this.accountId}): _relatedExpenseIds = relatedExpenseIds;
   factory _SettlementDto.fromJson(Map<String, dynamic> json) => _$SettlementDtoFromJson(json);
 
 @override@HiveField(0) final  String id;
@@ -235,6 +236,7 @@ class _SettlementDto with DiagnosticableTreeMixin implements SettlementDto {
   return EqualUnmodifiableListView(value);
 }
 
+@override@HiveField(8) final  String? accountId;
 
 /// Create a copy of SettlementDto
 /// with the given fields replaced by the non-null parameter values.
@@ -250,21 +252,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettlementDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettlementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other._relatedExpenseIds, _relatedExpenseIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettlementDto&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other._relatedExpenseIds, _relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(_relatedExpenseIds));
+int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(_relatedExpenseIds),accountId);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettlementDto(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds)';
+  return 'SettlementDto(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId)';
 }
 
 
@@ -275,7 +277,7 @@ abstract mixin class _$SettlementDtoCopyWith<$Res> implements $SettlementDtoCopy
   factory _$SettlementDtoCopyWith(_SettlementDto value, $Res Function(_SettlementDto) _then) = __$SettlementDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String fromUserId,@HiveField(2) String toUserId,@HiveField(3) double amount,@HiveField(4) SettlementStatus status,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime? confirmedAt,@HiveField(7) List<String>? relatedExpenseIds
+@HiveField(0) String id,@HiveField(1) String fromUserId,@HiveField(2) String toUserId,@HiveField(3) double amount,@HiveField(4) SettlementStatus status,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime? confirmedAt,@HiveField(7) List<String>? relatedExpenseIds,@HiveField(8) String? accountId
 });
 
 
@@ -292,7 +294,7 @@ class __$SettlementDtoCopyWithImpl<$Res>
 
 /// Create a copy of SettlementDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,}) {
   return _then(_SettlementDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fromUserId: null == fromUserId ? _self.fromUserId : fromUserId // ignore: cast_nullable_to_non_nullable
@@ -302,7 +304,8 @@ as double,status: null == status ? _self.status : status // ignore: cast_nullabl
 as SettlementStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,relatedExpenseIds: freezed == relatedExpenseIds ? _self._relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

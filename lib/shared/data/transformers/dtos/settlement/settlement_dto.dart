@@ -15,6 +15,7 @@ sealed class SettlementDto with _$SettlementDto {
     @HiveField(5) required DateTime createdAt,
     @HiveField(6) DateTime? confirmedAt,
     @HiveField(7) List<String>? relatedExpenseIds,
+    @HiveField(8) String? accountId,
   }) = _SettlementDto;
 
   factory SettlementDto.fromJson(Map<String, dynamic> json) => _$SettlementDtoFromJson(json);

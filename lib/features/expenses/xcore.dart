@@ -9,6 +9,7 @@ export 'domain/repositories/expense_repository.dart';
 export 'domain/usecases/add_expense_usecase.dart';
 export 'domain/usecases/get_current_month_expenses_usecase.dart';
 export 'presentation/blocs/activity/activity_bloc.dart';
+export 'presentation/blocs/activity/activity_item.dart';
 export 'presentation/blocs/add_expense/add_expense_bloc.dart';
 export 'presentation/blocs/home/home_bloc.dart';
 export 'presentation/screens/activity_screen.dart';

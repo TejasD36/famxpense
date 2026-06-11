@@ -1,6 +1,7 @@
 export 'data/datasources/local/user_local_datasource.dart';
 export 'data/datasources/remote/user_remote_datasource.dart';
 export 'data/transformers/dtos/account/account_dto.dart';
+export 'data/transformers/dtos/account/manual_deposit_dto.dart';
 export 'data/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
 export 'data/transformers/dtos/expense/draft_expense_dto.dart';
 export 'data/transformers/dtos/expense/expense_dto.dart';
