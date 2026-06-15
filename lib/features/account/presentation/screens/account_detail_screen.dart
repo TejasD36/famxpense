@@ -22,6 +22,22 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
   bool _initialized = false;
 
   @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_onDataChanged);
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) _loadTransactions();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {

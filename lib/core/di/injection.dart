@@ -63,8 +63,6 @@ import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
 import '../../shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import '../../shared/data/repositories/user_repository_impl.dart';
 import '../../shared/domain/repositories/user_repository.dart';
-import '../services/sync/sync_service.dart';
-
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -113,14 +111,14 @@ Future<void> initDependencies() async {
 
   /// BLOCS
 
-  sl.registerFactory(
+  sl.registerLazySingleton<AuthBloc>(
     () =>
         AuthBloc(registerUsecase: sl(), loginUsecase: sl(), logoutUsecase: sl(), forgotPasswordUsecase: sl(), getCurrentUserUsecase: sl()),
   );
 
   sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
   sl.registerFactory(() => ActivityBloc(getExpensesUsecase: sl(), settlementLocal: sl()));
-  sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl()));
+  sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl(), getDebtsUsecase: sl()));
   sl.registerFactory(
     () => PartnerBloc(
       searchUserUsecase: sl(),
@@ -154,6 +152,9 @@ Future<void> initDependencies() async {
       debtLedgerRemote: sl(),
       settlementLocal: sl(),
       settlementRemote: sl(),
+      userLocal: sl(),
+      userRemote: sl(),
+      partnershipRemote: sl(),
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());

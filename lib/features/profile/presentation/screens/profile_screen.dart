@@ -346,24 +346,28 @@ class _AccountsSection extends StatefulWidget {
 }
 
 class _AccountsSectionState extends State<_AccountsSection> {
+  late final AccountBloc _accountBloc;
+
   @override
   void initState() {
     super.initState();
+    _accountBloc = sl<AccountBloc>()..add(const AccountEvent.loadAccounts());
     sl<RefreshNotifier>().addListener(_refresh);
   }
 
   @override
   void dispose() {
     sl<RefreshNotifier>().removeListener(_refresh);
+    _accountBloc.close();
     super.dispose();
   }
 
-  void _refresh() => context.read<AccountBloc>().add(const AccountEvent.loadAccounts());
+  void _refresh() => _accountBloc.add(const AccountEvent.loadAccounts());
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AccountBloc>(
-      create: (_) => sl<AccountBloc>()..add(const AccountEvent.loadAccounts()),
+    return BlocProvider<AccountBloc>.value(
+      value: _accountBloc,
       child: BlocBuilder<AccountBloc, AccountState>(
         builder: (context, state) {
           final accounts = state.maybeWhen(loaded: (a) => a, orElse: () => <AccountEntity>[]);

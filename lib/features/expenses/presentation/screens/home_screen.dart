@@ -1,8 +1,6 @@
-import '../../../../core/services/sync/sync_service.dart';
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../debt_ledger/domain/usecases/get_debts_usecase.dart';
 import '../../../settlement/domain/usecases/settle_debt_usecase.dart';
 import '../../xcore.dart';
 
@@ -50,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
               error: (message) {
                 return Center(child: Text(message));
               },
-              loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses) {
+              loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses, debts, accountNames) {
                 return RefreshIndicator(
                   onRefresh: () async {
                     final authState = context.read<AuthBloc>().state;
@@ -75,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                   child: ListView(
+                    physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.all(20),
                     children: [
                       /// Header
@@ -89,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 28),
 
                       /// Debt Summary
-                      _DebtSummaryCards(),
+                      _DebtSummaryCards(debts: debts, userId: sl<AuthLocalDatasource>().getUserId() ?? ''),
                       const SizedBox(height: 20),
 
                       /// Total Spend Card
@@ -125,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
 
-                          child: _ExpenseTile(expense: expense),
+                          child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId]),
                         );
                       }),
                     ],
@@ -205,43 +204,23 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
-class _ExpenseTile extends StatefulWidget {
+class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
-  const _ExpenseTile({required this.expense});
-
-  @override
-  State<_ExpenseTile> createState() => _ExpenseTileState();
-}
-
-class _ExpenseTileState extends State<_ExpenseTile> {
-  String? _accountName;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final id = widget.expense.accountId;
-    if (id == null) return;
-    final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final name = dtos.where((a) => a.id == id).firstOrNull?.accountName;
-    if (mounted) setState(() => _accountName = name);
-  }
+  final String? accountName;
+  const _ExpenseTile({required this.expense, this.accountName});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       child: ListTile(
-        leading: CircleAvatar(child: Icon(widget.expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
-        title: Text(widget.expense.title),
+        leading: CircleAvatar(child: Icon(expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
+        title: Text(expense.title),
         subtitle: Text([
-          DateFormat('dd MMM yyyy').format(widget.expense.expenseDate),
-          ?_accountName,
+          DateFormat('dd MMM yyyy').format(expense.expenseDate),
+          ?accountName,
         ].join(' • ')),
-        trailing: Text('₹${widget.expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        trailing: Text('₹${expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -273,60 +252,53 @@ class _EmptyView extends StatelessWidget {
 }
 
 class _DebtSummaryCards extends StatelessWidget {
+  final List<DebtLedgerEntity> debts;
+  final String userId;
+
+  const _DebtSummaryCards({required this.debts, required this.userId});
+
   @override
   Widget build(BuildContext context) {
-    final userId = sl<AuthLocalDatasource>().getUserId();
-    if (userId == null) return const SizedBox();
+    if (debts.isEmpty) return const SizedBox();
 
-    return FutureBuilder<List<DebtLedgerEntity>>(
-      future: sl<GetDebtsUsecase>()(userId: userId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return _shimmerLoading();
+    final youAreOwed = <MapEntry<String, double>>[];
+    final youOwe = <MapEntry<String, double>>[];
 
-        if (snapshot.data!.isEmpty) return const SizedBox();
-
-        final debts = snapshot.data!;
-
-        final youAreOwed = <MapEntry<String, double>>[];
-        final youOwe = <MapEntry<String, double>>[];
-
-        for (final d in debts) {
-          if (d.userA == userId) {
-            if (d.netBalance > 0) {
-              youOwe.add(MapEntry(d.userB, d.netBalance));
-            } else {
-              youAreOwed.add(MapEntry(d.userB, d.netBalance.abs()));
-            }
-          } else {
-            if (d.netBalance > 0) {
-              youAreOwed.add(MapEntry(d.userA, d.netBalance));
-            } else {
-              youOwe.add(MapEntry(d.userA, d.netBalance.abs()));
-            }
-          }
+    for (final d in debts) {
+      if (d.userA == userId) {
+        if (d.netBalance > 0) {
+          youOwe.add(MapEntry(d.userB, d.netBalance));
+        } else {
+          youAreOwed.add(MapEntry(d.userB, d.netBalance.abs()));
         }
+      } else {
+        if (d.netBalance > 0) {
+          youAreOwed.add(MapEntry(d.userA, d.netBalance));
+        } else {
+          youOwe.add(MapEntry(d.userA, d.netBalance.abs()));
+        }
+      }
+    }
 
-        youAreOwed.removeWhere((e) => e.value <= 0);
-        youOwe.removeWhere((e) => e.value <= 0);
+    youAreOwed.removeWhere((e) => e.value <= 0);
+    youOwe.removeWhere((e) => e.value <= 0);
 
-        if (youAreOwed.isEmpty && youOwe.isEmpty) return const SizedBox();
+    if (youAreOwed.isEmpty && youOwe.isEmpty) return const SizedBox();
 
-        return Column(
-          children: [
-            if (youAreOwed.isNotEmpty) ...[
-              _sectionHeader(context, Icons.arrow_downward_rounded, Colors.green, 'You are owed'),
-              const SizedBox(height: 8),
-              ...youAreOwed.map((e) => _debtCard(context, e, Colors.green, settle: false, userId: userId)),
-              const SizedBox(height: 16),
-            ],
-            if (youOwe.isNotEmpty) ...[
-              _sectionHeader(context, Icons.arrow_upward_rounded, Colors.red, 'You owe'),
-              const SizedBox(height: 8),
-              ...youOwe.map((e) => _debtCard(context, e, Colors.red, settle: true, userId: userId)),
-            ],
-          ],
-        );
-      },
+    return Column(
+      children: [
+        if (youAreOwed.isNotEmpty) ...[
+          _sectionHeader(context, Icons.arrow_downward_rounded, Colors.green, 'You are owed'),
+          const SizedBox(height: 8),
+          ...youAreOwed.map((e) => _debtCard(context, e, Colors.green, settle: false, userId: userId)),
+          const SizedBox(height: 16),
+        ],
+        if (youOwe.isNotEmpty) ...[
+          _sectionHeader(context, Icons.arrow_upward_rounded, Colors.red, 'You owe'),
+          const SizedBox(height: 8),
+          ...youOwe.map((e) => _debtCard(context, e, Colors.red, settle: true, userId: userId)),
+        ],
+      ],
     );
   }
 
@@ -530,46 +502,4 @@ class _DebtSummaryCards extends StatelessWidget {
     );
   }
 
-  Widget _shimmerLoading() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.3, end: 0.7),
-      duration: const Duration(milliseconds: 1000),
-      builder: (context, value, _) {
-        return Column(
-          children: [
-            _shimmerCard(value),
-            const SizedBox(height: 8),
-            _shimmerCard(value),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _shimmerCard(double opacity) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 8),
-      color: Colors.grey.withValues(alpha: opacity * 0.15),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(radius: 18, backgroundColor: Colors.grey.withValues(alpha: opacity * 0.2)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(height: 12, width: 80, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: opacity * 0.2), borderRadius: BorderRadius.circular(4))),
-                  const SizedBox(height: 6),
-                  Container(height: 16, width: 60, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: opacity * 0.2), borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

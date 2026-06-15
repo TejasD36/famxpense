@@ -24,6 +24,7 @@ class AppTheme {
     final colorScheme = baseScheme.copyWith(
       primary: AppColor.primary,
       onPrimary: AppColor.white,
+      secondary: Colors.blue.shade300,
       onSecondary: AppColor.white,
       tertiary: AppColor.green,
       onTertiary: AppColor.white,
@@ -234,6 +235,11 @@ class AppTheme {
 
       /// RADIO
       radioTheme: RadioThemeData(fillColor: WidgetStateProperty.all(colorScheme.primary)),
+
+      /// ICON BUTTON
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(foregroundColor: colorScheme.onSurface),
+      ),
 
       /// LIST TILE
       listTileTheme: ListTileThemeData(iconColor: colorScheme.onSurface, textColor: colorScheme.onSurface),

@@ -1,4 +1,5 @@
 import '../core.dart';
+import '../features/auth/data/datasources/local/auth_local_datasource.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 
 class App extends StatefulWidget {
@@ -10,6 +11,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   late final GoRouter _router;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -19,7 +21,32 @@ class _AppState extends State<App> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       sl<ThemeCubit>().loadTheme();
+      _initApp();
     });
+  }
+
+  Future<void> _initApp() async {
+    if (_initialized) return;
+    _initialized = true;
+
+    final authBloc = sl<AuthBloc>();
+    authBloc.add(const AuthEvent.checkAuthStatus());
+
+    await authBloc.stream.firstWhere(
+      (state) => state.maybeWhen(
+        authenticated: (_) => true,
+        unauthenticated: () => true,
+        orElse: () => false,
+      ),
+    );
+
+    final userId = sl<AuthLocalDatasource>().getUserId();
+    if (userId != null) {
+      await sl<SyncService>().syncAll(userId: userId);
+    }
+
+    /// Notify all active screens to reload after sync
+    sl<RefreshNotifier>().notifyDataChanged();
   }
 
   @override

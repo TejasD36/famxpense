@@ -8,6 +8,14 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   static const _collection = 'users';
 
   @override
+  Future<UserRemoteDto?> getUser(String id) async {
+    final doc = await _firestore.collection(_collection).doc(id).get();
+    final data = doc.data();
+    if (data == null) return null;
+    return UserRemoteDto.fromJson(data);
+  }
+
+  @override
   Future<UserRemoteDto?> searchUser({required String query, required String currentUserId}) async {
     AppLogger.firebase('Searching user: $query');
 

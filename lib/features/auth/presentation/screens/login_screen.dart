@@ -34,7 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          authenticated: (_) {
+          authenticated: (_) async {
+            final userId = sl<AuthLocalDatasource>().getUserId();
+            if (userId != null) {
+              await sl<SyncService>().syncAll(userId: userId);
+              sl<RefreshNotifier>().notifyDataChanged();
+            }
             if (!context.mounted) return;
             context.go(AppRoute.home.path);
           },

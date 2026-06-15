@@ -7,3 +7,4 @@ export 'local/settings/app_settings.dart';
 export 'logger/app_logger.dart';
 export 'observers/simple_bloc_observer.dart';
 export 'services/refresh/refresh_notifier.dart';
+export 'services/sync/sync_service.dart';

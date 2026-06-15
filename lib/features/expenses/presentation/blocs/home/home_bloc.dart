@@ -1,3 +1,6 @@
+import '../../../../account/data/datasources/account_local_datasource.dart';
+import '../../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../../debt_ledger/domain/usecases/get_debts_usecase.dart';
 import '../../../xcore.dart';
 
 part 'home_bloc.freezed.dart';
@@ -6,10 +9,14 @@ part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetCurrentMonthExpensesUsecase _getExpensesUsecase;
+  final GetDebtsUsecase _getDebtsUsecase;
 
-  HomeBloc({required GetCurrentMonthExpensesUsecase getExpensesUsecase})
-    : _getExpensesUsecase = getExpensesUsecase,
-      super(const HomeState.initial()) {
+  HomeBloc({
+    required GetCurrentMonthExpensesUsecase getExpensesUsecase,
+    required GetDebtsUsecase getDebtsUsecase,
+  }) : _getExpensesUsecase = getExpensesUsecase,
+       _getDebtsUsecase = getDebtsUsecase,
+       super(const HomeState.initial()) {
     on<LoadDashboardEvent>(_onLoadDashboard);
   }
 
@@ -18,10 +25,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     try {
       final expenses = await _getExpensesUsecase();
+      final userId = sl<AuthLocalDatasource>().getUserId();
+      final debts = userId != null ? await _getDebtsUsecase(userId: userId) : <DebtLedgerEntity>[];
+      final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
+      final accountNames = {for (final a in accountDtos) a.id: a.accountName};
 
       if (expenses.isEmpty) {
-        emit(const HomeState.empty());
-
+        emit(
+          HomeState.empty(),
+        );
         return;
       }
 
@@ -46,6 +58,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           sharedSpend: sharedSpend,
           pendingSyncCount: pendingSyncCount,
           recentExpenses: expenses.take(5).toList(),
+          debts: debts,
+          accountNames: accountNames,
         ),
       );
     } catch (e) {
