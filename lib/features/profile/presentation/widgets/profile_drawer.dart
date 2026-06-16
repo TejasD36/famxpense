@@ -4,6 +4,7 @@ import '../../../../core.dart';
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../notification/presentation/blocs/notification_bloc.dart';
 
 class ProfileDrawer extends StatelessWidget {
   const ProfileDrawer({super.key});
@@ -101,6 +102,32 @@ class ProfileDrawer extends StatelessWidget {
               ),
             ),
             _AccountsList(),
+            const Divider(),
+
+            /// Notifications
+            BlocBuilder<NotificationBloc, NotificationState>(
+              builder: (context, state) {
+                final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
+                return ListTile(
+                  leading: const Icon(Icons.notifications_outlined),
+                  title: const Text('Notifications'),
+                  trailing: unread > 0
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.error,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            unread > 99 ? '99+' : unread.toString(),
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      : null,
+                  onTap: () => context.pushNamed(AppRoute.notifications.name),
+                );
+              },
+            ),
             const Divider(),
 
             /// Settings

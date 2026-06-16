@@ -6,5 +6,7 @@ export 'local/hive/services/base_hive_service.dart';
 export 'local/settings/app_settings.dart';
 export 'logger/app_logger.dart';
 export 'observers/simple_bloc_observer.dart';
+export 'services/notification/notification_service.dart';
+export 'services/notification/realtime_notification_service.dart';
 export 'services/refresh/refresh_notifier.dart';
 export 'services/sync/sync_service.dart';

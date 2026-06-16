@@ -13,7 +13,7 @@ _ExpenseRemoteDto _$ExpenseRemoteDtoFromJson(Map<String, dynamic> json) =>
       note: json['note'] as String?,
       amount: (json['amount'] as num).toDouble(),
       paidByUserId: json['paidByUserId'] as String,
-      ownerUserId: json['ownerUserId'] as String,
+      ownerUserId: json['ownerUserId'] as String?,
       expenseType: json['expenseType'] as String,
       splitType: json['splitType'] as String,
       participants: (json['participants'] as List<dynamic>)

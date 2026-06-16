@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../core.dart';
 import '../features/auth/data/datasources/local/auth_local_datasource.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
@@ -12,6 +14,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   late final GoRouter _router;
   bool _initialized = false;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -23,6 +26,12 @@ class _AppState extends State<App> {
       sl<ThemeCubit>().loadTheme();
       _initApp();
     });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _initApp() async {
@@ -38,12 +47,29 @@ class _AppState extends State<App> {
         unauthenticated: () => true,
         orElse: () => false,
       ),
-    );
+    ).timeout(const Duration(seconds: 10), onTimeout: () {
+      /// Attempt local session recovery as fallback
+      return const AuthState.unauthenticated();
+    });
 
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId != null) {
       await sl<SyncService>().syncAll(userId: userId);
+      sl<RealtimeNotificationService>().startListening(userId);
     }
+
+    /// Listen for auth changes to manage realtime listener
+    _authSubscription = authBloc.stream.listen((state) {
+      state.maybeWhen(
+        authenticated: (user) {
+          sl<RealtimeNotificationService>().startListening(user.id);
+        },
+        unauthenticated: () {
+          sl<RealtimeNotificationService>().stopListening();
+        },
+        orElse: () {},
+      );
+    });
 
     /// Notify all active screens to reload after sync
     sl<RefreshNotifier>().notifyDataChanged();

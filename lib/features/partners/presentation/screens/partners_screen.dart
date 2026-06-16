@@ -55,24 +55,32 @@ class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProvid
               ),
             ),
 
-            body: state.when(
-              initial: () => const Center(child: Text('Loading...')),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              loaded: (_, connectedPartners, incomingRequests, outgoingRequests) {
-                return TabBarView(
-                  children: [
-                    RefreshIndicator(
-                      onRefresh: () => _reloadPartners(),
-                      child: _ConnectedTab(partners: connectedPartners),
-                    ),
-                    RefreshIndicator(
-                      onRefresh: () => _reloadPartners(),
-                      child: _RequestsTab(incomingRequests: incomingRequests, outgoingRequests: outgoingRequests),
-                    ),
-                  ],
-                );
-              },
-              error: (message) => Center(child: Text(message)),
+            body: Stack(
+              children: [
+                state.maybeWhen(
+                  loaded: (_, connectedPartners, incomingRequests, outgoingRequests) {
+                    return TabBarView(
+                      children: [
+                        RefreshIndicator(
+                          onRefresh: () => _reloadPartners(),
+                          child: _ConnectedTab(partners: connectedPartners),
+                        ),
+                        RefreshIndicator(
+                          onRefresh: () => _reloadPartners(),
+                          child: _RequestsTab(incomingRequests: incomingRequests, outgoingRequests: outgoingRequests),
+                        ),
+                      ],
+                    );
+                  },
+                  orElse: () => const TabBarView(children: [SizedBox(), SizedBox()]),
+                ),
+                state.maybeWhen(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  initial: () => const Center(child: Text('Loading...')),
+                  error: (message) => Center(child: Text(message)),
+                  orElse: () => const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         );

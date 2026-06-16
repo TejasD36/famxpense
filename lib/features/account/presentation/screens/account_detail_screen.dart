@@ -85,7 +85,8 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     if (account.id == defaultAccountId) {
       for (final dto in settlementDtos) {
         final entity = dto.toEntity();
-        if (entity.toUserId == userId) {
+        /// Skip if already shown as a payment from this account
+        if (entity.toUserId == userId && entity.accountId != account.id) {
           transactions.add(SettlementDeposit(entity));
           totalDeposited += entity.amount;
         }

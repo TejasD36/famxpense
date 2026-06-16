@@ -5,4 +5,5 @@ export 'data/datasources/remote/settlement_remote_datasource.dart';
 export 'data/datasources/remote/settlement_remote_datasource_impl.dart';
 export 'data/repositories/settlement_repository_impl.dart';
 export 'domain/repositories/settlement_repository.dart';
+export 'domain/usecases/process_settlement_usecase.dart';
 export 'domain/usecases/settle_debt_usecase.dart';

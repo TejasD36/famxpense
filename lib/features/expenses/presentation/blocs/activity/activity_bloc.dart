@@ -28,8 +28,10 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       final expenses = await _getExpensesUsecase();
       final settlements = await _settlementLocal.getSettlements();
 
-      /// Only show settlements involving the current user
-      final userSettlements = settlements.where((s) => s.fromUserId == userId || s.toUserId == userId);
+      /// Only show confirmed settlements involving the current user
+      final userSettlements = settlements.where((s) =>
+        (s.fromUserId == userId || s.toUserId == userId) &&
+        s.status == SettlementStatus.confirmed);
 
       String? depositAccountName;
       final defaultAccountId = await AppSettings.getDefaultAccountId(userId: userId);

@@ -14,6 +14,8 @@ sealed class HomeState with _$HomeState {
     required List<ExpenseEntity> recentExpenses,
     @Default([]) List<DebtLedgerEntity> debts,
     @Default({}) Map<String, String> accountNames,
+    @Default([]) List<SettlementEntity> incomingPendingSettlements,
+    @Default([]) List<SettlementEntity> outgoingPendingSettlements,
   }) = HomeLoaded;
 
   const factory HomeState.empty() = HomeEmpty;

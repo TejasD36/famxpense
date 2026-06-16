@@ -54,10 +54,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         .map((d) => d.toEntity())
         .toList();
 
+    AccountEntity? selected;
+    if (userAccounts.isNotEmpty) {
+      final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
+      selected = defaultId != null
+          ? userAccounts.where((a) => a.id == defaultId).firstOrNull
+          : userAccounts.first;
+    }
+
     if (mounted) {
       setState(() {
         _accounts = userAccounts;
         _connectedPartners = connected;
+        _selectedAccount = selected;
       });
     }
   }

@@ -453,7 +453,7 @@ class _ExpenseTypeChart extends StatelessWidget {
                               (e) => PieChartSectionData(
                                 value: e.value,
                                 color: colors[e.key] ?? (isDark ? Colors.grey.shade500 : Colors.grey.shade600),
-                                title: '${(e.value / totalSpent * 100).toStringAsFixed(0)}%',
+                                title: '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
                                 titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
                                 radius: 60,
                               ),
@@ -469,7 +469,7 @@ class _ExpenseTypeChart extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: expenseTypeTotals.entries.map((e) {
-                      final pct = (e.value / totalSpent * 100);
+                      final pct = totalSpent > 0 ? e.value / totalSpent * 100 : 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
@@ -546,7 +546,7 @@ class _CategorySection extends StatelessWidget {
                         (e) => PieChartSectionData(
                           value: e.value,
                           color: categoryColor(e.key, isDark),
-                          title: '${(e.value / totalSpent * 100).toStringAsFixed(0)}%',
+                          title: '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
                           titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
                           radius: 70,
                         ),
@@ -562,7 +562,7 @@ class _CategorySection extends StatelessWidget {
               spacing: 12,
               runSpacing: 6,
               children: categoryTotals.entries.map((e) {
-                final pct = (e.value / totalSpent * 100);
+                final pct = totalSpent > 0 ? e.value / totalSpent * 100 : 0;
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

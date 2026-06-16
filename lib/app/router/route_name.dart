@@ -12,7 +12,9 @@ enum AppRoute {
   addPartner('/partners/add', 'addPartner'),
   addAccount('/addAccount', 'addAccount'),
   accountDetail('/accountDetail', 'accountDetail'),
-  statistics('/statistics', 'statistics');
+  statistics('/statistics', 'statistics'),
+  searchActivity('/searchActivity', 'searchActivity'),
+  notifications('/notifications', 'notifications');
 
   final String path;
 

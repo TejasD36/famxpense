@@ -90,6 +90,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
         title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Activity')),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Search',
+            onPressed: () => context.pushNamed(AppRoute.searchActivity.name),
+          ),
+          IconButton(
             icon: const Icon(Icons.filter_list_rounded),
             tooltip: 'Filter',
             onPressed: _showFilterSheet,

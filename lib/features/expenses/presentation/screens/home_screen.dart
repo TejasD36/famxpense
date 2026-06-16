@@ -1,6 +1,8 @@
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../notification/presentation/blocs/notification_bloc.dart';
+import '../../../settlement/domain/usecases/process_settlement_usecase.dart';
 import '../../../settlement/domain/usecases/settle_debt_usecase.dart';
 import '../../../../app/navigation/main_navigation.dart';
 import '../../xcore.dart';
@@ -18,10 +20,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
 
     final notifier = sl<RefreshNotifier>();
     if (notifier.hasData) {
       context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+      context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
     }
     notifier.addListener(_onDataChanged);
   }
@@ -35,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onDataChanged() {
     if (mounted) {
       context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+      context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
     }
   }
 
@@ -47,6 +52,41 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.menu_rounded),
           onPressed: () => MainNavigation.scaffoldKey.currentState?.openDrawer(),
         ),
+        actions: [
+          BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, state) {
+              final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: 'Notifications',
+                    onPressed: () => context.pushNamed(AppRoute.notifications.name),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        child: Text(
+                          unread > 99 ? '99+' : unread.toString(),
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: BlocBuilder<HomeBloc, HomeState>(
@@ -60,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
               error: (message) {
                 return Center(child: Text(message));
               },
-              loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses, debts, accountNames) {
+              loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses, debts, accountNames, incomingPendingSettlements, outgoingPendingSettlements) {
+                final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
                 return RefreshIndicator(
                   onRefresh: () async {
                     final authState = context.read<AuthBloc>().state;
@@ -99,8 +140,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 28),
 
+                      /// Pending Confirmations (incoming)
+                      if (incomingPendingSettlements.isNotEmpty) ...[
+                        _PendingConfirmations(incoming: incomingPendingSettlements, userId: userId),
+                        const SizedBox(height: 20),
+                      ],
+
+                      /// Pending Settlements (outgoing)
+                      if (outgoingPendingSettlements.isNotEmpty) ...[
+                        _PendingSettlements(outgoing: outgoingPendingSettlements, userId: userId),
+                        const SizedBox(height: 20),
+                      ],
+
                       /// Debt Summary
-                      _DebtSummaryCards(debts: debts, userId: sl<AuthLocalDatasource>().getUserId() ?? ''),
+                      _DebtSummaryCards(
+                        debts: debts,
+                        userId: sl<AuthLocalDatasource>().getUserId() ?? '',
+                        outgoingPendingSettlements: outgoingPendingSettlements,
+                      ),
                       const SizedBox(height: 20),
 
                       /// Total Spend Card
@@ -216,6 +273,143 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
+class _PendingConfirmations extends StatelessWidget {
+  final List<SettlementEntity> incoming;
+  final String userId;
+  const _PendingConfirmations({required this.incoming, required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.hourglass_bottom_rounded, color: Colors.orange.shade700, size: 20),
+            const SizedBox(width: 6),
+            Text('Pending Confirmations', style: TextStyle(color: Colors.orange.shade700, fontSize: 15, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...incoming.map((s) {
+          final otherId = s.fromUserId == userId ? s.toUserId : s.fromUserId;
+          final other = sl<UserLocalDatasource>().getUser(otherId);
+          final name = other?.nickname ?? 'Unknown';
+          return Card(
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 8),
+            color: Colors.orange.withValues(alpha: 0.08),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.orange.withValues(alpha: 0.15),
+                    child: Text('@', style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('@$name wants to settle', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text('₹${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange.shade700)),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.check_circle_rounded, color: Colors.green),
+                    tooltip: 'Confirm',
+                    onPressed: () => _handleConfirm(context, s),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel_rounded, color: Colors.red),
+                    tooltip: 'Reject',
+                    onPressed: () => _handleReject(context, s),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Future<void> _handleConfirm(BuildContext context, SettlementEntity settlement) async {
+    await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
+      context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    }
+  }
+
+  Future<void> _handleReject(BuildContext context, SettlementEntity settlement) async {
+    await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement rejected'), behavior: SnackBarBehavior.floating));
+      context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    }
+  }
+}
+
+class _PendingSettlements extends StatelessWidget {
+  final List<SettlementEntity> outgoing;
+  final String userId;
+  const _PendingSettlements({required this.outgoing, required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.access_time_rounded, color: Colors.blue.shade700, size: 20),
+            const SizedBox(width: 6),
+            Text('Pending Settlements', style: TextStyle(color: Colors.blue.shade700, fontSize: 15, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...outgoing.map((s) {
+          final otherId = s.fromUserId == userId ? s.toUserId : s.fromUserId;
+          final other = sl<UserLocalDatasource>().getUser(otherId);
+          final name = other?.nickname ?? 'Unknown';
+          return Card(
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 8),
+            color: Colors.blue.withValues(alpha: 0.08),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.blue.withValues(alpha: 0.15),
+                    child: Icon(Icons.access_time_rounded, size: 20, color: Colors.blue.shade700),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('To @$name', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text('₹${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue.shade700)),
+                      ],
+                    ),
+                  ),
+                  Text('Awaiting\nconfirmation', style: TextStyle(fontSize: 11, color: Colors.blue.shade300, height: 1.3)),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
 class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
   final String? accountName;
@@ -283,12 +477,15 @@ class _EmptyView extends StatelessWidget {
 class _DebtSummaryCards extends StatelessWidget {
   final List<DebtLedgerEntity> debts;
   final String userId;
+  final List<SettlementEntity> outgoingPendingSettlements;
 
-  const _DebtSummaryCards({required this.debts, required this.userId});
+  const _DebtSummaryCards({required this.debts, required this.userId, this.outgoingPendingSettlements = const []});
 
   @override
   Widget build(BuildContext context) {
     if (debts.isEmpty) return const SizedBox();
+
+    final pendingFromUserIds = outgoingPendingSettlements.map((s) => s.toUserId).toSet();
 
     final youAreOwed = <MapEntry<String, double>>[];
     final youOwe = <MapEntry<String, double>>[];
@@ -319,13 +516,13 @@ class _DebtSummaryCards extends StatelessWidget {
         if (youAreOwed.isNotEmpty) ...[
           _sectionHeader(context, Icons.arrow_downward_rounded, Colors.green, 'You are owed'),
           const SizedBox(height: 8),
-          ...youAreOwed.map((e) => _debtCard(context, e, Colors.green, settle: false, userId: userId)),
+          ...youAreOwed.map((e) => _debtCard(context, e, Colors.green, settle: false, userId: userId, pendingFromUserIds: pendingFromUserIds)),
           const SizedBox(height: 16),
         ],
         if (youOwe.isNotEmpty) ...[
           _sectionHeader(context, Icons.arrow_upward_rounded, Colors.red, 'You owe'),
           const SizedBox(height: 8),
-          ...youOwe.map((e) => _debtCard(context, e, Colors.red, settle: true, userId: userId)),
+          ...youOwe.map((e) => _debtCard(context, e, Colors.red, settle: true, userId: userId, pendingFromUserIds: pendingFromUserIds)),
         ],
       ],
     );
@@ -341,10 +538,11 @@ class _DebtSummaryCards extends StatelessWidget {
     );
   }
 
-  Widget _debtCard(BuildContext context, MapEntry<String, double> entry, MaterialColor color, {required bool settle, required String userId}) {
+  Widget _debtCard(BuildContext context, MapEntry<String, double> entry, MaterialColor color, {required bool settle, required String userId, Set<String> pendingFromUserIds = const {}}) {
     final otherUser = sl<UserLocalDatasource>().getUser(entry.key);
     final name = otherUser?.nickname ?? otherUser?.name ?? 'Unknown';
     final amount = entry.value;
+    final isPending = pendingFromUserIds.contains(entry.key);
 
     return Card(
       elevation: 0,
@@ -372,7 +570,12 @@ class _DebtSummaryCards extends StatelessWidget {
                 ],
               ),
             ),
-            if (settle)
+            if (settle && isPending)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text('Pending', style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
+              )
+            else if (settle)
               TextButton(
                 onPressed: () => _showSettleDialog(context, userId: userId, fromUserId: userId, toUserId: entry.key, amount: amount),
                 child: const Text('Settle', style: TextStyle(fontSize: 13)),

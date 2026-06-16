@@ -37,6 +37,7 @@ import '../../features/settlement/data/datasources/settlement_local_datasource.d
 import '../../features/settlement/data/datasources/settlement_local_datasource_impl.dart';
 import '../../features/settlement/data/repositories/settlement_repository_impl.dart';
 import '../../features/settlement/domain/repositories/settlement_repository.dart';
+import '../../features/settlement/domain/usecases/process_settlement_usecase.dart';
 import '../../features/settlement/domain/usecases/settle_debt_usecase.dart';
 import '../../features/expenses/data/datasources/local/draft_expense_local_datasource.dart';
 import '../../features/expenses/data/datasources/local/draft_expense_local_datasource_impl.dart';
@@ -51,6 +52,11 @@ import '../../features/expenses/domain/usecases/get_current_month_expenses_useca
 import '../../features/expenses/presentation/blocs/activity/activity_bloc.dart';
 import '../../features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
 import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
+import '../../features/notification/data/datasources/notification_local_datasource.dart';
+import '../../features/notification/data/datasources/notification_local_datasource_impl.dart';
+import '../../features/notification/data/datasources/remote/notification_remote_datasource.dart';
+import '../../features/notification/data/datasources/remote/notification_remote_datasource_impl.dart';
+import '../../features/notification/presentation/blocs/notification_bloc.dart';
 import '../../features/partners/data/datasources/remote/partnership_remote_datasource.dart';
 import '../../features/partners/data/datasources/remote/partnership_remote_datasource_impl.dart';
 import '../../features/partners/data/repositories/partnership_repository_impl.dart';
@@ -119,7 +125,7 @@ Future<void> initDependencies() async {
 
   sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
   sl.registerFactory(() => ActivityBloc(getExpensesUsecase: sl(), settlementLocal: sl()));
-  sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl(), getDebtsUsecase: sl()));
+  sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl(), getDebtsUsecase: sl(), settlementLocal: sl()));
   sl.registerFactory(
     () => PartnerBloc(
       searchUserUsecase: sl(),
@@ -158,6 +164,8 @@ Future<void> initDependencies() async {
       userLocal: sl(),
       userRemote: sl(),
       partnershipRemote: sl(),
+      notificationLocal: sl(),
+      notificationRemote: sl(),
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
@@ -182,6 +190,14 @@ Future<void> initDependencies() async {
   /// SETTLEMENT
   sl.registerLazySingleton<SettlementLocalDatasource>(() => SettlementLocalDatasourceImpl());
   sl.registerLazySingleton<SettlementRemoteDatasource>(() => SettlementRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<SettlementRepository>(() => SettlementRepositoryImpl(localDatasource: sl()));
-  sl.registerLazySingleton(() => SettleDebtUsecase(settlementRepository: sl(), debtLedgerRepository: sl(), accountRepository: sl()));
+  sl.registerLazySingleton<SettlementRepository>(() => SettlementRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
+  sl.registerLazySingleton(() => SettleDebtUsecase(settlementRepository: sl(), accountRepository: sl()));
+  sl.registerLazySingleton(() => ProcessSettlementUsecase(settlementRepository: sl(), debtLedgerRepository: sl(), accountRepository: sl()));
+
+  /// NOTIFICATIONS
+  sl.registerLazySingleton<NotificationLocalDatasource>(() => NotificationLocalDatasourceImpl());
+  sl.registerLazySingleton<NotificationRemoteDatasource>(() => NotificationRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton(() => NotificationService(sl(), sl()));
+  sl.registerLazySingleton(() => RealtimeNotificationService(sl(), sl()));
+  sl.registerFactory(() => NotificationBloc(datasource: sl()));
 }

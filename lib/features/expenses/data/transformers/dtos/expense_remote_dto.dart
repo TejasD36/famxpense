@@ -11,7 +11,7 @@ sealed class ExpenseRemoteDto with _$ExpenseRemoteDto {
     String? note,
     required double amount,
     required String paidByUserId,
-    required String ownerUserId,
+    String? ownerUserId,
     required String expenseType,
     required String splitType,
     required List<Map<String, dynamic>> participants,

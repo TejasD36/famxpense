@@ -12,6 +12,9 @@ import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
 import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/expenses/presentation/screens/home_screen.dart';
+import '../../features/expenses/presentation/screens/search_activity_screen.dart';
+import '../../features/notification/presentation/blocs/notification_bloc.dart';
+import '../../features/notification/presentation/screens/notification_screen.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/partners/presentation/screens/add_partner_screen.dart';
 import '../../features/partners/presentation/screens/partners_screen.dart';
@@ -37,7 +40,10 @@ class AppRouter {
         /// MAIN SHELL
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) {
-            return MainNavigation(shell: shell);
+            return BlocProvider(
+              create: (_) => sl<NotificationBloc>(),
+              child: MainNavigation(shell: shell),
+            );
           },
           branches: [
             /// HOME
@@ -129,6 +135,16 @@ class AppRouter {
           path: AppRoute.profile.path,
           name: AppRoute.profile.name,
           builder: (_, _) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.searchActivity.path,
+          name: AppRoute.searchActivity.name,
+          builder: (_, _) => const SearchActivityScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.notifications.path,
+          name: AppRoute.notifications.name,
+          builder: (_, _) => BlocProvider(create: (_) => sl<NotificationBloc>(), child: const NotificationScreen()),
         ),
       ],
     );

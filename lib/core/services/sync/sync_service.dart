@@ -5,6 +5,8 @@ import '../../../features/debt_ledger/data/datasources/remote/debt_ledger_remote
 import '../../../features/expenses/data/datasources/local/expense_local_datasource.dart';
 import '../../../features/expenses/data/datasources/remote/expense_remote_datasource.dart';
 import '../../../features/expenses/data/transformers/mappers/expense_remote_mapper.dart';
+import '../../../features/notification/data/datasources/notification_local_datasource.dart';
+import '../../../features/notification/data/datasources/remote/notification_remote_datasource.dart';
 import '../../../features/partners/data/datasources/remote/partnership_remote_datasource.dart';
 import '../../../features/settlement/data/datasources/settlement_local_datasource.dart';
 import '../../../features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
@@ -15,10 +17,13 @@ import '../../../shared/data/transformers/mappers/account/account_mapper.dart';
 import '../../../shared/data/transformers/mappers/debt_ledger/debt_ledger_mapper.dart';
 import '../../../shared/data/transformers/mappers/expense/expense_mapper.dart';
 import '../../../shared/data/transformers/mappers/settlement/settlement_mapper.dart';
+import '../../../shared/enums/settlement_status.dart';
 import '../../../shared/enums/sync_status.dart';
 import '../../logger/app_logger.dart';
 
 class SyncService {
+  bool _isSyncing = false;
+
   final ExpenseLocalDatasource _expenseLocal;
   final ExpenseRemoteDatasource _expenseRemote;
   final AccountLocalDatasource _accountLocal;
@@ -30,6 +35,8 @@ class SyncService {
   final UserLocalDatasource _userLocal;
   final UserRemoteDatasource _userRemote;
   final PartnershipRemoteDatasource _partnershipRemote;
+  final NotificationLocalDatasource _notificationLocal;
+  final NotificationRemoteDatasource _notificationRemote;
 
   SyncService({
     required ExpenseLocalDatasource expenseLocal,
@@ -43,6 +50,8 @@ class SyncService {
     required UserLocalDatasource userLocal,
     required UserRemoteDatasource userRemote,
     required PartnershipRemoteDatasource partnershipRemote,
+    required NotificationLocalDatasource notificationLocal,
+    required NotificationRemoteDatasource notificationRemote,
   }) : _expenseLocal = expenseLocal,
        _expenseRemote = expenseRemote,
        _accountLocal = accountLocal,
@@ -53,9 +62,16 @@ class SyncService {
        _settlementRemote = settlementRemote,
        _userLocal = userLocal,
        _userRemote = userRemote,
-       _partnershipRemote = partnershipRemote;
+       _partnershipRemote = partnershipRemote,
+       _notificationLocal = notificationLocal,
+       _notificationRemote = notificationRemote;
 
   Future<bool> syncAll({required String userId}) async {
+    if (_isSyncing) {
+      AppLogger.sync('Sync already in progress, skipping');
+      return false;
+    }
+    _isSyncing = true;
     AppLogger.sync('Full sync started');
 
     try {
@@ -64,12 +80,15 @@ class SyncService {
       await syncDebtLedgers(userId: userId);
       await syncSettlements(userId: userId);
       await syncUsers(userId: userId);
+      await syncNotifications(userId: userId);
 
       AppLogger.success('Full sync completed');
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('Full sync failed', e, stackTrace);
       return false;
+    } finally {
+      _isSyncing = false;
     }
   }
 
@@ -215,12 +234,33 @@ class SyncService {
 
       /// Fetch remote settlements
       final remoteSettlements = await _settlementRemote.fetchSettlements(userId: userId);
-      final localIds = localByUser.map((s) => s.id).toSet();
+      final localById = {for (final s in localByUser) s.id: s};
 
-      /// Save any remote-only settlements locally
+      /// Save any remote-only settlements locally and handle status transitions
       for (final remote in remoteSettlements) {
-        if (!localIds.contains(remote.id)) {
+        final local = localById[remote.id];
+        if (local == null) {
+          /// New remote settlement — save locally
           await _settlementLocal.saveSettlement(remote.toDto());
+        } else if (local.status == SettlementStatus.pending && remote.status == SettlementStatus.confirmed) {
+          /// Pending was confirmed on remote — update local status (debt already updated by confirmer)
+          await _settlementLocal.updateSettlementStatus(remote.id, SettlementStatus.confirmed);
+        } else if (local.status == SettlementStatus.pending && remote.status == SettlementStatus.rejected) {
+          /// Pending was rejected on remote — refund payer's account
+          await _settlementLocal.updateSettlementStatus(remote.id, SettlementStatus.rejected);
+          if (remote.accountId != null) {
+            try {
+              final accounts = await _accountLocal.getAccounts();
+              final account = accounts.where((a) => a.id == remote.accountId).firstOrNull;
+              if (account != null) {
+                await _accountLocal.saveAccount(
+                  account.copyWith(currentBalance: account.currentBalance + remote.amount),
+                );
+              }
+            } catch (e, stackTrace) {
+              AppLogger.error('Rejected settlement refund failed', e, stackTrace);
+            }
+          }
         }
       }
 
@@ -262,6 +302,38 @@ class SyncService {
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('User sync failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> syncNotifications({required String userId}) async {
+    AppLogger.sync('Notification sync started');
+
+    try {
+      /// Upload local notifications
+      final local = await _notificationLocal.getNotifications();
+      for (final n in local) {
+        try {
+          await _notificationRemote.uploadNotification(n);
+        } catch (e, stackTrace) {
+          AppLogger.warning('Failed uploading notification: ${n.id}');
+          AppLogger.error('Notification upload error', e, stackTrace);
+        }
+      }
+
+      /// Fetch remote notifications and merge
+      final remote = await _notificationRemote.fetchNotifications(userId: userId);
+      final localIds = local.map((n) => n.id).toSet();
+      for (final n in remote) {
+        if (!localIds.contains(n.id)) {
+          await _notificationLocal.saveNotification(n);
+        }
+      }
+
+      AppLogger.success('Notification sync completed (${remote.length} remote)');
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error('Notification sync failed', e, stackTrace);
       return false;
     }
   }

@@ -1,18 +1,14 @@
 import '../../../account/domain/repositories/account_repository.dart';
-import '../../../debt_ledger/domain/repositories/debt_ledger_repository.dart';
 import '../../xcore.dart';
 
 class SettleDebtUsecase {
   final SettlementRepository _settlementRepository;
-  final DebtLedgerRepository _debtLedgerRepository;
   final AccountRepository _accountRepository;
 
   SettleDebtUsecase({
     required SettlementRepository settlementRepository,
-    required DebtLedgerRepository debtLedgerRepository,
     required AccountRepository accountRepository,
   }) : _settlementRepository = settlementRepository,
-       _debtLedgerRepository = debtLedgerRepository,
        _accountRepository = accountRepository;
 
   Future<void> call({
@@ -27,18 +23,14 @@ class SettleDebtUsecase {
       fromUserId: fromUserId,
       toUserId: toUserId,
       amount: amount,
-      status: SettlementStatus.confirmed,
+      status: SettlementStatus.pending,
       createdAt: now,
-      confirmedAt: now,
       accountId: fromAccountId,
     );
 
     await _settlementRepository.createSettlement(settlement);
 
-    /// Reduce debt by settlement amount (fromUserId pays toUserId)
-    await _debtLedgerRepository.updateDebt(toUserId, fromUserId, amount);
-
-    /// Deduct from payer's selected account
+    /// Deduct from payer's selected account (money set aside pending confirmation)
     if (fromAccountId != null) {
       try {
         final accounts = await _accountRepository.getAccounts(userId: fromUserId);
@@ -52,7 +44,24 @@ class SettleDebtUsecase {
       }
     }
 
-    /// Deposit into recipient's default account (if accessible locally)
-    /// Cross-device deposit requires future sync-based handling
+    /// Debt NOT updated yet — waits for recipient confirmation
+
+    /// Send notification to recipient
+    try {
+      final fromNickname = () {
+        final fromUser = sl<UserLocalDatasource>().getUser(fromUserId);
+        return fromUser?.nickname ?? 'Someone';
+      }();
+      await sl<NotificationService>().notifySettlement(
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        fromNickname: fromNickname,
+        toNickname: '',
+        amount: amount,
+        settlementId: settlement.id,
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error('Settlement notification failed', e, stackTrace);
+    }
   }
 }

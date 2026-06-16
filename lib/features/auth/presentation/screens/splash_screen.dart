@@ -21,9 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
       listener: (context, state) async {
         await state.whenOrNull(
           authenticated: (user) async {
-            /// SYNC ALL DATA
-
-            await sl<SyncService>().syncAll(userId: user.id);
+            /// Navigation only — sync is handled by App._initApp
 
             if (!context.mounted) {
               return;

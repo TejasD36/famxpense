@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExpenseRemoteDto implements DiagnosticableTreeMixin {
 
- String get id; String get title; String? get note; double get amount; String get paidByUserId; String get ownerUserId; String get expenseType; String get splitType; List<Map<String, dynamic>> get participants; List<String> get participantIds; String? get groupId; String? get accountId; DateTime get expenseDate; DateTime get createdAt; DateTime get updatedAt; bool get isDisabled; String? get category;
+ String get id; String get title; String? get note; double get amount; String get paidByUserId; String? get ownerUserId; String get expenseType; String get splitType; List<Map<String, dynamic>> get participants; List<String> get participantIds; String? get groupId; String? get accountId; DateTime get expenseDate; DateTime get createdAt; DateTime get updatedAt; bool get isDisabled; String? get category;
 /// Create a copy of ExpenseRemoteDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $ExpenseRemoteDtoCopyWith<$Res>  {
   factory $ExpenseRemoteDtoCopyWith(ExpenseRemoteDto value, $Res Function(ExpenseRemoteDto) _then) = _$ExpenseRemoteDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, String expenseType, String splitType, List<Map<String, dynamic>> participants, List<String> participantIds, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, bool isDisabled, String? category
+ String id, String title, String? note, double amount, String paidByUserId, String? ownerUserId, String expenseType, String splitType, List<Map<String, dynamic>> participants, List<String> participantIds, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, bool isDisabled, String? category
 });
 
 
@@ -71,15 +71,15 @@ class _$ExpenseRemoteDtoCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseRemoteDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? participantIds = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? isDisabled = null,Object? category = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = freezed,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? participantIds = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? isDisabled = null,Object? category = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as double,paidByUserId: null == paidByUserId ? _self.paidByUserId : paidByUserId // ignore: cast_nullable_to_non_nullable
-as String,ownerUserId: null == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
-as String,expenseType: null == expenseType ? _self.expenseType : expenseType // ignore: cast_nullable_to_non_nullable
+as String,ownerUserId: freezed == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
+as String?,expenseType: null == expenseType ? _self.expenseType : expenseType // ignore: cast_nullable_to_non_nullable
 as String,splitType: null == splitType ? _self.splitType : splitType // ignore: cast_nullable_to_non_nullable
 as String,participants: null == participants ? _self.participants : participants // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>,participantIds: null == participantIds ? _self.participantIds : participantIds // ignore: cast_nullable_to_non_nullable
@@ -172,7 +172,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String? ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExpenseRemoteDto() when $default != null:
 return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.participantIds,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.isDisabled,_that.category);case _:
@@ -193,7 +193,7 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String? ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseRemoteDto():
 return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.participantIds,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.isDisabled,_that.category);}
@@ -210,7 +210,7 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String? ownerUserId,  String expenseType,  String splitType,  List<Map<String, dynamic>> participants,  List<String> participantIds,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  bool isDisabled,  String? category)?  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseRemoteDto() when $default != null:
 return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.participantIds,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.isDisabled,_that.category);case _:
@@ -225,7 +225,7 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 @JsonSerializable()
 
 class _ExpenseRemoteDto with DiagnosticableTreeMixin implements ExpenseRemoteDto {
-  const _ExpenseRemoteDto({required this.id, required this.title, this.note, required this.amount, required this.paidByUserId, required this.ownerUserId, required this.expenseType, required this.splitType, required final  List<Map<String, dynamic>> participants, required final  List<String> participantIds, this.groupId, this.accountId, required this.expenseDate, required this.createdAt, required this.updatedAt, this.isDisabled = false, this.category}): _participants = participants,_participantIds = participantIds;
+  const _ExpenseRemoteDto({required this.id, required this.title, this.note, required this.amount, required this.paidByUserId, this.ownerUserId, required this.expenseType, required this.splitType, required final  List<Map<String, dynamic>> participants, required final  List<String> participantIds, this.groupId, this.accountId, required this.expenseDate, required this.createdAt, required this.updatedAt, this.isDisabled = false, this.category}): _participants = participants,_participantIds = participantIds;
   factory _ExpenseRemoteDto.fromJson(Map<String, dynamic> json) => _$ExpenseRemoteDtoFromJson(json);
 
 @override final  String id;
@@ -233,7 +233,7 @@ class _ExpenseRemoteDto with DiagnosticableTreeMixin implements ExpenseRemoteDto
 @override final  String? note;
 @override final  double amount;
 @override final  String paidByUserId;
-@override final  String ownerUserId;
+@override final  String? ownerUserId;
 @override final  String expenseType;
 @override final  String splitType;
  final  List<Map<String, dynamic>> _participants;
@@ -297,7 +297,7 @@ abstract mixin class _$ExpenseRemoteDtoCopyWith<$Res> implements $ExpenseRemoteD
   factory _$ExpenseRemoteDtoCopyWith(_ExpenseRemoteDto value, $Res Function(_ExpenseRemoteDto) _then) = __$ExpenseRemoteDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, String expenseType, String splitType, List<Map<String, dynamic>> participants, List<String> participantIds, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, bool isDisabled, String? category
+ String id, String title, String? note, double amount, String paidByUserId, String? ownerUserId, String expenseType, String splitType, List<Map<String, dynamic>> participants, List<String> participantIds, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, bool isDisabled, String? category
 });
 
 
@@ -314,15 +314,15 @@ class __$ExpenseRemoteDtoCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseRemoteDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? participantIds = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? isDisabled = null,Object? category = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = freezed,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? participantIds = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? isDisabled = null,Object? category = freezed,}) {
   return _then(_ExpenseRemoteDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as double,paidByUserId: null == paidByUserId ? _self.paidByUserId : paidByUserId // ignore: cast_nullable_to_non_nullable
-as String,ownerUserId: null == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
-as String,expenseType: null == expenseType ? _self.expenseType : expenseType // ignore: cast_nullable_to_non_nullable
+as String,ownerUserId: freezed == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
+as String?,expenseType: null == expenseType ? _self.expenseType : expenseType // ignore: cast_nullable_to_non_nullable
 as String,splitType: null == splitType ? _self.splitType : splitType // ignore: cast_nullable_to_non_nullable
 as String,participants: null == participants ? _self._participants : participants // ignore: cast_nullable_to_non_nullable
 as List<Map<String, dynamic>>,participantIds: null == participantIds ? _self._participantIds : participantIds // ignore: cast_nullable_to_non_nullable

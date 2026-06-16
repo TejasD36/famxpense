@@ -41,7 +41,7 @@ extension ExpenseRemoteDtoMapper on ExpenseRemoteDto {
       note: note,
       amount: amount,
       paidByUserId: paidByUserId,
-      ownerUserId: ownerUserId,
+      ownerUserId: ownerUserId ?? paidByUserId,
       expenseType: ExpenseType.values.where((e) => e.name == expenseType).firstOrNull ?? ExpenseType.personal,
       splitType: SplitType.values.where((e) => e.name == splitType).firstOrNull ?? SplitType.equal,
       participants: participants.map((e) {
