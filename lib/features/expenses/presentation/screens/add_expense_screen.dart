@@ -23,6 +23,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   DateTime _selectedDate = DateTime.now();
   ExpenseType _expenseType = ExpenseType.personal;
   SplitType _splitType = SplitType.equal;
+  String? _category = ExpenseCategory.other.name;
 
   AccountEntity? _selectedAccount;
   List<AccountEntity> _accounts = [];
@@ -199,6 +200,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       splitType: _splitType,
       participants: participants,
       accountId: _selectedAccount?.id,
+      category: _category,
       expenseDate: _selectedDate,
       createdAt: DateTime.now().toUtc(),
       updatedAt: DateTime.now().toUtc(),
@@ -214,6 +216,30 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       return (total / totalPeople).roundToDouble();
     }
     return _manualAmounts[userId] ?? 0;
+  }
+
+  String _categoryLabel(ExpenseCategory c) {
+    return switch (c) {
+      ExpenseCategory.food => 'Food',
+      ExpenseCategory.grocery => 'Grocery',
+      ExpenseCategory.clothes => 'Clothes',
+      ExpenseCategory.essentials => 'Essentials',
+      ExpenseCategory.medical => 'Medical',
+      ExpenseCategory.snacks => 'Snacks',
+      ExpenseCategory.lunch => 'Lunch',
+      ExpenseCategory.dinner => 'Dinner',
+      ExpenseCategory.movie => 'Movie',
+      ExpenseCategory.traveling => 'Traveling',
+      ExpenseCategory.gifts => 'Gifts',
+      ExpenseCategory.insurance => 'Insurance',
+      ExpenseCategory.emi => 'EMI',
+      ExpenseCategory.recharge => 'Recharge',
+      ExpenseCategory.electricity => 'Electricity',
+      ExpenseCategory.mobileBill => 'Mobile Bill',
+      ExpenseCategory.subscription => 'Subscription',
+      ExpenseCategory.fruits => 'Fruits',
+      ExpenseCategory.other => 'Other',
+    };
   }
 
   void _initManualAmounts() {
@@ -379,6 +405,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           if (amount == null || amount <= 0) return 'Invalid amount';
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 20),
+
+                      /// Category
+                      DropdownButtonFormField<String>(
+                        initialValue: _category,
+                        decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+                        items: ExpenseCategory.values.map((c) {
+                          return DropdownMenuItem(value: c.name, child: Text(_categoryLabel(c)));
+                        }).toList(),
+                        onChanged: (v) => setState(() => _category = v),
                       ),
                       const SizedBox(height: 20),
 

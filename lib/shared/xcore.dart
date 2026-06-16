@@ -34,6 +34,7 @@ export 'domain/entities/partnership/partnership_entity.dart';
 export 'domain/entities/settlement/settlement_entity.dart';
 export 'domain/entities/user/user_entity.dart';
 export 'enums/account_type.dart';
+export 'enums/expense_category.dart';
 export 'enums/expense_type.dart';
 export 'enums/notification_type.dart';
 export 'enums/partnership_status.dart';

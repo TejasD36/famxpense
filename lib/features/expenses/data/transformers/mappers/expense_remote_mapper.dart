@@ -26,6 +26,7 @@ extension ExpenseRemoteMapper on ExpenseEntity {
       createdAt: createdAt,
       updatedAt: updatedAt,
       isDisabled: isDisabled,
+      category: category,
     );
   }
 }
@@ -58,6 +59,7 @@ extension ExpenseRemoteDtoMapper on ExpenseRemoteDto {
       updatedAt: updatedAt,
       syncStatus: SyncStatus.synced,
       isDisabled: isDisabled,
+      category: category,
     );
   }
 }

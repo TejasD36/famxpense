@@ -59,6 +59,7 @@ import '../../features/partners/domain/usecases/get_partnerships_usecase.dart';
 import '../../features/partners/domain/usecases/search_user_usecase.dart';
 import '../../features/partners/domain/usecases/send_partnership_request_usecase.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
+import '../../features/statistics/presentation/blocs/statistics_bloc.dart';
 import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
 import '../../shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import '../../shared/data/repositories/user_repository_impl.dart';
@@ -128,6 +129,8 @@ Future<void> initDependencies() async {
       userLocalDatasource: sl(),
     ),
   );
+
+  sl.registerFactory(() => StatisticsBloc());
 
   /// LOCAL DATASOURCE
 

@@ -15,6 +15,7 @@ import 'package:famxpense/shared/data/transformers/dtos/partnership/partnership_
 import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/user/user_dto.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
+import 'package:famxpense/shared/enums/expense_category.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/notification_type.dart';
 import 'package:famxpense/shared/enums/partnership_status.dart';
@@ -28,6 +29,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
     registerAdapter(DraftExpenseDtoAdapter());
+    registerAdapter(ExpenseCategoryAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());
@@ -51,6 +53,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
     registerAdapter(DraftExpenseDtoAdapter());
+    registerAdapter(ExpenseCategoryAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());

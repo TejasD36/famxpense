@@ -22,6 +22,7 @@ sealed class ExpenseRemoteDto with _$ExpenseRemoteDto {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDisabled,
+    String? category,
   }) = _ExpenseRemoteDto;
 
   factory ExpenseRemoteDto.fromJson(Map<String, dynamic> json) => _$ExpenseRemoteDtoFromJson(json);

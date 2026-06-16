@@ -19,6 +19,7 @@ extension ExpenseDtoMapper on ExpenseDto {
       updatedAt: updatedAt,
       syncStatus: syncStatus,
       isDisabled: isDisabled,
+      category: category,
     );
   }
 }
@@ -42,6 +43,7 @@ extension ExpenseEntityMapper on ExpenseEntity {
       updatedAt: updatedAt,
       syncStatus: syncStatus,
       isDisabled: isDisabled,
+      category: category,
     );
   }
 }

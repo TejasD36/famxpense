@@ -1,6 +1,8 @@
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
 
+enum _ActivityFilter { all, expenses, deposits, settlements }
+
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
 
@@ -10,12 +12,17 @@ class ActivityScreen extends StatefulWidget {
 
 class _ActivityScreenState extends State<ActivityScreen> {
   final Set<String> _expandedIds = {};
+  _ActivityFilter _filter = _ActivityFilter.all;
 
   @override
   void initState() {
     super.initState();
     context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
-    sl<RefreshNotifier>().addListener(_onDataChanged);
+    final notifier = sl<RefreshNotifier>();
+    if (notifier.hasData) {
+      context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+    }
+    notifier.addListener(_onDataChanged);
   }
 
   @override
@@ -39,6 +46,140 @@ class _ActivityScreenState extends State<ActivityScreen> {
     if (expense.expenseType == ExpenseType.personal) return expense.amount;
     final participant = expense.participants.where((p) => p.userId == currentUserId).firstOrNull;
     return participant?.amount ?? 0;
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Filter', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              _filterOption(label: 'All', value: _ActivityFilter.all, icon: Icons.all_inclusive_rounded),
+              _filterOption(label: 'Expenses only', value: _ActivityFilter.expenses, icon: Icons.shopping_bag_rounded),
+              _filterOption(label: 'Deposits only', value: _ActivityFilter.deposits, icon: Icons.account_balance_rounded),
+              _filterOption(label: 'Settlements only', value: _ActivityFilter.settlements, icon: Icons.swap_horiz_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _filterOption({required String label, required _ActivityFilter value, required IconData icon}) {
+    final isSelected = _filter == value;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Theme.of(context).colorScheme.primary : null),
+      title: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : null)),
+      trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+      onTap: () {
+        setState(() => _filter = value);
+        context.pop();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Activity')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list_rounded),
+            tooltip: 'Filter',
+            onPressed: _showFilterSheet,
+          ),
+        ],
+      ),
+      body: BlocBuilder<ActivityBloc, ActivityState>(
+        builder: (context, state) {
+          return state.when(
+            initial: () => const SizedBox(),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            empty: () => const Center(child: Text('No expenses yet')),
+            error: (message) => Center(child: Text(message)),
+            loaded: (items) {
+              final userId = sl<AuthLocalDatasource>().getUserId();
+
+              var filtered = items;
+              if (_filter == _ActivityFilter.expenses) {
+                filtered = items.whereType<ExpenseItem>().toList();
+              } else if (_filter == _ActivityFilter.deposits) {
+                filtered = items.where((i) => i is SettlementItem && (i).settlement.toUserId == userId).toList();
+              } else if (_filter == _ActivityFilter.settlements) {
+                filtered = items.where((i) => i is SettlementItem && (i).settlement.fromUserId == userId).toList();
+              }
+
+              if (filtered.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.search_off_rounded, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      Text('No matching transactions', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                );
+              }
+
+              final grouped = <String, List<ActivityItem>>{};
+              for (final item in filtered) {
+                final key = DateFormat('MMMM yyyy').format(item.date);
+                grouped.putIfAbsent(key, () => []).add(item);
+              }
+
+              final sortedKeys = grouped.keys.toList()..sort((a, b) {
+                final da = DateFormat('MMMM yyyy').parse(a);
+                final db = DateFormat('MMMM yyyy').parse(b);
+                return db.compareTo(da);
+              });
+
+              return CustomScrollView(
+                slivers: [
+                  for (final key in sortedKeys) ...[
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Text(key, style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        )),
+                      ),
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = grouped[key]![index];
+                          final card = item is ExpenseItem
+                              ? _buildExpenseCard(item.expense, userId)
+                              : _buildSettlementCard(item as SettlementItem, userId);
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              bottom: index == grouped[key]!.length - 1 ? 0 : 12,
+                            ),
+                            child: card,
+                          );
+                        },
+                        childCount: grouped[key]!.length,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildExpenseCard(ExpenseEntity expense, String? userId) {
@@ -66,6 +207,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 badge: expense.expenseType.name.toUpperCase(),
                 badgeColor: expense.expenseType == ExpenseType.shared ? Colors.orange : Colors.green,
                 isExpanded: isExpanded,
+                category: expense.category,
               ),
               AnimatedCrossFade(
                 firstChild: const SizedBox.shrink(),
@@ -203,6 +345,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     required String badge,
     required MaterialColor badgeColor,
     required bool isExpanded,
+    String? category,
   }) {
     return Row(
       children: [
@@ -221,9 +364,27 @@ class _ActivityScreenState extends State<ActivityScreen> {
             children: [
               Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
-              Text(
-                DateFormat('dd MMM yyyy').format(date),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Row(
+                children: [
+                  Text(
+                    DateFormat('dd MMM yyyy').format(date),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  if (category != null && category != ExpenseCategory.other.name) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        category[0].toUpperCase() + category.substring(1),
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -250,42 +411,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
           child: const Icon(Icons.keyboard_arrow_down_rounded),
         ),
       ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Activity')),
-      ),
-      body: BlocBuilder<ActivityBloc, ActivityState>(
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox(),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            empty: () => const Center(child: Text('No expenses yet')),
-            error: (message) => Center(child: Text(message)),
-            loaded: (items) {
-              final userId = sl<AuthLocalDatasource>().getUserId();
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: items.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  if (item is ExpenseItem) {
-                    return _buildExpenseCard(item.expense, userId);
-                  } else if (item is SettlementItem) {
-                    return _buildSettlementCard(item, userId);
-                  }
-                  return const SizedBox();
-                },
-              );
-            },
-          );
-        },
-      ),
     );
   }
 }

@@ -1,19 +1,30 @@
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
 import '../../core.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/profile/presentation/widgets/profile_drawer.dart';
 
 class MainNavigation extends StatelessWidget {
   final StatefulNavigationShell shell;
+  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   const MainNavigation({super.key, required this.shell});
 
-  final List<IconData> _icons = const [Icons.home_rounded, Icons.people_rounded, Icons.receipt_long_rounded, Icons.person_rounded];
+  final List<IconData> _icons = const [Icons.home_rounded, Icons.people_rounded, Icons.receipt_long_rounded, Icons.bar_chart_rounded];
 
   @override
   Widget build(BuildContext context) {
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        state.whenOrNull(unauthenticated: () {
+          context.go(AppRoute.login.path);
+        });
+      },
+      child: Scaffold(
+      key: MainNavigation.scaffoldKey,
+      drawer: const ProfileDrawer(),
       body: shell,
 
       floatingActionButton: isKeyboardVisible
@@ -41,6 +52,6 @@ class MainNavigation extends StatelessWidget {
         iconSize: 24,
         elevation: 8,
       ),
-    );
+      ));
   }
 }

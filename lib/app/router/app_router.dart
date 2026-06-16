@@ -16,6 +16,8 @@ import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/partners/presentation/screens/add_partner_screen.dart';
 import '../../features/partners/presentation/screens/partners_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/statistics/presentation/blocs/statistics_bloc.dart';
+import '../../features/statistics/presentation/screens/statistics_screen.dart';
 import '../navigation/main_navigation.dart';
 
 class AppRouter {
@@ -86,9 +88,17 @@ class AppRouter {
               ],
             ),
 
-            /// PROFILE
+            /// STATISTICS
             StatefulShellBranch(
-              routes: [GoRoute(path: AppRoute.profile.path, name: AppRoute.profile.name, builder: (_, _) => const ProfileScreen())],
+              routes: [
+                GoRoute(
+                  path: AppRoute.statistics.path,
+                  name: AppRoute.statistics.name,
+                  builder: (_, _) {
+                    return BlocProvider(create: (_) => sl<StatisticsBloc>(), child: const StatisticsScreen());
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -114,6 +124,11 @@ class AppRouter {
           builder: (_, _) {
             return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AccountDetailScreen());
           },
+        ),
+        GoRoute(
+          path: AppRoute.profile.path,
+          name: AppRoute.profile.name,
+          builder: (_, _) => const ProfileScreen(),
         ),
       ],
     );

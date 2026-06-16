@@ -1,5 +1,16 @@
 import 'package:flutter/foundation.dart';
 
 class RefreshNotifier extends ChangeNotifier {
-  void notifyDataChanged() => notifyListeners();
+  bool _hasData = false;
+
+  bool get hasData => _hasData;
+
+  void notifyDataChanged() {
+    _hasData = true;
+    notifyListeners();
+  }
+
+  void reset() {
+    _hasData = false;
+  }
 }

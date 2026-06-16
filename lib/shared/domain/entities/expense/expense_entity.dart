@@ -22,6 +22,7 @@ sealed class ExpenseEntity with _$ExpenseEntity {
     required DateTime updatedAt,
     required SyncStatus syncStatus,
     @Default(false) bool isDisabled,
+    String? category,
   }) = _ExpenseEntity;
 
   factory ExpenseEntity.fromJson(Map<String, dynamic> json) => _$ExpenseEntityFromJson(json);

@@ -14,6 +14,11 @@ class ManualDepositLocalDatasourceImpl extends BaseHiveService<ManualDepositDto>
   }
 
   @override
+  Future<List<ManualDepositDto>> fetchAll() async {
+    return box.values.toList();
+  }
+
+  @override
   Future<void> delete(String key) async {
     await super.delete(key);
   }

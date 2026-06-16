@@ -2,6 +2,7 @@ import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../settlement/domain/usecases/settle_debt_usecase.dart';
+import '../../../../app/navigation/main_navigation.dart';
 import '../../xcore.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +19,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
 
-    sl<RefreshNotifier>().addListener(_onDataChanged);
+    final notifier = sl<RefreshNotifier>();
+    if (notifier.hasData) {
+      context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    }
+    notifier.addListener(_onDataChanged);
   }
 
   @override
@@ -36,6 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('FamXpense'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: () => MainNavigation.scaffoldKey.currentState?.openDrawer(),
+        ),
+      ),
       body: SafeArea(
         child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
@@ -211,15 +223,32 @@ class _ExpenseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cat = expense.category;
     return Card(
       elevation: 0,
       child: ListTile(
         leading: CircleAvatar(child: Icon(expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
         title: Text(expense.title),
-        subtitle: Text([
-          DateFormat('dd MMM yyyy').format(expense.expenseDate),
-          ?accountName,
-        ].join(' • ')),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text([
+              DateFormat('dd MMM yyyy').format(expense.expenseDate),
+              ?accountName,
+            ].join(' • ')),
+            if (cat != null && cat != ExpenseCategory.other.name) ...[
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(cat[0].toUpperCase() + cat.substring(1), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
+              ),
+            ],
+          ],
+        ),
         trailing: Text('₹${expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
