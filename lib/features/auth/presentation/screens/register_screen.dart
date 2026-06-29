@@ -60,12 +60,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         state.whenOrNull(
           authenticated: (_) async {
             final userId = sl<AuthLocalDatasource>().getUserId();
+            if (!context.mounted) return;
+            context.go(AppRoute.home.path);
             if (userId != null) {
               await sl<SyncService>().syncAll(userId: userId);
               sl<RefreshNotifier>().notifyDataChanged();
             }
-            if (!context.mounted) return;
-            context.go(AppRoute.home.path);
           },
 
           error: (message) {

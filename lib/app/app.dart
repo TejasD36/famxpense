@@ -19,9 +19,7 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-
     _router = AppRouter.createRouter();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       sl<ThemeCubit>().loadTheme();
       _initApp();
@@ -41,16 +39,15 @@ class _AppState extends State<App> {
     final authBloc = sl<AuthBloc>();
     authBloc.add(const AuthEvent.checkAuthStatus());
 
-    await authBloc.stream.firstWhere(
-      (state) => state.maybeWhen(
-        authenticated: (_) => true,
-        unauthenticated: () => true,
-        orElse: () => false,
-      ),
-    ).timeout(const Duration(seconds: 10), onTimeout: () {
-      /// Attempt local session recovery as fallback
-      return const AuthState.unauthenticated();
-    });
+    await authBloc.stream
+        .firstWhere((state) => state.maybeWhen(authenticated: (_) => true, unauthenticated: () => true, orElse: () => false))
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            /// Attempt local session recovery as fallback
+            return const AuthState.unauthenticated();
+          },
+        );
 
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId != null) {
@@ -80,7 +77,6 @@ class _AppState extends State<App> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => sl<AuthBloc>()),
-
         BlocProvider(create: (_) => sl<ThemeCubit>()),
       ],
 
@@ -88,15 +84,10 @@ class _AppState extends State<App> {
         builder: (context, state) {
           return MaterialApp.router(
             title: 'FamXpense',
-
             debugShowCheckedModeBanner: false,
-
             theme: AppTheme.light,
-
             darkTheme: AppTheme.dark,
-
             themeMode: state.themeMode,
-
             routerConfig: _router,
           );
         },

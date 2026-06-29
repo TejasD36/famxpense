@@ -148,25 +148,37 @@ class SyncService {
 
     try {
       final localAccounts = await _accountLocal.getAccounts();
+      final localById = {for (final a in localAccounts) a.id: a};
       final localByUser = localAccounts.where((a) => a.userId == userId).toList();
 
-      /// Fetch remote accounts (download first so we merge correctly)
+      /// Fetch remote accounts
       final remoteAccounts = await _accountRemote.fetchAccounts(userId: userId);
       final remoteById = {for (final a in remoteAccounts) a.id: a};
 
-      /// Save all remote accounts locally (overwrites with remote truth)
+      /// Merge: keep whichever has the newer updatedAt
       for (final remote in remoteAccounts) {
-        await _accountLocal.saveAccount(remote.toDto());
+        final local = localById[remote.id];
+        if (local == null || remote.updatedAt.isAfter(local.updatedAt)) {
+          await _accountLocal.saveAccount(remote.toDto());
+        }
       }
 
-      /// Upload any local-only accounts (created offline) to remote
+      /// Upload local-only or newer-local accounts to remote
       for (final account in localByUser) {
-        if (!remoteById.containsKey(account.id)) {
+        final remote = remoteById[account.id];
+        if (remote == null) {
           try {
             await _accountRemote.createAccount(account.toEntity());
           } catch (e, stackTrace) {
             AppLogger.warning('Failed uploading account: ${account.id}');
             AppLogger.error('Account upload error', e, stackTrace);
+          }
+        } else if (account.updatedAt.isAfter(remote.updatedAt)) {
+          try {
+            await _accountRemote.updateAccount(account.toEntity());
+          } catch (e, stackTrace) {
+            AppLogger.warning('Failed updating remote account: ${account.id}');
+            AppLogger.error('Account remote update error', e, stackTrace);
           }
         }
       }
@@ -186,7 +198,7 @@ class SyncService {
       final localLedgers = await _debtLedgerLocal.getLedgers();
       final localByUser = localLedgers.where((l) => l.userA == userId || l.userB == userId).toList();
 
-      /// Upload local ledgers to remote
+      /// Upload local ledgers first so remote has the latest values
       for (final ledger in localByUser) {
         try {
           await _debtLedgerRemote.saveLedger(ledger.toEntity());
@@ -196,15 +208,16 @@ class SyncService {
         }
       }
 
-      /// Fetch remote ledgers
+      /// Fetch remote ledgers and merge: keep local value if ledger already exists,
+      /// save remote-only ledgers (created on another device)
       final remoteLedgers = await _debtLedgerRemote.fetchLedgers(userId: userId);
-      final localIds = localByUser.map((l) => l.id).toSet();
+      final localById = {for (final l in localByUser) l.id: l};
 
-      /// Save any remote-only ledgers
       for (final remote in remoteLedgers) {
-        if (!localIds.contains(remote.id)) {
+        if (!localById.containsKey(remote.id)) {
           await _debtLedgerLocal.saveLedger(remote.toDto());
         }
+        // Ledger already exists locally — local value was already uploaded, keep it
       }
 
       AppLogger.success('Debt ledger sync completed (${remoteLedgers.length} remote)');

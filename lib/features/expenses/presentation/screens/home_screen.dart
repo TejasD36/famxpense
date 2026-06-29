@@ -4,7 +4,6 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../notification/presentation/blocs/notification_bloc.dart';
 import '../../../settlement/domain/usecases/process_settlement_usecase.dart';
 import '../../../settlement/domain/usecases/settle_debt_usecase.dart';
-import '../../../../app/navigation/main_navigation.dart';
 import '../../xcore.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,11 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FamXpense'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu_rounded),
-          onPressed: () => MainNavigation.scaffoldKey.currentState?.openDrawer(),
-        ),
+        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('FamXpense')),
         actions: [
           BlocBuilder<NotificationBloc, NotificationState>(
             builder: (context, state) {
@@ -70,10 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       top: 6,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.error,
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.error, shape: BoxShape.circle),
                         constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                         child: Text(
                           unread > 99 ? '99+' : unread.toString(),
@@ -100,106 +92,132 @@ class _HomeScreenState extends State<HomeScreen> {
               error: (message) {
                 return Center(child: Text(message));
               },
-              loaded: (totalSpend, personalSpend, sharedSpend, pendingSyncCount, recentExpenses, debts, accountNames, incomingPendingSettlements, outgoingPendingSettlements) {
-                final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    final authState = context.read<AuthBloc>().state;
+              loaded:
+                  (
+                    totalSpend,
+                    personalSpend,
+                    sharedSpend,
+                    pendingSyncCount,
+                    recentExpenses,
+                    debts,
+                    accountNames,
+                    incomingPendingSettlements,
+                    outgoingPendingSettlements,
+                  ) {
+                          final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+                          final userName = context.read<AuthBloc>().state.maybeWhen(
+                            authenticated: (user) => user.nickname,
+                            orElse: () => '',
+                          );
+                          String inr(double v) => formatIndianRupee(v);
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        final authState = context.read<AuthBloc>().state;
 
-                      await authState.whenOrNull(
-                        authenticated: (user) async {
-                          /// SYNC ALL
-                          final syncResult = await sl<SyncService>().syncAll(userId: user.id);
+                        await authState.whenOrNull(
+                          authenticated: (user) async {
+                            /// SYNC ALL
+                            final syncResult = await sl<SyncService>().syncAll(userId: user.id);
 
-                        /// RELOAD DASHBOARD
-                        if (context.mounted) {
-                          if (!syncResult) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: const Text('Sync failed. Check your connection.'),
-                              behavior: SnackBarBehavior.floating,
-                              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-                            ));
-                          }
-                          context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-                        }
+                            /// RELOAD DASHBOARD
+                            if (context.mounted) {
+                              if (!syncResult) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Sync failed. Check your connection.'),
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+                                  ),
+                                );
+                              }
+                              context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                            }
+                          },
+                        );
                       },
+                      child: ListView(
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.all(20),
+                        children: [
+                          /// Header
+                          Text('Welcome, $userName 👋', style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          const SizedBox(height: 4),
+                          const Text('FamXpense', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Text(
+                            DateFormat('MMMM yyyy').format(DateTime.now()),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                          const SizedBox(height: 28),
+
+                          /// Pending Confirmations (incoming)
+                          if (incomingPendingSettlements.isNotEmpty) ...[
+                            _PendingConfirmations(incoming: incomingPendingSettlements, userId: userId),
+                            const SizedBox(height: 20),
+                          ],
+
+                          /// Pending Settlements (outgoing)
+                          if (outgoingPendingSettlements.isNotEmpty) ...[
+                            _PendingSettlements(outgoing: outgoingPendingSettlements, userId: userId),
+                            const SizedBox(height: 20),
+                          ],
+
+                          /// Debt Summary
+                          _DebtSummaryCards(
+                            debts: debts,
+                            userId: sl<AuthLocalDatasource>().getUserId() ?? '',
+                            outgoingPendingSettlements: outgoingPendingSettlements,
+                          ),
+                          const SizedBox(height: 20),
+
+                          /// Total Spend Card
+                          _SummaryCard(
+                            title: 'Total Spend',
+                            value: inr(totalSpend),
+                            icon: Icons.account_balance_wallet,
+                          ),
+                          const SizedBox(height: 16),
+
+                          /// Split cards
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _MiniCard(
+                                  title: 'Personal',
+                                  value: inr(personalSpend),
+                                  icon: Icons.person_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _MiniCard(title: 'Shared', value: inr(sharedSpend), icon: Icons.groups_rounded),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _MiniCard(title: 'Pending Sync', value: pendingSyncCount.toString(), icon: Icons.sync_problem_rounded),
+                          const SizedBox(height: 32),
+
+                          /// Recent Expenses
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Recent Expenses', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                              TextButton(onPressed: () => context.push(AppRoute.activity.path), child: const Text('View All')),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ...recentExpenses.map((expense) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+
+                              child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId]),
+                            );
+                          }),
+                        ],
+                      ),
                     );
                   },
-                  child: ListView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      /// Header
-                      Text('Welcome Back 👋', style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                      const SizedBox(height: 4),
-                      const Text('FamXpense', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(
-                        DateFormat('MMMM yyyy').format(DateTime.now()),
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 28),
-
-                      /// Pending Confirmations (incoming)
-                      if (incomingPendingSettlements.isNotEmpty) ...[
-                        _PendingConfirmations(incoming: incomingPendingSettlements, userId: userId),
-                        const SizedBox(height: 20),
-                      ],
-
-                      /// Pending Settlements (outgoing)
-                      if (outgoingPendingSettlements.isNotEmpty) ...[
-                        _PendingSettlements(outgoing: outgoingPendingSettlements, userId: userId),
-                        const SizedBox(height: 20),
-                      ],
-
-                      /// Debt Summary
-                      _DebtSummaryCards(
-                        debts: debts,
-                        userId: sl<AuthLocalDatasource>().getUserId() ?? '',
-                        outgoingPendingSettlements: outgoingPendingSettlements,
-                      ),
-                      const SizedBox(height: 20),
-
-                      /// Total Spend Card
-                      _SummaryCard(title: 'Total Spend', value: '₹${totalSpend.toStringAsFixed(0)}', icon: Icons.account_balance_wallet),
-                      const SizedBox(height: 16),
-
-                      /// Split cards
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _MiniCard(title: 'Personal', value: '₹${personalSpend.toStringAsFixed(0)}', icon: Icons.person_rounded),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _MiniCard(title: 'Shared', value: '₹${sharedSpend.toStringAsFixed(0)}', icon: Icons.groups_rounded),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _MiniCard(title: 'Pending Sync', value: pendingSyncCount.toString(), icon: Icons.sync_problem_rounded),
-                      const SizedBox(height: 32),
-
-                      /// Recent Expenses
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Recent Expenses', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          TextButton(onPressed: () => context.go(AppRoute.activity.path), child: const Text('View All')),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ...recentExpenses.map((expense) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-
-                          child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId]),
-                        );
-                      }),
-                    ],
-                  ),
-                );
-              },
             );
           },
         ),
@@ -287,7 +305,10 @@ class _PendingConfirmations extends StatelessWidget {
           children: [
             Icon(Icons.hourglass_bottom_rounded, color: Colors.orange.shade700, size: 20),
             const SizedBox(width: 6),
-            Text('Pending Confirmations', style: TextStyle(color: Colors.orange.shade700, fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(
+              'Pending Confirmations',
+              style: TextStyle(color: Colors.orange.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -306,7 +327,10 @@ class _PendingConfirmations extends StatelessWidget {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: Colors.orange.withValues(alpha: 0.15),
-                    child: Text('@', style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      '@',
+                      style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -314,7 +338,10 @@ class _PendingConfirmations extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('@$name wants to settle', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        Text('₹${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange.shade700)),
+                        Text(
+                          formatIndianRupee(s.amount),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange.shade700),
+                        ),
                       ],
                     ),
                   ),
@@ -340,7 +367,9 @@ class _PendingConfirmations extends StatelessWidget {
   Future<void> _handleConfirm(BuildContext context, SettlementEntity settlement) async {
     await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
       context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
     }
   }
@@ -368,7 +397,10 @@ class _PendingSettlements extends StatelessWidget {
           children: [
             Icon(Icons.access_time_rounded, color: Colors.blue.shade700, size: 20),
             const SizedBox(width: 6),
-            Text('Pending Settlements', style: TextStyle(color: Colors.blue.shade700, fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(
+              'Pending Settlements',
+              style: TextStyle(color: Colors.blue.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -395,7 +427,10 @@ class _PendingSettlements extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('To @$name', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                        Text('₹${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue.shade700)),
+                        Text(
+                          formatIndianRupee(s.amount),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue.shade700),
+                        ),
                       ],
                     ),
                   ),
@@ -426,24 +461,18 @@ class _ExpenseTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text([
-              DateFormat('dd MMM yyyy').format(expense.expenseDate),
-              ?accountName,
-            ].join(' • ')),
+            Text([DateFormat('dd MMM yyyy').format(expense.expenseDate), ?accountName].join(' • ')),
             if (cat != null && cat != ExpenseCategory.other.name) ...[
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(4)),
                 child: Text(cat[0].toUpperCase() + cat.substring(1), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
               ),
             ],
           ],
         ),
-        trailing: Text('₹${expense.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        trailing: Text(formatIndianRupee(expense.amount), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -516,7 +545,9 @@ class _DebtSummaryCards extends StatelessWidget {
         if (youAreOwed.isNotEmpty) ...[
           _sectionHeader(context, Icons.arrow_downward_rounded, Colors.green, 'You are owed'),
           const SizedBox(height: 8),
-          ...youAreOwed.map((e) => _debtCard(context, e, Colors.green, settle: false, userId: userId, pendingFromUserIds: pendingFromUserIds)),
+          ...youAreOwed.map(
+            (e) => _debtCard(context, e, Colors.green, settle: false, userId: userId, pendingFromUserIds: pendingFromUserIds),
+          ),
           const SizedBox(height: 16),
         ],
         if (youOwe.isNotEmpty) ...[
@@ -533,12 +564,22 @@ class _DebtSummaryCards extends StatelessWidget {
       children: [
         Icon(icon, color: color.shade700, size: 20),
         const SizedBox(width: 6),
-        Text(title, style: TextStyle(color: color.shade700, fontSize: 15, fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: TextStyle(color: color.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
 
-  Widget _debtCard(BuildContext context, MapEntry<String, double> entry, MaterialColor color, {required bool settle, required String userId, Set<String> pendingFromUserIds = const {}}) {
+  Widget _debtCard(
+    BuildContext context,
+    MapEntry<String, double> entry,
+    MaterialColor color, {
+    required bool settle,
+    required String userId,
+    Set<String> pendingFromUserIds = const {},
+  }) {
     final otherUser = sl<UserLocalDatasource>().getUser(entry.key);
     final name = otherUser?.nickname ?? otherUser?.name ?? 'Unknown';
     final amount = entry.value;
@@ -566,14 +607,20 @@ class _DebtSummaryCards extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('@$name', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  Text('₹${amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color.shade700)),
+                  Text(
+                    formatIndianRupee(amount),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color.shade700),
+                  ),
                 ],
               ),
             ),
             if (settle && isPending)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Text('Pending', style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Pending',
+                  style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600),
+                ),
               )
             else if (settle)
               TextButton(
@@ -586,7 +633,13 @@ class _DebtSummaryCards extends StatelessWidget {
     );
   }
 
-  void _showSettleDialog(BuildContext context, {required String userId, required String fromUserId, required String toUserId, required double amount}) {
+  void _showSettleDialog(
+    BuildContext context, {
+    required String userId,
+    required String fromUserId,
+    required String toUserId,
+    required double amount,
+  }) {
     final controller = TextEditingController(text: amount.toStringAsFixed(0));
     final homeBloc = context.read<HomeBloc>();
     final messenger = ScaffoldMessenger.of(context);
@@ -598,9 +651,7 @@ class _DebtSummaryCards extends StatelessWidget {
         return FutureBuilder<List<AccountDto>>(
           future: sl<AccountLocalDatasource>().getAccounts(),
           builder: (context, snapshot) {
-            final userAccounts = (snapshot.data ?? [])
-                .where((a) => a.userId == fromUserId)
-                .toList();
+            final userAccounts = (snapshot.data ?? []).where((a) => a.userId == fromUserId).toList();
             String? selectedAccountId;
             String? selectedAccountName;
 
@@ -634,7 +685,7 @@ class _DebtSummaryCards extends StatelessWidget {
                       if (selectedAccountBalance > 0) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'Balance: ₹${selectedAccountBalance.toStringAsFixed(0)}',
+                          'Balance: ${formatIndianRupee(selectedAccountBalance)}',
                           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -642,7 +693,9 @@ class _DebtSummaryCards extends StatelessWidget {
                       const Text('Pay from account:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       if (snapshot.connectionState != ConnectionState.done)
-                        const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)))
+                        const Center(
+                          child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
                       else if (userAccounts.isEmpty)
                         Text('No accounts available', style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant))
                       else
@@ -655,19 +708,23 @@ class _DebtSummaryCards extends StatelessWidget {
                             });
                           },
                           child: Column(
-                            children: userAccounts.map((a) => ListTile(
-                              leading: Radio<String>(value: a.id),
-                              title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
-                              subtitle: Text('₹${a.currentBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 12)),
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                              onTap: () {
-                                setDialogState(() {
-                                  selectedAccountId = a.id;
-                                  selectedAccountName = a.accountName;
-                                });
-                              },
-                            )).toList(),
+                            children: userAccounts
+                                .map(
+                                  (a) => ListTile(
+                                    leading: Radio<String>(value: a.id),
+                                    title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
+                                    subtitle: Text(formatIndianRupee(a.currentBalance), style: const TextStyle(fontSize: 12)),
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    onTap: () {
+                                      setDialogState(() {
+                                        selectedAccountId = a.id;
+                                        selectedAccountName = a.accountName;
+                                      });
+                                    },
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ),
                     ],
@@ -678,31 +735,39 @@ class _DebtSummaryCards extends StatelessWidget {
                       onPressed: () async {
                         final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
                         if (settleAmount <= 0) {
-                          messenger.showSnackBar(SnackBar(
-                            content: const Text('Enter a valid amount'),
-                            behavior: SnackBarBehavior.floating,
-                          ));
+                          messenger.showSnackBar(
+                            SnackBar(content: const Text('Enter a valid amount greater than 0'), behavior: SnackBarBehavior.floating),
+                          );
+                          return;
+                        }
+                        if (settleAmount > 999999999) {
+                          messenger.showSnackBar(
+                            SnackBar(content: const Text('Amount too large'), behavior: SnackBarBehavior.floating),
+                          );
                           return;
                         }
                         if (settleAmount > amount) {
-                          messenger.showSnackBar(SnackBar(
-                            content: Text('Amount cannot exceed ₹${amount.toStringAsFixed(0)}'),
-                            behavior: SnackBarBehavior.floating,
-                          ));
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text('Amount cannot exceed ${formatIndianRupee(amount)}'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
                           return;
                         }
                         if (selectedAccountId == null) {
-                          messenger.showSnackBar(SnackBar(
-                            content: const Text('Select an account to pay from'),
-                            behavior: SnackBarBehavior.floating,
-                          ));
+                          messenger.showSnackBar(
+                            SnackBar(content: const Text('Select an account to pay from'), behavior: SnackBarBehavior.floating),
+                          );
                           return;
                         }
                         if (settleAmount > selectedAccountBalance) {
-                          messenger.showSnackBar(SnackBar(
-                            content: Text('Insufficient balance in $selectedAccountName (₹${selectedAccountBalance.toStringAsFixed(0)})'),
-                            behavior: SnackBarBehavior.floating,
-                          ));
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text('Insufficient balance in $selectedAccountName (${formatIndianRupee(selectedAccountBalance)})'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
                           return;
                         }
 
@@ -715,11 +780,13 @@ class _DebtSummaryCards extends StatelessWidget {
 
                         if (!ctx.mounted) return;
                         Navigator.pop(ctx);
-                        messenger.showSnackBar(SnackBar(
-                          content: Text('Settled successfully from $selectedAccountName'),
-                          behavior: SnackBarBehavior.floating,
-                          margin: EdgeInsets.only(bottom: bottomInset),
-                        ));
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Settled successfully from $selectedAccountName'),
+                            behavior: SnackBarBehavior.floating,
+                            margin: EdgeInsets.only(bottom: bottomInset),
+                          ),
+                        );
                         homeBloc.add(const HomeEvent.loadDashboard());
                       },
                       child: const Text('Settle'),
@@ -733,5 +800,4 @@ class _DebtSummaryCards extends StatelessWidget {
       },
     );
   }
-
 }

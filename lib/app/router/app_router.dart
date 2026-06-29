@@ -81,19 +81,6 @@ class AppRouter {
               ],
             ),
 
-            /// ACTIVITY
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
-                  path: AppRoute.activity.path,
-                  name: AppRoute.activity.name,
-                  builder: (_, _) {
-                    return BlocProvider(create: (_) => sl<ActivityBloc>(), child: const ActivityScreen());
-                  },
-                ),
-              ],
-            ),
-
             /// STATISTICS
             StatefulShellBranch(
               routes: [
@@ -103,6 +90,17 @@ class AppRouter {
                   builder: (_, _) {
                     return BlocProvider(create: (_) => sl<StatisticsBloc>(), child: const StatisticsScreen());
                   },
+                ),
+              ],
+            ),
+
+            /// PROFILE
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoute.profile.path,
+                  name: AppRoute.profile.name,
+                  builder: (_, _) => const ProfileScreen(),
                 ),
               ],
             ),
@@ -118,6 +116,13 @@ class AppRouter {
           },
         ),
         GoRoute(
+          path: AppRoute.activity.path,
+          name: AppRoute.activity.name,
+          builder: (_, _) {
+            return BlocProvider(create: (_) => sl<ActivityBloc>(), child: const ActivityScreen());
+          },
+        ),
+        GoRoute(
           path: AppRoute.addAccount.path,
           name: AppRoute.addAccount.name,
           builder: (_, _) {
@@ -130,11 +135,6 @@ class AppRouter {
           builder: (_, _) {
             return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AccountDetailScreen());
           },
-        ),
-        GoRoute(
-          path: AppRoute.profile.path,
-          name: AppRoute.profile.name,
-          builder: (_, _) => const ProfileScreen(),
         ),
         GoRoute(
           path: AppRoute.searchActivity.path,

@@ -22,6 +22,11 @@ class PartnershipRemoteDatasourceImpl implements PartnershipRemoteDatasource {
   }
 
   @override
+  Future<void> deletePartnership(String partnershipId) async {
+    await _firestore.collection(_collection).doc(partnershipId).delete();
+  }
+
+  @override
   Future<List<PartnershipRemoteDto>> getPartnerships({required String userId}) async {
     final senderQuery = await _firestore.collection(_collection).where('senderId', isEqualTo: userId).get();
 

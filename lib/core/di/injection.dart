@@ -131,6 +131,7 @@ Future<void> initDependencies() async {
       searchUserUsecase: sl(),
       sendRequestUsecase: sl(),
       getPartnershipsUsecase: sl(),
+      partnershipRepository: sl(),
       authLocalDatasource: sl(),
       userLocalDatasource: sl(),
     ),
@@ -169,11 +170,12 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
+  sl.registerLazySingleton(() => ConnectivityService());
 
   /// ACCOUNT
   sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());
   sl.registerLazySingleton<ManualDepositLocalDatasource>(() => ManualDepositLocalDatasourceImpl());
-  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl()));
+  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
   sl.registerLazySingleton(() => GetAccountsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SaveAccountUsecase(repository: sl()));
   sl.registerLazySingleton(() => DeleteAccountUsecase(repository: sl()));

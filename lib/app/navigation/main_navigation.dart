@@ -1,16 +1,38 @@
+import 'dart:async';
+
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
 import '../../core.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/profile/presentation/widgets/profile_drawer.dart';
 
-class MainNavigation extends StatelessWidget {
+class MainNavigation extends StatefulWidget {
   final StatefulNavigationShell shell;
-  static final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   const MainNavigation({super.key, required this.shell});
 
-  final List<IconData> _icons = const [Icons.home_rounded, Icons.people_rounded, Icons.receipt_long_rounded, Icons.bar_chart_rounded];
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  StreamSubscription<bool>? _connectivitySub;
+  bool _isOnline = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final connectivity = sl<ConnectivityService>();
+    _connectivitySub = connectivity.onStatusChanged.listen((online) {
+      if (mounted) setState(() => _isOnline = online);
+    });
+    connectivity.startMonitoring();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +45,27 @@ class MainNavigation extends StatelessWidget {
         });
       },
       child: Scaffold(
-      key: MainNavigation.scaffoldKey,
-      drawer: const ProfileDrawer(),
-      body: shell,
+      body: Column(
+        children: [
+          if (!_isOnline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Row(
+                children: [
+                  Icon(Icons.cloud_off_rounded, size: 16, color: Theme.of(context).colorScheme.error),
+                  const SizedBox(width: 8),
+                  Text(
+                    'You are offline. Changes will sync when connected.',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(child: widget.shell),
+        ],
+      ),
 
       floatingActionButton: isKeyboardVisible
           ? null
@@ -43,10 +83,10 @@ class MainNavigation extends StatelessWidget {
       bottomNavigationBar: AnimatedBottomNavigationBar(
         icons: _icons,
         backgroundColor: Theme.of(context).colorScheme.surface,
-        activeIndex: shell.currentIndex,
+        activeIndex: widget.shell.currentIndex,
         gapLocation: GapLocation.center,
         notchSmoothness: NotchSmoothness.softEdge,
-        onTap: (index) => shell.goBranch(index, initialLocation: index != shell.currentIndex),
+        onTap: (index) => widget.shell.goBranch(index, initialLocation: index != widget.shell.currentIndex),
         activeColor: Theme.of(context).colorScheme.primary,
         inactiveColor: Theme.of(context).colorScheme.onSurfaceVariant,
         iconSize: 24,
@@ -54,4 +94,6 @@ class MainNavigation extends StatelessWidget {
       ),
       ));
   }
+
+  static const _icons = [Icons.home_rounded, Icons.people_rounded, Icons.bar_chart_rounded, Icons.person_rounded];
 }

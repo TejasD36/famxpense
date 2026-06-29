@@ -9,6 +9,7 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
   final SearchUserUsecase _searchUserUsecase;
   final SendPartnershipRequestUsecase _sendRequestUsecase;
   final GetPartnershipsUsecase _getPartnershipsUsecase;
+  final PartnershipRepository _partnershipRepository;
   final AuthLocalDatasource _authLocalDatasource;
   final UserLocalDatasource _userLocalDatasource;
 
@@ -16,11 +17,13 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     required SearchUserUsecase searchUserUsecase,
     required SendPartnershipRequestUsecase sendRequestUsecase,
     required GetPartnershipsUsecase getPartnershipsUsecase,
+    required PartnershipRepository partnershipRepository,
     required AuthLocalDatasource authLocalDatasource,
     required UserLocalDatasource userLocalDatasource,
   }) : _searchUserUsecase = searchUserUsecase,
        _sendRequestUsecase = sendRequestUsecase,
        _getPartnershipsUsecase = getPartnershipsUsecase,
+       _partnershipRepository = partnershipRepository,
        _authLocalDatasource = authLocalDatasource,
        _userLocalDatasource = userLocalDatasource,
        super(const PartnerState.initial()) {
@@ -29,6 +32,7 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     on<_LoadPartners>(_onLoadPartners);
     on<_AcceptRequest>(_onAcceptRequest);
     on<_RejectRequest>(_onRejectRequest);
+    on<_RemovePartner>(_onRemovePartner);
     on<_ClearSearch>(_onClearSearch);
   }
 
@@ -177,6 +181,23 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       if (currentState is _Loaded) {
         emit(currentState.copyWith(
           incomingRequests: currentState.incomingRequests.where((e) => e.id != updated.id).toList(),
+        ));
+      } else {
+        add(const _LoadPartners());
+      }
+    } catch (e) {
+      emit(PartnerState.error(message: e.toString()));
+    }
+  }
+
+  Future<void> _onRemovePartner(_RemovePartner event, Emitter<PartnerState> emit) async {
+    try {
+      await _partnershipRepository.deletePartnership(event.partnershipId);
+
+      final currentState = state;
+      if (currentState is _Loaded) {
+        emit(currentState.copyWith(
+          connectedPartners: currentState.connectedPartners.where((p) => p.id != event.partnershipId).toList(),
         ));
       } else {
         add(const _LoadPartners());

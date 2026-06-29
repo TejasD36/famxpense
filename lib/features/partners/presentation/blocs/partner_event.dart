@@ -17,5 +17,8 @@ sealed class PartnerEvent with _$PartnerEvent {
   /// REJECT REQUEST
   const factory PartnerEvent.rejectRequest({required PartnershipEntity partnership}) = _RejectRequest;
 
+  /// REMOVE PARTNER
+  const factory PartnerEvent.removePartner({required String partnershipId}) = _RemovePartner;
+
   const factory PartnerEvent.clearSearch() = _ClearSearch;
 }

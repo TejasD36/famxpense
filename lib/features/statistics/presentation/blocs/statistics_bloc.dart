@@ -35,7 +35,9 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
 
       final monthExpenses = allExpenses.where((e) => e.expenseDate.year == year && e.expenseDate.month == month).toList();
       final monthDeposits = deposits.where((d) => d.createdAt.year == year && d.createdAt.month == month).toList();
-      final monthSettlements = settlements.where((s) => s.createdAt.year == year && s.createdAt.month == month).toList();
+      final monthSettlements = settlements.where((s) =>
+        s.createdAt.year == year && s.createdAt.month == month &&
+        s.status == SettlementStatus.confirmed).toList();
 
       double totalSpent = 0;
       double totalDeposited = 0;
@@ -94,7 +96,9 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         ));
       }
 
+      final seenSettlementIds = <String>{};
       for (final settlement in monthSettlements) {
+        if (!seenSettlementIds.add(settlement.id)) continue;
         final isIncoming = settlement.toUserId == userId;
         if (settlement.accountId != null) {
           if (isIncoming) {
@@ -109,7 +113,7 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
           id: settlement.id,
           amount: settlement.amount,
           date: settlement.createdAt,
-          accountId: settlement.accountId ?? '',
+          accountId: isIncoming ? '' : (settlement.accountId ?? ''),
           isIncoming: isIncoming,
         ));
       }

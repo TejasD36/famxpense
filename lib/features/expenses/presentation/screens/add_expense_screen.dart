@@ -156,7 +156,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       final manualTotal = _manualAmounts.values.fold(0.0, (a, b) => a + b);
       if ((manualTotal - amount).abs() > 0.01) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Total shares ₹${manualTotal.toStringAsFixed(0)} ≠ ₹${amount.toStringAsFixed(0)}'),
+          content: Text('Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}'),
           behavior: SnackBarBehavior.floating,
           margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
         ));
@@ -411,7 +411,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Enter amount';
                           final amount = double.tryParse(value);
-                          if (amount == null || amount <= 0) return 'Invalid amount';
+                          if (amount == null || amount <= 0) return 'Enter a valid amount greater than 0';
+                          if (amount > 999999999) return 'Amount too large';
                           return null;
                         },
                       ),
@@ -450,7 +451,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                         children: [
                                           Text(_selectedAccount!.accountName, style: const TextStyle(fontWeight: FontWeight.w600)),
                                           Text(
-                                            '₹ ${_selectedAccount!.currentBalance.toStringAsFixed(0)}',
+                                            formatIndianRupee(_selectedAccount!.currentBalance),
                                             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                           ),
                                         ],
@@ -575,7 +576,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             spacing: 8,
                             runSpacing: 4,
                             children: _selectedPartners.map((p) {
-                              final nickname = p.senderNickname;
+                              final chipUserId = sl<AuthLocalDatasource>().getUserId();
+                              final nickname = chipUserId == p.senderId ? p.receiverNickname : p.senderNickname;
                               return Chip(
                                 label: Text('@$nickname', style: const TextStyle(fontSize: 12)),
                                 onDeleted: () {
@@ -735,9 +737,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               const SizedBox(width: 8),
               Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
               if (_splitType == SplitType.equal)
-                Text('₹ ${perPerson.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600))
+                Text(formatIndianRupee(perPerson), style: const TextStyle(fontWeight: FontWeight.w600))
               else if (isAuto)
-                Text('₹ ${autoAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey))
+                Text(formatIndianRupee(autoAmount), style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey))
               else
                 SizedBox(
                   width: 100,
@@ -776,7 +778,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Total shares ₹${manualTotal.toStringAsFixed(0)} ≠ ₹${total.toStringAsFixed(0)}',
+              'Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(total)}',
               style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
             ),
           ),

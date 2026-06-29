@@ -2,8 +2,13 @@ import '../../xcore.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   final AccountLocalDatasource _localDatasource;
+  final AccountRemoteDatasource _remoteDatasource;
 
-  AccountRepositoryImpl({required AccountLocalDatasource localDatasource}) : _localDatasource = localDatasource;
+  AccountRepositoryImpl({
+    required AccountLocalDatasource localDatasource,
+    required AccountRemoteDatasource remoteDatasource,
+  })  : _localDatasource = localDatasource,
+        _remoteDatasource = remoteDatasource;
 
   @override
   Future<List<AccountEntity>> getAccounts({required String userId}) async {
@@ -14,6 +19,11 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<void> saveAccount(AccountEntity account) async {
     await _localDatasource.saveAccount(account.toDto());
+    try {
+      await _remoteDatasource.updateAccount(account);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to push account to remote', e, stackTrace);
+    }
   }
 
   @override
@@ -27,5 +37,10 @@ class AccountRepositoryImpl implements AccountRepository {
     final account = dtos.firstWhere((a) => a.id == accountId);
     final updated = account.copyWith(currentBalance: newBalance, updatedAt: DateTime.now().toUtc());
     await _localDatasource.saveAccount(updated);
+    try {
+      await _remoteDatasource.updateAccount(updated.toEntity());
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to push balance update to remote', e, stackTrace);
+    }
   }
 }

@@ -50,8 +50,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   void _nextMonth() {
+    final next = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    final now = DateTime(DateTime.now().year, DateTime.now().month);
+    if (next.isAfter(now)) return;
     setState(() {
-      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+      _selectedMonth = next;
       _load();
     });
   }
@@ -62,7 +65,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: DateTimeRange(start: _selectedMonth, end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0)),
+      initialDateRange: DateTimeRange(
+        start: _selectedMonth,
+        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now) ? now : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
+      ),
     );
     if (picked != null) {
       setState(() {
@@ -73,11 +79,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Future<void> _exportCsv(StatisticsLoaded state) async {
+    final accountNames = {for (final a in state.accountStats) a.accountId: a.accountName};
+
     final rows = <List<String>>[
       ['Type', 'Date', 'Amount', 'Category / Description', 'Account'],
     ];
 
     for (final txn in state.transactions) {
+      final accountName = switch (txn) {
+        ExpenseTxn(:final accountId) => accountNames[accountId] ?? accountId,
+        DepositTxn(:final accountId) => accountNames[accountId] ?? accountId,
+        SettlementTxn(:final accountId, :final isIncoming) => isIncoming ? '' : (accountNames[accountId] ?? accountId),
+      };
       rows.add([
         switch (txn) {
           ExpenseTxn _ => 'Expense',
@@ -87,15 +100,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         DateFormat('yyyy-MM-dd').format(txn.date),
         txn.amount.toStringAsFixed(2),
         switch (txn) {
-          ExpenseTxn(:final title, :final category) => '$title ($category)',
+          ExpenseTxn(:final title, :final category) => category.isNotEmpty && category != 'other' ? '$title ($category)' : title,
           DepositTxn(:final description) => description,
           SettlementTxn(:final isIncoming) => isIncoming ? 'Settlement received' : 'Settlement paid',
         },
-        switch (txn) {
-          ExpenseTxn(:final accountId) => accountId,
-          DepositTxn(:final accountId) => accountId,
-          SettlementTxn(:final accountId) => accountId,
-        },
+        accountName,
       ]);
     }
 
@@ -240,6 +249,11 @@ class _MonthBar extends StatelessWidget {
 
   const _MonthBar({required this.selectedMonth, required this.onPrev, required this.onNext, required this.onCalendar});
 
+  bool get _isAtCurrentMonth {
+    final now = DateTime.now();
+    return selectedMonth.month == now.month && selectedMonth.year == now.year;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -249,7 +263,13 @@ class _MonthBar extends StatelessWidget {
         children: [
           IconButton(icon: const Icon(Icons.chevron_left_rounded), onPressed: onPrev),
           Text(DateFormat('MMM yyyy').format(selectedMonth), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          IconButton(icon: const Icon(Icons.chevron_right_rounded), onPressed: onNext),
+          IconButton(
+            icon: Icon(
+              Icons.chevron_right_rounded,
+              color: _isAtCurrentMonth ? Theme.of(context).disabledColor : null,
+            ),
+            onPressed: _isAtCurrentMonth ? null : onNext,
+          ),
           const SizedBox(width: 8),
           IconButton(icon: const Icon(Icons.calendar_month_rounded), onPressed: onCalendar, tooltip: 'Pick date range'),
         ],

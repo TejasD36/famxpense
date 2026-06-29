@@ -1,3 +1,4 @@
+import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../account/domain/repositories/account_repository.dart';
 import '../../../debt_ledger/domain/repositories/debt_ledger_repository.dart';
 import '../../xcore.dart';
@@ -27,12 +28,14 @@ class ProcessSettlementUsecase {
       settlement.amount,
     );
 
-    if (toAccountId != null) {
+    /// Determine deposit account: use provided accountId, or recipient's default/first account
+    final depositAccountId = toAccountId ?? await _resolveDepositAccount(settlement.toUserId);
+    if (depositAccountId != null) {
       try {
         final accounts = await _accountRepository.getAccounts(userId: settlement.toUserId);
-        final account = accounts.where((a) => a.id == toAccountId).firstOrNull;
+        final account = accounts.where((a) => a.id == depositAccountId).firstOrNull;
         if (account != null) {
-          await _accountRepository.updateBalance(toAccountId, account.currentBalance + settlement.amount);
+          await _accountRepository.updateBalance(depositAccountId, account.currentBalance + settlement.amount);
         }
       } catch (e, stackTrace) {
         AppLogger.error('Recipient deposit failed', e, stackTrace);
@@ -44,6 +47,14 @@ class ProcessSettlementUsecase {
     } catch (_) {}
 
     sl<RefreshNotifier>().notifyDataChanged();
+  }
+
+  Future<String?> _resolveDepositAccount(String userId) async {
+    final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
+    if (defaultId != null) return defaultId;
+    final dtos = await sl<AccountLocalDatasource>().getAccounts();
+    final first = dtos.where((a) => a.userId == userId).firstOrNull;
+    return first?.id;
   }
 
   Future<void> reject({required String settlementId}) async {

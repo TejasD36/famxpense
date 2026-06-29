@@ -1,4 +1,6 @@
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
+import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 import '../../xcore.dart';
 import '../blocs/partner_bloc.dart';
 
@@ -93,6 +95,65 @@ class _ConnectedTab extends StatelessWidget {
   final List<PartnershipEntity> partners;
   const _ConnectedTab({required this.partners});
 
+  Future<bool> _canRemovePartner(BuildContext context, String partnerId) async {
+    final userId = sl<AuthLocalDatasource>().getUserId();
+    if (userId == null) return false;
+
+    /// Check debt ledger — netBalance must be 0
+    final ledgers = await sl<DebtLedgerLocalDatasource>().getLedgers();
+    final hasDebt = ledgers.any((l) {
+      if (l.userA == userId && l.userB == partnerId) return l.netBalance != 0;
+      if (l.userB == userId && l.userA == partnerId) return l.netBalance != 0;
+      return false;
+    });
+    if (hasDebt) return false;
+
+    /// Check pending settlements
+    final settlementDtos = await sl<SettlementLocalDatasource>().getSettlements();
+    final hasPending = settlementDtos.any((s) {
+      final pair = (s.fromUserId == userId && s.toUserId == partnerId) ||
+          (s.fromUserId == partnerId && s.toUserId == userId);
+      return pair && s.status == SettlementStatus.pending;
+    });
+    if (hasPending) return false;
+
+    return true;
+  }
+
+  Future<void> _confirmRemove(BuildContext context, PartnershipEntity partnership) async {
+    final canRemove = await _canRemovePartner(context, _partnerId(partnership));
+    if (!context.mounted) return;
+
+    if (!canRemove) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Cannot remove partner. Outstanding settlements or debts exist.'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Partner'),
+        content: const Text('This will permanently remove this partner. All shared expenses will remain but you will no longer be connected.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove')),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<PartnerBloc>().add(PartnerEvent.removePartner(partnershipId: partnership.id));
+    }
+  }
+
+  String _partnerId(PartnershipEntity p) {
+    final userId = sl<AuthLocalDatasource>().getUserId();
+    return userId == p.senderId ? p.receiverId : p.senderId;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (partners.isEmpty) {
@@ -108,7 +169,15 @@ class _ConnectedTab extends StatelessWidget {
         final nickname = isSender ? partnership.receiverNickname : partnership.senderNickname;
         final email = isSender ? partnership.receiverEmail : partnership.senderEmail;
 
-        return PartnerTile(nickname: nickname, email: email, trailing: const Icon(Icons.chevron_right_rounded));
+        return PartnerTile(
+          nickname: nickname,
+          email: email,
+          trailing: IconButton(
+            icon: const Icon(Icons.person_remove_rounded, color: Colors.red),
+            tooltip: 'Remove Partner',
+            onPressed: () => _confirmRemove(context, partnership),
+          ),
+        );
       },
 
       separatorBuilder: (_, _) => const SizedBox(height: 14),

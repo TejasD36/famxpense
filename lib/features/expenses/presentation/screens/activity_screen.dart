@@ -147,21 +147,25 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
               return CustomScrollView(
                 slivers: [
-                  for (final key in sortedKeys) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Text(key, style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
-                        )),
+                  for (int i = 0; i < sortedKeys.length; i++) ...[
+                    /// Divider before each month group (except the first)
+                    if (i > 0)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Divider(height: 1, color: Theme.of(context).dividerColor),
+                        ),
+                      ),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _MonthHeaderDelegate(
+                        monthLabel: sortedKeys[i],
                       ),
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final item = grouped[key]![index];
+                          final item = grouped[sortedKeys[i]]![index];
                           final card = item is ExpenseItem
                               ? _buildExpenseCard(item.expense, userId)
                               : _buildSettlementCard(item as SettlementItem, userId);
@@ -169,12 +173,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
                             padding: EdgeInsets.only(
                               left: 16,
                               right: 16,
-                              bottom: index == grouped[key]!.length - 1 ? 0 : 12,
+                              bottom: index == grouped[sortedKeys[i]]!.length - 1 ? 0 : 12,
                             ),
                             child: card,
                           );
                         },
-                        childCount: grouped[key]!.length,
+                        childCount: grouped[sortedKeys[i]]!.length,
                       ),
                     ),
                   ],
@@ -427,5 +431,40 @@ extension on Set<String> {
     } else {
       add(id);
     }
+  }
+}
+
+class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String monthLabel;
+
+  _MonthHeaderDelegate({required this.monthLabel});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Text(
+          monthLabel,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 40;
+
+  @override
+  double get minExtent => 40;
+
+  @override
+  bool shouldRebuild(covariant _MonthHeaderDelegate oldDelegate) {
+    return monthLabel != oldDelegate.monthLabel;
   }
 }
