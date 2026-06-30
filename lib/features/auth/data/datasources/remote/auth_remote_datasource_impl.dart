@@ -12,15 +12,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
   @override
   Future<UserDto> register({required String name, required String nickname, required String email, required String password}) async {
-    /// CHECK NICKNAME EXISTS
-
-    final nicknameQuery = await _firestore.collection(_usersCollection).where('nickname', isEqualTo: nickname.trim()).limit(1).get();
-
-    if (nicknameQuery.docs.isNotEmpty) {
-      throw Exception('Nickname already taken');
-    }
-
-    /// CREATE AUTH ACCOUNT
+    /// CREATE AUTH ACCOUNT FIRST (no Firestore access needed)
 
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email.trim(), password: password);
 
@@ -29,19 +21,27 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       throw Exception('Registration failed: no user returned from Firebase');
     }
 
+    /// CHECK NICKNAME EXISTS (now authenticated)
+
+    final nicknameQuery = await _firestore
+        .collection(_usersCollection)
+        .where('nicknameLowercase', isEqualTo: nickname.trim().toLowerCase())
+        .limit(1)
+        .get();
+
+    if (nicknameQuery.docs.isNotEmpty) {
+      await firebaseUser.delete();
+      throw Exception('Nickname already taken');
+    }
+
     final now = DateTime.now().toUtc();
 
     final userDto = UserDto(
       id: firebaseUser.uid,
-
       name: name.trim(),
-
       nickname: nickname.trim(),
-
       email: email.trim(),
-
       createdAt: now,
-
       updatedAt: now,
     );
 
