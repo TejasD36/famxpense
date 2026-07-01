@@ -442,9 +442,11 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
+      height: 40,
       color: Theme.of(context).scaffoldBackgroundColor,
+      alignment: Alignment.centerLeft,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        padding: const EdgeInsets.only(left: 16),
         child: Text(
           monthLabel,
           style: TextStyle(

@@ -129,6 +129,16 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     final currentUserId = userId!;
 
+    /// Shared expense with no partners
+    if (_expenseType == ExpenseType.shared && _selectedPartners.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('No partner selected for shared expense. Switch to Personal or add a partner.'),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+      ));
+      return;
+    }
+
     /// Balance check
     if (_selectedAccount != null && amount > _selectedAccount!.currentBalance && !_forceSubmit) {
       setState(() => _amountExceedsBalance = true);

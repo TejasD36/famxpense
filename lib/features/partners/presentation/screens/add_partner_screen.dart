@@ -1,4 +1,7 @@
+import 'package:share_plus/share_plus.dart';
+
 import '../../xcore.dart';
+import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../blocs/partner_bloc.dart';
 
 class AddPartnerScreen extends StatefulWidget {
@@ -137,7 +140,13 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
 
                             FilledButton.icon(
                               onPressed: () {
-                                /// SHARE INVITE LATER
+                                final userId = sl<AuthLocalDatasource>().getUserId();
+                                final user = userId != null ? sl<UserLocalDatasource>().getUser(userId) : null;
+                                final nickname = user?.nickname ?? 'Someone';
+                                final message = 'Join me on FamXpense to track shared expenses!\n\n'
+                                    '$nickname is already using it to manage expenses with friends and family.\n\n'
+                                    'Download: https://famxpense-web.vercel.app/';
+                                SharePlus.instance.share(ShareParams(text: message));
                               },
 
                               icon: const Icon(Icons.share_rounded),
