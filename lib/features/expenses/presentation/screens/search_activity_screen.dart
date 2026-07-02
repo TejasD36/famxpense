@@ -315,7 +315,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('₹${expense.amount.toStringAsFixed(0)}',
+                      Text(formatIndianRupee(expense.amount),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Container(
@@ -429,7 +429,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('₹${settlement.amount.toStringAsFixed(0)}',
+                      Text(formatIndianRupee(settlement.amount),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Container(

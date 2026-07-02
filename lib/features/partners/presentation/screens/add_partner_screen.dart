@@ -13,6 +13,7 @@ class AddPartnerScreen extends StatefulWidget {
 
 class _AddPartnerScreenState extends State<AddPartnerScreen> {
   final _searchController = TextEditingController();
+  bool _isSending = false;
 
   @override
   void dispose() {
@@ -36,7 +37,25 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Add Partner')),
 
-      body: Padding(
+      body: BlocListener<PartnerBloc, PartnerState>(
+        listener: (context, state) {
+          state.maybeWhen(
+            loaded: (_, _, _, outgoing) {
+              if (_isSending) {
+                _isSending = false;
+                sl<RefreshNotifier>().notifyDataChanged();
+                Navigator.pop(context);
+              }
+            },
+            error: (message) {
+              if (_isSending) {
+                _isSending = false;
+              }
+            },
+            orElse: () {},
+          );
+        },
+        child: Padding(
         padding: const EdgeInsets.all(20),
 
         child: Column(
@@ -76,7 +95,17 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
             SizedBox(
               width: double.infinity,
 
-              child: FilledButton(onPressed: _searchUser, child: const Text('Search')),
+              child: BlocBuilder<PartnerBloc, PartnerState>(
+                builder: (context, state) {
+                  final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+                  return FilledButton(
+                    onPressed: isLoading ? null : _searchUser,
+                    child: isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Text('Search'),
+                  );
+                },
+              ),
             ),
 
             const SizedBox(height: 28),
@@ -223,11 +252,16 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                                         ),
                                       )
                                     : FilledButton.icon(
-                                        onPressed: () {
-                                          context.read<PartnerBloc>().add(PartnerEvent.sendRequest(user: searchedUser));
-                                        },
-                                        icon: const Icon(Icons.person_add_alt_1_rounded),
-                                        label: const Text('Add Partner'),
+                                        onPressed: _isSending
+                                            ? null
+                                            : () {
+                                                setState(() => _isSending = true);
+                                                context.read<PartnerBloc>().add(PartnerEvent.sendRequest(user: searchedUser));
+                                              },
+                                        icon: _isSending
+                                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.person_add_alt_1_rounded),
+                                        label: Text(_isSending ? 'Sending...' : 'Add Partner'),
                                         style: FilledButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -245,6 +279,7 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

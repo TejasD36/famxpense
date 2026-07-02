@@ -202,7 +202,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
 
                 authenticated: (user) {
-                  return ListView(
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+                      if (userId.isNotEmpty) {
+                        await sl<SyncService>().syncAll(userId: userId);
+                        if (context.mounted) context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+                      }
+                    },
+                    child: ListView(
                     padding: const EdgeInsets.all(20),
 
                     children: [
@@ -295,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           title: const Text('Activity', style: TextStyle(fontWeight: FontWeight.w600)),
                           trailing: const Icon(Icons.chevron_right_rounded),
-                          onTap: () => context.pushNamed(AppRoute.activity.name),
+            onTap: () => context.pushNamed(AppRoute.activity.name),
                         ),
                       ),
 
@@ -366,7 +374,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ],
-                  );
+                  ),
+                );
                 },
               );
             },
@@ -563,7 +572,7 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
                 ...accounts.map((a) => ListTile(
                   leading: CircleAvatar(child: Icon(a.accountType == AccountType.cash ? Icons.money_rounded : Icons.account_balance_rounded)),
                   title: Text(a.accountName),
-                  subtitle: Text('₹${a.currentBalance.toStringAsFixed(0)}'),
+                  subtitle: Text(formatIndianRupee(a.currentBalance)),
                   trailing: _defaultAccountId == a.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
                   onTap: () async {
                     await AppSettings.setDefaultAccountId(userId: userId, accountId: a.id);
@@ -665,7 +674,7 @@ class _SettlementsTile extends StatelessWidget {
               style: const TextStyle(fontSize: 12),
             ),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.pushNamed(AppRoute.activity.name),
+            onTap: () => context.pushNamed(AppRoute.settlements.name),
           ),
         );
       },

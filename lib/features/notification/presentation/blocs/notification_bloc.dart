@@ -35,11 +35,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   Future<void> _onMarkRead(MarkNotificationReadEvent event, Emitter<NotificationState> emit) async {
     await _datasource.markAsRead(event.notificationId);
+    sl<RefreshNotifier>().notifyDataChanged();
     add(const LoadNotificationsEvent());
   }
 
   Future<void> _onDelete(DeleteNotificationEvent event, Emitter<NotificationState> emit) async {
     await _datasource.deleteNotification(event.notificationId);
+    sl<RefreshNotifier>().notifyDataChanged();
     add(const LoadNotificationsEvent());
   }
 }

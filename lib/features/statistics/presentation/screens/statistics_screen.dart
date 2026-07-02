@@ -16,6 +16,7 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTimeRange? _dateRange;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   void _prevMonth() {
+    _dateRange = null;
     setState(() {
       _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
       _load();
@@ -50,6 +52,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   void _nextMonth() {
+    _dateRange = null;
     final next = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
     final now = DateTime(DateTime.now().year, DateTime.now().month);
     if (next.isAfter(now)) return;
@@ -65,17 +68,28 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: DateTimeRange(
+      initialDateRange: _dateRange ?? DateTimeRange(
         start: _selectedMonth,
-        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now) ? now : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
+        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now)
+            ? now
+            : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
       ),
     );
     if (picked != null) {
       setState(() {
+        _dateRange = picked;
         _selectedMonth = DateTime(picked.start.year, picked.start.month);
         _load();
       });
     }
+  }
+
+  void _clearDateRange() {
+    setState(() {
+      _dateRange = null;
+      _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+      _load();
+    });
   }
 
   Future<void> _exportCsv(StatisticsLoaded state) async {
@@ -140,7 +154,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       body: Column(
         children: [
-          _MonthBar(selectedMonth: _selectedMonth, onPrev: _prevMonth, onNext: _nextMonth, onCalendar: _pickDateRange),
+          _MonthBar(selectedMonth: _selectedMonth, onPrev: _prevMonth, onNext: _nextMonth, onCalendar: _pickDateRange, dateRange: _dateRange, onClearRange: _clearDateRange),
           Expanded(
             child: BlocBuilder<StatisticsBloc, StatisticsState>(
               builder: (context, state) {
@@ -221,13 +235,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           ),
                         ),
                       ),
-                  error: (message) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(
-                        message,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
-                        textAlign: TextAlign.center,
+                  error: (message) => RefreshIndicator(
+                    onRefresh: () async => _load(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: 300,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Text(
+                              message,
+                              style: TextStyle(color: Theme.of(context).colorScheme.error),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -246,8 +269,10 @@ class _MonthBar extends StatelessWidget {
   final VoidCallback onPrev;
   final VoidCallback onNext;
   final VoidCallback onCalendar;
+  final DateTimeRange? dateRange;
+  final VoidCallback? onClearRange;
 
-  const _MonthBar({required this.selectedMonth, required this.onPrev, required this.onNext, required this.onCalendar});
+  const _MonthBar({required this.selectedMonth, required this.onPrev, required this.onNext, required this.onCalendar, this.dateRange, this.onClearRange});
 
   bool get _isAtCurrentMonth {
     final now = DateTime.now();
@@ -259,17 +284,30 @@ class _MonthBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(icon: const Icon(Icons.chevron_left_rounded), onPressed: onPrev),
-          Text(DateFormat('MMM yyyy').format(selectedMonth), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          IconButton(
-            icon: Icon(
-              Icons.chevron_right_rounded,
-              color: _isAtCurrentMonth ? Theme.of(context).disabledColor : null,
+          if (dateRange != null)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: InputChip(
+                  label: Text(
+                    '${DateFormat('dd MMM yyyy').format(dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(dateRange!.end)}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  deleteIcon: const Icon(Icons.close_rounded, size: 18),
+                  onDeleted: onClearRange,
+                ),
+              ),
+            )
+          else ...[
+            IconButton(icon: const Icon(Icons.chevron_left_rounded), onPressed: onPrev),
+            Text(DateFormat('MMM yyyy').format(selectedMonth), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            IconButton(
+              icon: Icon(Icons.chevron_right_rounded, color: _isAtCurrentMonth ? Theme.of(context).disabledColor : null),
+              onPressed: _isAtCurrentMonth ? null : onNext,
             ),
-            onPressed: _isAtCurrentMonth ? null : onNext,
-          ),
+          ],
           const SizedBox(width: 8),
           IconButton(icon: const Icon(Icons.calendar_month_rounded), onPressed: onCalendar, tooltip: 'Pick date range'),
         ],
@@ -294,7 +332,7 @@ class _SummaryCards extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             label: 'Total Spent',
-            value: '₹${totalSpent.toStringAsFixed(0)}',
+            value: formatIndianRupee(totalSpent),
             icon: Icons.arrow_upward_rounded,
             color: theme.colorScheme.error,
             subtext: '$expenseCount expenses',
@@ -304,7 +342,7 @@ class _SummaryCards extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             label: 'Deposited',
-            value: '₹${totalDeposited.toStringAsFixed(0)}',
+            value: formatIndianRupee(totalDeposited),
             icon: Icons.arrow_downward_rounded,
             color: Colors.green,
             subtext: '$depositCount deposits',
@@ -375,7 +413,7 @@ class _AccountBalanceSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text('Account Balance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                Text('₹${totalBalance.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(formatIndianRupee(totalBalance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 12),
@@ -391,7 +429,7 @@ class _AccountBalanceSection extends StatelessWidget {
                           Text(a.accountName, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                           const SizedBox(height: 2),
                           Text(
-                            'Start: ₹${a.startBalance.toStringAsFixed(0)}  →  End: ₹${a.endBalance.toStringAsFixed(0)}',
+                            'Start: ${formatIndianRupee(a.startBalance)}  →  End: ${formatIndianRupee(a.endBalance)}',
                             style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 2),
@@ -399,11 +437,11 @@ class _AccountBalanceSection extends StatelessWidget {
                             children: [
                               Icon(Icons.arrow_downward_rounded, size: 12, color: Colors.green),
                               const SizedBox(width: 2),
-                              Text('₹${a.totalDeposited.toStringAsFixed(0)}', style: TextStyle(fontSize: 12, color: Colors.green)),
+                              Text(formatIndianRupee(a.totalDeposited), style: TextStyle(fontSize: 12, color: Colors.green)),
                               const SizedBox(width: 12),
                               Icon(Icons.arrow_upward_rounded, size: 12, color: theme.colorScheme.error),
                               const SizedBox(width: 2),
-                              Text('₹${a.totalSpent.toStringAsFixed(0)}', style: TextStyle(fontSize: 12, color: theme.colorScheme.error)),
+                              Text(formatIndianRupee(a.totalSpent), style: TextStyle(fontSize: 12, color: theme.colorScheme.error)),
                             ],
                           ),
                         ],
@@ -416,7 +454,7 @@ class _AccountBalanceSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${a.netChange >= 0 ? '+' : ''}${a.netChange.toStringAsFixed(0)}',
+                        formatIndianRupeeSigned(a.netChange),
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -505,7 +543,7 @@ class _ExpenseTypeChart extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '${_typeLabel(e.key)}  ₹${e.value.toStringAsFixed(0)} (${pct.toStringAsFixed(1)}%)',
+                              '${_typeLabel(e.key)}  ${formatIndianRupee(e.value)} (${pct.toStringAsFixed(1)}%)',
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],
@@ -593,7 +631,7 @@ class _CategorySection extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${categoryLabel(e.key)}  ₹${e.value.toStringAsFixed(0)} (${pct.toStringAsFixed(1)}%)',
+                      '${categoryLabel(e.key)}  ${formatIndianRupee(e.value)} (${pct.toStringAsFixed(1)}%)',
                       style: const TextStyle(fontSize: 11),
                     ),
                   ],
@@ -643,7 +681,7 @@ class _DailySection extends StatelessWidget {
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         return BarTooltipItem(
-                          'Day ${group.x}\n₹${rod.toY.toStringAsFixed(0)}',
+                          'Day ${group.x}\n${formatIndianRupee(rod.toY)}',
                           const TextStyle(fontSize: 12, color: Colors.white),
                         );
                       },
@@ -668,7 +706,7 @@ class _DailySection extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 42,
-                        getTitlesWidget: (value, meta) => Text('₹${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                        getTitlesWidget: (value, meta) => Text(formatIndianRupee(value.toDouble()), style: const TextStyle(fontSize: 9)),
                       ),
                     ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -768,7 +806,7 @@ class _TransactionSection extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '₹${txn.amount.toStringAsFixed(0)}',
+                      formatIndianRupee(txn.amount),
                       style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: amountColor),
                     ),
                   ],
@@ -824,7 +862,7 @@ class _ComparisonSection extends StatelessWidget {
                         final month = allMonths[groupIndex];
                         final label = rodIndex == 0 ? 'Spent' : 'Deposited';
                         return BarTooltipItem(
-                          '${month.label}\n$label: ₹${rod.toY.toStringAsFixed(0)}',
+                          '${month.label}\n$label: ${formatIndianRupee(rod.toY)}',
                           const TextStyle(fontSize: 12, color: Colors.white),
                         );
                       },
@@ -851,7 +889,7 @@ class _ComparisonSection extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 42,
-                        getTitlesWidget: (value, meta) => Text('₹${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                        getTitlesWidget: (value, meta) => Text(formatIndianRupee(value.toDouble()), style: const TextStyle(fontSize: 9)),
                       ),
                     ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),

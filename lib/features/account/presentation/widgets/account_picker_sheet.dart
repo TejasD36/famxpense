@@ -57,7 +57,7 @@ class AccountPickerSheet extends StatelessWidget {
                       child: Icon(_iconForType(account.accountType)),
                     ),
                     title: Text(account.accountName),
-                    subtitle: Text('₹ ${account.currentBalance.toStringAsFixed(0)}'),
+                    subtitle: Text(formatIndianRupee(account.currentBalance)),
                     trailing: isSelected ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) : null,
                     onTap: () {
                       onSelected(account);

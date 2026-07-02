@@ -41,6 +41,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
     );
 
     context.read<AccountBloc>().add(AccountEvent.saveAccount(account: account));
+    sl<RefreshNotifier>().notifyDataChanged();
     Navigator.of(context).pop();
   }
 

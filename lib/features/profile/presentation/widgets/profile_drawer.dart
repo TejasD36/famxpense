@@ -253,7 +253,7 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
                 ...accounts.map((a) => ListTile(
                   leading: CircleAvatar(child: Icon(a.accountType == AccountType.cash ? Icons.money_rounded : Icons.account_balance_rounded)),
                   title: Text(a.accountName),
-                  subtitle: Text('₹${a.currentBalance.toStringAsFixed(0)}'),
+                  subtitle: Text(formatIndianRupee(a.currentBalance)),
                   trailing: _defaultAccountId == a.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
                   onTap: () async {
                     await AppSettings.setDefaultAccountId(userId: userId, accountId: a.id);
@@ -315,7 +315,7 @@ class _AccountsList extends StatelessWidget {
               child: Text(a.accountName[0].toUpperCase(), style: const TextStyle(fontSize: 12)),
             ),
             title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
-            trailing: Text('₹${a.currentBalance.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            trailing: Text(formatIndianRupee(a.currentBalance), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
             onTap: () => context.pushNamed(AppRoute.accountDetail.name, extra: a.toEntity()),
           )).toList(),
         );

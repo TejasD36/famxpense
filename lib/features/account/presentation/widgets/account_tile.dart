@@ -20,7 +20,7 @@ class AccountTile extends StatelessWidget {
         ),
         title: Text(account.accountName, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(
-          '₹ ${account.currentBalance.toStringAsFixed(0)}',
+          formatIndianRupee(account.currentBalance),
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),

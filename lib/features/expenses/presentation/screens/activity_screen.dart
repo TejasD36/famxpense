@@ -145,8 +145,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 return db.compareTo(da);
               });
 
-              return CustomScrollView(
-                slivers: [
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+                  await context.read<ActivityBloc>().stream.firstWhere((s) => s is! ActivityLoading);
+                },
+                child: CustomScrollView(
+                  slivers: [
                   for (int i = 0; i < sortedKeys.length; i++) ...[
                     /// Divider before each month group (except the first)
                     if (i > 0)
@@ -183,7 +188,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     ),
                   ],
                 ],
-              );
+              ),
+            );
             },
           );
         },
@@ -251,14 +257,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                 Icon(isMe ? Icons.person_rounded : Icons.person_outline_rounded, size: 16),
                                 const SizedBox(width: 6),
                                 Expanded(child: Text(isMe ? 'You' : '@$pNickname', style: const TextStyle(fontSize: 13))),
-                                Text('₹${p.amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                Text(formatIndianRupee(p.amount), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           );
                         }),
                       ],
                       const SizedBox(height: 6),
-                      Text('Total: ₹${expense.amount.toStringAsFixed(0)}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text('Total: ${formatIndianRupee(expense.amount)}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -401,7 +407,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(formatIndianRupee(amount), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

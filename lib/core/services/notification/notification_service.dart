@@ -33,7 +33,7 @@ class NotificationService {
         userId: userId,
         type: NotificationType.expenseAdded,
         title: 'New Expense',
-        message: '$paidByNickname added "$title" (₹${amount.toStringAsFixed(0)})',
+        message: '$paidByNickname added "$title" (${formatIndianRupee(amount)})',
         relatedId: expenseId,
         createdAt: DateTime.now(),
       );
@@ -88,7 +88,7 @@ class NotificationService {
       userId: toUserId,
       type: NotificationType.settlementConfirmed,
       title: 'Settlement Received',
-      message: '$fromNickname settled ₹${amount.toStringAsFixed(0)} with you',
+      message: '$fromNickname settled ${formatIndianRupee(amount)} with you',
       relatedId: settlementId,
       createdAt: DateTime.now(),
     );

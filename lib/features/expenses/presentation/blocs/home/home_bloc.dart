@@ -54,15 +54,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       expenses.sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
 
-      final totalSpend = expenses.fold<double>(0, (summation, expense) => summation + expense.amount);
+      double userShare(ExpenseEntity expense) {
+        if (expense.expenseType == ExpenseType.personal) return expense.amount;
+        final p = expense.participants.where((p) => p.userId == userId).firstOrNull;
+        return p?.amount ?? 0;
+      }
 
-      final personalSpend = expenses
-          .where((e) => e.expenseType == ExpenseType.personal)
-          .fold<double>(0, (summation, expense) => summation + expense.amount);
+      double sumShare(Iterable<ExpenseEntity> exps) => exps.fold<double>(0, (s, e) => s + userShare(e));
 
-      final sharedSpend = expenses
-          .where((e) => e.expenseType == ExpenseType.shared)
-          .fold<double>(0, (summation, expense) => summation + expense.amount);
+      final totalSpend = sumShare(expenses);
+      final personalSpend = sumShare(expenses.where((e) => e.expenseType == ExpenseType.personal));
+      final sharedSpend = sumShare(expenses.where((e) => e.expenseType == ExpenseType.shared));
 
       final pendingSyncCount = expenses.where((e) => e.syncStatus == SyncStatus.pending).length;
 

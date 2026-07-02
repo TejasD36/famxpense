@@ -387,7 +387,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
             ));
-            context.pop();
+            context.goNamed(AppRoute.home.name);
           },
           error: (message) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(

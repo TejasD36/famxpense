@@ -87,10 +87,36 @@ class _HomeScreenState extends State<HomeScreen> {
               initial: () => const SizedBox(),
               loading: () => const Center(child: CircularProgressIndicator()),
               empty: () {
-                return _EmptyView();
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    final authState = context.read<AuthBloc>().state;
+                    await authState.whenOrNull(authenticated: (user) async {
+                      await sl<SyncService>().syncAll(userId: user.id);
+                      if (context.mounted) context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                    });
+                  },
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: constraints.maxHeight > 400 ? constraints.maxHeight * 0.7 : 400,
+                        child: _EmptyView(),
+                      ),
+                    ),
+                  ),
+                );
               },
               error: (message) {
-                return Center(child: Text(message));
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    final authState = context.read<AuthBloc>().state;
+                    await authState.whenOrNull(authenticated: (user) async {
+                      await sl<SyncService>().syncAll(userId: user.id);
+                      if (context.mounted) context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                    });
+                  },
+                  child: SingleChildScrollView(physics: const AlwaysScrollableScrollPhysics(), child: SizedBox(height: 300, child: Center(child: Text(message)))),
+                );
               },
               loaded:
                   (
@@ -211,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
 
-                              child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId]),
+                              child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId], userId: userId),
                             );
                           }),
                         ],
@@ -291,10 +317,18 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
-class _PendingConfirmations extends StatelessWidget {
+class _PendingConfirmations extends StatefulWidget {
   final List<SettlementEntity> incoming;
   final String userId;
   const _PendingConfirmations({required this.incoming, required this.userId});
+
+  @override
+  State<_PendingConfirmations> createState() => _PendingConfirmationsState();
+}
+
+class _PendingConfirmationsState extends State<_PendingConfirmations> {
+  final Set<String> _confirmingIds = {};
+  final Set<String> _rejectingIds = {};
 
   @override
   Widget build(BuildContext context) {
@@ -312,10 +346,13 @@ class _PendingConfirmations extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ...incoming.map((s) {
-          final otherId = s.fromUserId == userId ? s.toUserId : s.fromUserId;
+        ...widget.incoming.map((s) {
+          final otherId = s.fromUserId == widget.userId ? s.toUserId : s.fromUserId;
           final other = sl<UserLocalDatasource>().getUser(otherId);
           final name = other?.nickname ?? 'Unknown';
+          final isConfirming = _confirmingIds.contains(s.id);
+          final isRejecting = _rejectingIds.contains(s.id);
+          final isProcessing = isConfirming || isRejecting;
           return Card(
             elevation: 0,
             margin: const EdgeInsets.only(bottom: 8),
@@ -346,14 +383,18 @@ class _PendingConfirmations extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.check_circle_rounded, color: Colors.green),
+                    icon: isConfirming
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.check_circle_rounded, color: Colors.green),
                     tooltip: 'Confirm',
-                    onPressed: () => _handleConfirm(context, s),
+                    onPressed: isProcessing ? null : () => _handleConfirm(context, s),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.cancel_rounded, color: Colors.red),
+                    icon: isRejecting
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.cancel_rounded, color: Colors.red),
                     tooltip: 'Reject',
-                    onPressed: () => _handleReject(context, s),
+                    onPressed: isProcessing ? null : () => _handleReject(context, s),
                   ),
                 ],
               ),
@@ -365,20 +406,30 @@ class _PendingConfirmations extends StatelessWidget {
   }
 
   Future<void> _handleConfirm(BuildContext context, SettlementEntity settlement) async {
-    await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
-    if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
-      context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    setState(() => _confirmingIds.add(settlement.id));
+    try {
+      await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
+        context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+      }
+    } finally {
+      if (mounted) setState(() => _confirmingIds.remove(settlement.id));
     }
   }
 
   Future<void> _handleReject(BuildContext context, SettlementEntity settlement) async {
-    await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement rejected'), behavior: SnackBarBehavior.floating));
-      context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+    setState(() => _rejectingIds.add(settlement.id));
+    try {
+      await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement rejected'), behavior: SnackBarBehavior.floating));
+        context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+      }
+    } finally {
+      if (mounted) setState(() => _rejectingIds.remove(settlement.id));
     }
   }
 }
@@ -448,7 +499,14 @@ class _PendingSettlements extends StatelessWidget {
 class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
   final String? accountName;
-  const _ExpenseTile({required this.expense, this.accountName});
+  final String userId;
+  const _ExpenseTile({required this.expense, this.accountName, required this.userId});
+
+  double get _userShare {
+    if (expense.expenseType == ExpenseType.personal) return expense.amount;
+    final p = expense.participants.where((p) => p.userId == userId).firstOrNull;
+    return p?.amount ?? 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -472,7 +530,7 @@ class _ExpenseTile extends StatelessWidget {
             ],
           ],
         ),
-        trailing: Text(formatIndianRupee(expense.amount), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        trailing: Text(formatIndianRupee(_userShare), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -645,6 +703,7 @@ class _DebtSummaryCards extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final bottomInset = MediaQuery.of(context).size.height * 0.1;
 
+    bool isSettling = false;
     showDialog(
       context: context,
       builder: (ctx) {
@@ -730,66 +789,79 @@ class _DebtSummaryCards extends StatelessWidget {
                     ],
                   ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                    TextButton(
+                      onPressed: isSettling ? null : () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
                     FilledButton(
-                      onPressed: () async {
-                        final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
-                        if (settleAmount <= 0) {
-                          messenger.showSnackBar(
-                            SnackBar(content: const Text('Enter a valid amount greater than 0'), behavior: SnackBarBehavior.floating),
-                          );
-                          return;
-                        }
-                        if (settleAmount > 999999999) {
-                          messenger.showSnackBar(
-                            SnackBar(content: const Text('Amount too large'), behavior: SnackBarBehavior.floating),
-                          );
-                          return;
-                        }
-                        if (settleAmount > amount) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('Amount cannot exceed ${formatIndianRupee(amount)}'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          return;
-                        }
-                        if (selectedAccountId == null) {
-                          messenger.showSnackBar(
-                            SnackBar(content: const Text('Select an account to pay from'), behavior: SnackBarBehavior.floating),
-                          );
-                          return;
-                        }
-                        if (settleAmount > selectedAccountBalance) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('Insufficient balance in $selectedAccountName (${formatIndianRupee(selectedAccountBalance)})'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          return;
-                        }
+                      onPressed: isSettling
+                          ? null
+                          : () async {
+                              setDialogState(() => isSettling = true);
+                              final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
+                              if (settleAmount <= 0) {
+                                messenger.showSnackBar(
+                                  SnackBar(content: const Text('Enter a valid amount greater than 0'), behavior: SnackBarBehavior.floating),
+                                );
+                                setDialogState(() => isSettling = false);
+                                return;
+                              }
+                              if (settleAmount > 999999999) {
+                                messenger.showSnackBar(
+                                  SnackBar(content: const Text('Amount too large'), behavior: SnackBarBehavior.floating),
+                                );
+                                setDialogState(() => isSettling = false);
+                                return;
+                              }
+                              if (settleAmount > amount) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Amount cannot exceed ${formatIndianRupee(amount)}'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                setDialogState(() => isSettling = false);
+                                return;
+                              }
+                              if (selectedAccountId == null) {
+                                messenger.showSnackBar(
+                                  SnackBar(content: const Text('Select an account to pay from'), behavior: SnackBarBehavior.floating),
+                                );
+                                setDialogState(() => isSettling = false);
+                                return;
+                              }
+                              if (settleAmount > selectedAccountBalance) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text('Insufficient balance in $selectedAccountName (${formatIndianRupee(selectedAccountBalance)})'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                setDialogState(() => isSettling = false);
+                                return;
+                              }
 
-                        await sl<SettleDebtUsecase>()(
-                          fromUserId: fromUserId,
-                          toUserId: toUserId,
-                          amount: settleAmount,
-                          fromAccountId: selectedAccountId,
-                        );
+                              await sl<SettleDebtUsecase>()(
+                                fromUserId: fromUserId,
+                                toUserId: toUserId,
+                                amount: settleAmount,
+                                fromAccountId: selectedAccountId,
+                              );
 
-                        if (!ctx.mounted) return;
-                        Navigator.pop(ctx);
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Settled successfully from $selectedAccountName'),
-                            behavior: SnackBarBehavior.floating,
-                            margin: EdgeInsets.only(bottom: bottomInset),
-                          ),
-                        );
-                        homeBloc.add(const HomeEvent.loadDashboard());
-                      },
-                      child: const Text('Settle'),
+                              if (!ctx.mounted) return;
+                              Navigator.pop(ctx);
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Settled successfully from $selectedAccountName'),
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: EdgeInsets.only(bottom: bottomInset),
+                                ),
+                              );
+                              homeBloc.add(const HomeEvent.loadDashboard());
+                            },
+                      child: isSettling
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Text('Settle'),
                     ),
                   ],
                 );

@@ -18,8 +18,8 @@ service cloud.firestore {
         && resource.data.participantIds != null
         && resource.data.participantIds.hasAny([request.auth.uid]);
       allow create: if request.auth.uid == request.resource.data.paidByUserId;
-      allow update: if request.auth.uid == request.resource.data.paidByUserId;
-      allow delete: if request.auth.uid == request.resource.data.paidByUserId;
+      allow update: if request.auth.uid == resource.data.paidByUserId;
+      allow delete: if request.auth.uid == resource.data.paidByUserId;
     }
 
     // Accounts: read/write own only
@@ -27,30 +27,28 @@ service cloud.firestore {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == request.resource.data.userId;
-      allow delete: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
     }
 
     // Settlements: read if participant, create/update if participant
     match /settlements/{settlementId} {
-      allow read: if request.auth != null
-        && (resource.data.fromUserId == request.auth.uid
-            || resource.data.toUserId == request.auth.uid);
+      allow read: if request.auth != null && resource.data.fromUserId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.toUserId == request.auth.uid;
       allow create: if request.auth.uid == request.resource.data.fromUserId;
-      allow update: if request.auth.uid == request.resource.data.fromUserId
-        || request.auth.uid == request.resource.data.toUserId;
+      allow update: if request.auth.uid == resource.data.fromUserId
+        || request.auth.uid == resource.data.toUserId;
       allow delete: if false;
     }
 
     // Partnerships: uses senderId/receiverId (not userId/partnerId)
     match /partnerships/{partnershipId} {
-      allow read: if request.auth != null
-        && (resource.data.senderId == request.auth.uid
-            || resource.data.receiverId == request.auth.uid);
+      allow read: if request.auth != null && resource.data.senderId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.receiverId == request.auth.uid;
       allow create: if request.auth.uid == request.resource.data.senderId;
-      allow update: if request.auth.uid == request.resource.data.senderId
-        || request.auth.uid == request.resource.data.receiverId;
-      allow delete: if request.auth.uid == request.resource.data.senderId;
+      allow update: if request.auth.uid == resource.data.senderId
+        || request.auth.uid == resource.data.receiverId;
+      allow delete: if request.auth.uid == resource.data.senderId;
     }
 
     // Notifications: read own only, create allowed for any authed user
@@ -59,18 +57,18 @@ service cloud.firestore {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null;
-      allow update: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId;
       allow delete: if false;
     }
 
     // Debt ledgers: read if participant, write if participant
     match /debtLedgers/{ledgerId} {
-      allow read: if request.auth != null
-        && (resource.data.userA == request.auth.uid
-            || resource.data.userB == request.auth.uid);
-      allow create: if request.auth.uid == request.resource.data.userA;
-      allow update: if request.auth.uid == request.resource.data.userA
+      allow read: if request.auth != null && resource.data.userA == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userB == request.auth.uid;
+      allow create: if request.auth.uid == request.resource.data.userA
         || request.auth.uid == request.resource.data.userB;
+      allow update: if request.auth.uid == resource.data.userA
+        || request.auth.uid == resource.data.userB;
       allow delete: if false;
     }
 

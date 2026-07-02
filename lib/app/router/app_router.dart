@@ -16,6 +16,7 @@ import '../../features/expenses/presentation/screens/search_activity_screen.dart
 import '../../features/notification/presentation/blocs/notification_bloc.dart';
 import '../../features/notification/presentation/screens/notification_screen.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
+import '../../features/settlement/presentation/screens/settlement_screen.dart';
 import '../../features/partners/presentation/screens/add_partner_screen.dart';
 import '../../features/partners/presentation/screens/partners_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -145,6 +146,11 @@ class AppRouter {
           path: AppRoute.notifications.path,
           name: AppRoute.notifications.name,
           builder: (_, _) => BlocProvider(create: (_) => sl<NotificationBloc>(), child: const NotificationScreen()),
+        ),
+        GoRoute(
+          path: AppRoute.settlements.path,
+          name: AppRoute.settlements.name,
+          builder: (_, _) => const SettlementScreen(),
         ),
       ],
     );
