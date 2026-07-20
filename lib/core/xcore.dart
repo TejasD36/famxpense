@@ -12,3 +12,4 @@ export 'services/notification/notification_service.dart';
 export 'services/notification/realtime_notification_service.dart';
 export 'services/refresh/refresh_notifier.dart';
 export 'services/sync/sync_service.dart';
+export 'services/location/location_service.dart';

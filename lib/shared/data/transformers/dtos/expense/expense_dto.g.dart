@@ -34,13 +34,15 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
       isDisabled: fields[14] == null ? false : fields[14] as bool,
       ownerUserId: fields[15] as String,
       category: fields[16] as String?,
+      latitude: (fields[17] as num?)?.toDouble(),
+      longitude: (fields[18] as num?)?.toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, ExpenseDto obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -74,7 +76,11 @@ class ExpenseDtoAdapter extends TypeAdapter<ExpenseDto> {
       ..writeByte(15)
       ..write(obj.ownerUserId)
       ..writeByte(16)
-      ..write(obj.category);
+      ..write(obj.category)
+      ..writeByte(17)
+      ..write(obj.latitude)
+      ..writeByte(18)
+      ..write(obj.longitude);
   }
 
   @override
@@ -112,6 +118,8 @@ _ExpenseDto _$ExpenseDtoFromJson(Map<String, dynamic> json) => _ExpenseDto(
   isDisabled: json['isDisabled'] as bool? ?? false,
   ownerUserId: json['ownerUserId'] as String,
   category: json['category'] as String?,
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) =>
@@ -133,6 +141,8 @@ Map<String, dynamic> _$ExpenseDtoToJson(_ExpenseDto instance) =>
       'isDisabled': instance.isDisabled,
       'ownerUserId': instance.ownerUserId,
       'category': instance.category,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };
 
 const _$ExpenseTypeEnumMap = {

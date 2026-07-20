@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExpenseDto implements DiagnosticableTreeMixin {
 
-@HiveField(0) String get id;@HiveField(1) String get title;@HiveField(2) String? get note;@HiveField(3) double get amount;@HiveField(4) String get paidByUserId;@HiveField(5) ExpenseType get expenseType;@HiveField(6) SplitType get splitType;@HiveField(7) List<ExpenseParticipantDto> get participants;@HiveField(8) String? get groupId;@HiveField(9) String? get accountId;@HiveField(10) DateTime get expenseDate;@HiveField(11) DateTime get createdAt;@HiveField(12) DateTime get updatedAt;@HiveField(13) SyncStatus get syncStatus;@HiveField(14) bool get isDisabled;@HiveField(15) String get ownerUserId;@HiveField(16) String? get category;
+@HiveField(0) String get id;@HiveField(1) String get title;@HiveField(2) String? get note;@HiveField(3) double get amount;@HiveField(4) String get paidByUserId;@HiveField(5) ExpenseType get expenseType;@HiveField(6) SplitType get splitType;@HiveField(7) List<ExpenseParticipantDto> get participants;@HiveField(8) String? get groupId;@HiveField(9) String? get accountId;@HiveField(10) DateTime get expenseDate;@HiveField(11) DateTime get createdAt;@HiveField(12) DateTime get updatedAt;@HiveField(13) SyncStatus get syncStatus;@HiveField(14) bool get isDisabled;@HiveField(15) String get ownerUserId;@HiveField(16) String? get category;@HiveField(17) double? get latitude;@HiveField(18) double? get longitude;
 /// Create a copy of ExpenseDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $ExpenseDtoCopyWith<ExpenseDto> get copyWith => _$ExpenseDtoCopyWithImpl<Expense
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ExpenseDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('category', category));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('category', category))..add(DiagnosticsProperty('latitude', latitude))..add(DiagnosticsProperty('longitude', longitude));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExpenseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.category, category) || other.category == category));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExpenseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,note,amount,paidByUserId,expenseType,splitType,const DeepCollectionEquality().hash(participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,ownerUserId,category);
+int get hashCode => Object.hashAll([runtimeType,id,title,note,amount,paidByUserId,expenseType,splitType,const DeepCollectionEquality().hash(participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,ownerUserId,category,latitude,longitude]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ExpenseDto(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, ownerUserId: $ownerUserId, category: $category)';
+  return 'ExpenseDto(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, ownerUserId: $ownerUserId, category: $category, latitude: $latitude, longitude: $longitude)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ExpenseDtoCopyWith<$Res>  {
   factory $ExpenseDtoCopyWith(ExpenseDto value, $Res Function(ExpenseDto) _then) = _$ExpenseDtoCopyWithImpl;
 @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String title,@HiveField(2) String? note,@HiveField(3) double amount,@HiveField(4) String paidByUserId,@HiveField(5) ExpenseType expenseType,@HiveField(6) SplitType splitType,@HiveField(7) List<ExpenseParticipantDto> participants,@HiveField(8) String? groupId,@HiveField(9) String? accountId,@HiveField(10) DateTime expenseDate,@HiveField(11) DateTime createdAt,@HiveField(12) DateTime updatedAt,@HiveField(13) SyncStatus syncStatus,@HiveField(14) bool isDisabled,@HiveField(15) String ownerUserId,@HiveField(16) String? category
+@HiveField(0) String id,@HiveField(1) String title,@HiveField(2) String? note,@HiveField(3) double amount,@HiveField(4) String paidByUserId,@HiveField(5) ExpenseType expenseType,@HiveField(6) SplitType splitType,@HiveField(7) List<ExpenseParticipantDto> participants,@HiveField(8) String? groupId,@HiveField(9) String? accountId,@HiveField(10) DateTime expenseDate,@HiveField(11) DateTime createdAt,@HiveField(12) DateTime updatedAt,@HiveField(13) SyncStatus syncStatus,@HiveField(14) bool isDisabled,@HiveField(15) String ownerUserId,@HiveField(16) String? category,@HiveField(17) double? latitude,@HiveField(18) double? longitude
 });
 
 
@@ -71,7 +71,7 @@ class _$ExpenseDtoCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? ownerUserId = null,Object? category = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? ownerUserId = null,Object? category = freezed,Object? latitude = freezed,Object? longitude = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -90,7 +90,9 @@ as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ig
 as SyncStatus,isDisabled: null == isDisabled ? _self.isDisabled : isDisabled // ignore: cast_nullable_to_non_nullable
 as bool,ownerUserId: null == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
 as String,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 
@@ -172,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category, @HiveField(17)  double? latitude, @HiveField(18)  double? longitude)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExpenseDto() when $default != null:
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category);case _:
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category,_that.latitude,_that.longitude);case _:
   return orElse();
 
 }
@@ -193,10 +195,10 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category, @HiveField(17)  double? latitude, @HiveField(18)  double? longitude)  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseDto():
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category);}
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category,_that.latitude,_that.longitude);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -210,10 +212,10 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String title, @HiveField(2)  String? note, @HiveField(3)  double amount, @HiveField(4)  String paidByUserId, @HiveField(5)  ExpenseType expenseType, @HiveField(6)  SplitType splitType, @HiveField(7)  List<ExpenseParticipantDto> participants, @HiveField(8)  String? groupId, @HiveField(9)  String? accountId, @HiveField(10)  DateTime expenseDate, @HiveField(11)  DateTime createdAt, @HiveField(12)  DateTime updatedAt, @HiveField(13)  SyncStatus syncStatus, @HiveField(14)  bool isDisabled, @HiveField(15)  String ownerUserId, @HiveField(16)  String? category, @HiveField(17)  double? latitude, @HiveField(18)  double? longitude)?  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseDto() when $default != null:
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category);case _:
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.ownerUserId,_that.category,_that.latitude,_that.longitude);case _:
   return null;
 
 }
@@ -225,7 +227,7 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 @JsonSerializable()
 
 class _ExpenseDto with DiagnosticableTreeMixin implements ExpenseDto {
-  const _ExpenseDto({@HiveField(0) required this.id, @HiveField(1) required this.title, @HiveField(2) this.note, @HiveField(3) required this.amount, @HiveField(4) required this.paidByUserId, @HiveField(5) required this.expenseType, @HiveField(6) required this.splitType, @HiveField(7) required final  List<ExpenseParticipantDto> participants, @HiveField(8) this.groupId, @HiveField(9) this.accountId, @HiveField(10) required this.expenseDate, @HiveField(11) required this.createdAt, @HiveField(12) required this.updatedAt, @HiveField(13) required this.syncStatus, @HiveField(14) this.isDisabled = false, @HiveField(15) required this.ownerUserId, @HiveField(16) this.category}): _participants = participants;
+  const _ExpenseDto({@HiveField(0) required this.id, @HiveField(1) required this.title, @HiveField(2) this.note, @HiveField(3) required this.amount, @HiveField(4) required this.paidByUserId, @HiveField(5) required this.expenseType, @HiveField(6) required this.splitType, @HiveField(7) required final  List<ExpenseParticipantDto> participants, @HiveField(8) this.groupId, @HiveField(9) this.accountId, @HiveField(10) required this.expenseDate, @HiveField(11) required this.createdAt, @HiveField(12) required this.updatedAt, @HiveField(13) required this.syncStatus, @HiveField(14) this.isDisabled = false, @HiveField(15) required this.ownerUserId, @HiveField(16) this.category, @HiveField(17) this.latitude, @HiveField(18) this.longitude}): _participants = participants;
   factory _ExpenseDto.fromJson(Map<String, dynamic> json) => _$ExpenseDtoFromJson(json);
 
 @override@HiveField(0) final  String id;
@@ -251,6 +253,8 @@ class _ExpenseDto with DiagnosticableTreeMixin implements ExpenseDto {
 @override@JsonKey()@HiveField(14) final  bool isDisabled;
 @override@HiveField(15) final  String ownerUserId;
 @override@HiveField(16) final  String? category;
+@override@HiveField(17) final  double? latitude;
+@override@HiveField(18) final  double? longitude;
 
 /// Create a copy of ExpenseDto
 /// with the given fields replaced by the non-null parameter values.
@@ -266,21 +270,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ExpenseDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('category', category));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('category', category))..add(DiagnosticsProperty('latitude', latitude))..add(DiagnosticsProperty('longitude', longitude));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExpenseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.category, category) || other.category == category));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExpenseDto&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,note,amount,paidByUserId,expenseType,splitType,const DeepCollectionEquality().hash(_participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,ownerUserId,category);
+int get hashCode => Object.hashAll([runtimeType,id,title,note,amount,paidByUserId,expenseType,splitType,const DeepCollectionEquality().hash(_participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,ownerUserId,category,latitude,longitude]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ExpenseDto(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, ownerUserId: $ownerUserId, category: $category)';
+  return 'ExpenseDto(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, ownerUserId: $ownerUserId, category: $category, latitude: $latitude, longitude: $longitude)';
 }
 
 
@@ -291,7 +295,7 @@ abstract mixin class _$ExpenseDtoCopyWith<$Res> implements $ExpenseDtoCopyWith<$
   factory _$ExpenseDtoCopyWith(_ExpenseDto value, $Res Function(_ExpenseDto) _then) = __$ExpenseDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String title,@HiveField(2) String? note,@HiveField(3) double amount,@HiveField(4) String paidByUserId,@HiveField(5) ExpenseType expenseType,@HiveField(6) SplitType splitType,@HiveField(7) List<ExpenseParticipantDto> participants,@HiveField(8) String? groupId,@HiveField(9) String? accountId,@HiveField(10) DateTime expenseDate,@HiveField(11) DateTime createdAt,@HiveField(12) DateTime updatedAt,@HiveField(13) SyncStatus syncStatus,@HiveField(14) bool isDisabled,@HiveField(15) String ownerUserId,@HiveField(16) String? category
+@HiveField(0) String id,@HiveField(1) String title,@HiveField(2) String? note,@HiveField(3) double amount,@HiveField(4) String paidByUserId,@HiveField(5) ExpenseType expenseType,@HiveField(6) SplitType splitType,@HiveField(7) List<ExpenseParticipantDto> participants,@HiveField(8) String? groupId,@HiveField(9) String? accountId,@HiveField(10) DateTime expenseDate,@HiveField(11) DateTime createdAt,@HiveField(12) DateTime updatedAt,@HiveField(13) SyncStatus syncStatus,@HiveField(14) bool isDisabled,@HiveField(15) String ownerUserId,@HiveField(16) String? category,@HiveField(17) double? latitude,@HiveField(18) double? longitude
 });
 
 
@@ -308,7 +312,7 @@ class __$ExpenseDtoCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? ownerUserId = null,Object? category = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? ownerUserId = null,Object? category = freezed,Object? latitude = freezed,Object? longitude = freezed,}) {
   return _then(_ExpenseDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -327,7 +331,9 @@ as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ig
 as SyncStatus,isDisabled: null == isDisabled ? _self.isDisabled : isDisabled // ignore: cast_nullable_to_non_nullable
 as bool,ownerUserId: null == ownerUserId ? _self.ownerUserId : ownerUserId // ignore: cast_nullable_to_non_nullable
 as String,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 

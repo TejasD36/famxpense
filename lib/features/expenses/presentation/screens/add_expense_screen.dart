@@ -35,6 +35,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool _amountExceedsBalance = false;
   bool _forceSubmit = false;
 
+  double? _latitude;
+  double? _longitude;
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +106,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     } else {
       setState(() => _amountExceedsBalance = false);
     }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    final locationService = sl<LocationService>();
+    final position = await locationService.getCurrentPosition();
+    if (!mounted) return;
+    if (position != null) {
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Could not get location. Check location permissions.'),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+      ));
+    }
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _latitude = null;
+      _longitude = null;
+    });
   }
 
   void _submit() {
@@ -223,6 +251,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       createdAt: DateTime.now().toUtc(),
       updatedAt: DateTime.now().toUtc(),
       syncStatus: SyncStatus.pending,
+      latitude: _latitude,
+      longitude: _longitude,
     );
     context.read<AddExpenseBloc>().add(AddExpenseEvent.submit(expense));
   }
@@ -528,6 +558,46 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         minLines: 3,
                         maxLines: 5,
                         decoration: const InputDecoration(labelText: 'Note (Optional)', border: OutlineInputBorder()),
+                      ),
+                      const SizedBox(height: 24),
+
+                      /// Location
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: _getCurrentLocation,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).dividerColor),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(_latitude != null ? Icons.location_on_rounded : Icons.add_location_alt_rounded),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _latitude != null ? 'Location captured' : 'Add location',
+                                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_latitude != null) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: _clearLocation,
+                              tooltip: 'Remove location',
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 24),
 

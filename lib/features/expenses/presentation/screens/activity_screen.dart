@@ -223,6 +223,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 badgeColor: expense.expenseType == ExpenseType.shared ? Colors.orange : Colors.green,
                 isExpanded: isExpanded,
                 category: expense.category,
+                onDetailTap: () => _showTransactionDetail(expense),
               ),
               AnimatedCrossFade(
                 firstChild: const SizedBox.shrink(),
@@ -351,6 +352,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
+  void _showTransactionDetail(ExpenseEntity expense) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => TransactionDetailSheet(expense: expense),
+    );
+  }
+
   Widget _cardHeader({
     required IconData icon,
     required MaterialColor iconColor,
@@ -361,6 +370,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     required MaterialColor badgeColor,
     required bool isExpanded,
     String? category,
+    VoidCallback? onDetailTap,
   }) {
     return Row(
       children: [
@@ -426,7 +436,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
             ),
           ],
         ),
-        const SizedBox(width: 4),
+        if (onDetailTap != null) ...[
+          IconButton(
+            icon: const Icon(Icons.visibility_outlined, size: 20),
+            onPressed: onDetailTap,
+            tooltip: 'View details',
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
         AnimatedRotation(
           turns: isExpanded ? 0.5 : 0,
           duration: const Duration(milliseconds: 200),

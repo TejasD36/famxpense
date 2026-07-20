@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:famxpense/features/settlement/data/datasources/remote/settlement_remote_datasource_impl.dart';
 import 'package:famxpense/shared/domain/entities/settlement/settlement_entity.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SettlementRemoteDatasourceImpl', () {

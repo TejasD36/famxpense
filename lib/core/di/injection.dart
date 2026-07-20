@@ -171,6 +171,7 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton(() => RefreshNotifier());
   sl.registerLazySingleton(() => ConnectivityService());
+  sl.registerLazySingleton(() => LocationService());
 
   /// ACCOUNT
   sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());

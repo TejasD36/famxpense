@@ -29,6 +29,8 @@ _ExpenseEntity _$ExpenseEntityFromJson(Map<String, dynamic> json) =>
       syncStatus: $enumDecode(_$SyncStatusEnumMap, json['syncStatus']),
       isDisabled: json['isDisabled'] as bool? ?? false,
       category: json['category'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$ExpenseEntityToJson(_ExpenseEntity instance) =>
@@ -50,6 +52,8 @@ Map<String, dynamic> _$ExpenseEntityToJson(_ExpenseEntity instance) =>
       'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
       'isDisabled': instance.isDisabled,
       'category': instance.category,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };
 
 const _$ExpenseTypeEnumMap = {

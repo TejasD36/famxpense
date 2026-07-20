@@ -23,6 +23,8 @@ sealed class ExpenseEntity with _$ExpenseEntity {
     required SyncStatus syncStatus,
     @Default(false) bool isDisabled,
     String? category,
+    double? latitude,
+    double? longitude,
   }) = _ExpenseEntity;
 
   factory ExpenseEntity.fromJson(Map<String, dynamic> json) => _$ExpenseEntityFromJson(json);

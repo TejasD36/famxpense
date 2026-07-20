@@ -29,6 +29,8 @@ _ExpenseRemoteDto _$ExpenseRemoteDtoFromJson(Map<String, dynamic> json) =>
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isDisabled: json['isDisabled'] as bool? ?? false,
       category: json['category'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$ExpenseRemoteDtoToJson(_ExpenseRemoteDto instance) =>
@@ -50,4 +52,6 @@ Map<String, dynamic> _$ExpenseRemoteDtoToJson(_ExpenseRemoteDto instance) =>
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isDisabled': instance.isDisabled,
       'category': instance.category,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };

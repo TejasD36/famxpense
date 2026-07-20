@@ -20,6 +20,8 @@ extension ExpenseDtoMapper on ExpenseDto {
       syncStatus: syncStatus,
       isDisabled: isDisabled,
       category: category,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 }
@@ -44,6 +46,8 @@ extension ExpenseEntityMapper on ExpenseEntity {
       syncStatus: syncStatus,
       isDisabled: isDisabled,
       category: category,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 }

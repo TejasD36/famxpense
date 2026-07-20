@@ -10,7 +10,7 @@ export 'package:go_router/go_router.dart';
 export 'package:hive_ce/hive_ce.dart';
 export 'package:hive_ce_flutter/hive_flutter.dart';
 export 'package:intl/intl.dart' hide TextDirection;
-export 'package:lottie/lottie.dart';
+export 'package:lottie/lottie.dart' hide Marker;
 export 'package:uuid/uuid.dart';
 
 export 'app/xcore.dart';
