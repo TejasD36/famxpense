@@ -9,7 +9,13 @@ enum AppRoute {
   profile('/profile', 'profile'),
   addExpense('/addExpense', 'addExpense'),
   partners('/partners', 'partners'),
-  addPartner('/partners/add', 'addPartner');
+  addPartner('/partners/add', 'addPartner'),
+  addAccount('/addAccount', 'addAccount'),
+  accountDetail('/accountDetail', 'accountDetail'),
+  statistics('/statistics', 'statistics'),
+  searchActivity('/searchActivity', 'searchActivity'),
+  notifications('/notifications', 'notifications'),
+  settlements('/settlements', 'settlements');
 
   final String path;
 

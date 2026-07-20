@@ -2,6 +2,16 @@ import '../../core.dart';
 
 class SimpleBlocObserver extends BlocObserver {
   @override
+  void onEvent(Bloc<dynamic, dynamic> bloc, Object? event) {
+    AppLogger.debug(
+      '${bloc.runtimeType} '
+      'Event → $event',
+    );
+
+    super.onEvent(bloc, event);
+  }
+
+  @override
   void onChange(BlocBase bloc, Change change) {
     AppLogger.debug(
       '${bloc.runtimeType} '

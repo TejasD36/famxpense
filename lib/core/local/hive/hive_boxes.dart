@@ -17,5 +17,9 @@ abstract final class HiveBoxes {
 
   static const String draftExpenses = 'draft_expenses_box';
 
+  static const String settings = 'settings_box';
+
   static const String auth = 'auth_box';
+
+  static const String manualDeposits = 'manual_deposits_box';
 }

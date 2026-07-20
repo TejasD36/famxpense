@@ -84,7 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _forgotPasswordUsecase(email: event.email);
 
-      emit(const AuthUnauthenticated());
+      emit(const AuthPasswordResetSent());
     } catch (e) {
       emit(AuthError(e.toString()));
     }

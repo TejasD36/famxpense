@@ -13,6 +13,11 @@ _DebtLedgerEntity _$DebtLedgerEntityFromJson(Map<String, dynamic> json) =>
       userB: json['userB'] as String,
       netBalance: (json['netBalance'] as num).toDouble(),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      participantIds:
+          (json['participantIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$DebtLedgerEntityToJson(_DebtLedgerEntity instance) =>
@@ -22,4 +27,5 @@ Map<String, dynamic> _$DebtLedgerEntityToJson(_DebtLedgerEntity instance) =>
       'userB': instance.userB,
       'netBalance': instance.netBalance,
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'participantIds': instance.participantIds,
     };

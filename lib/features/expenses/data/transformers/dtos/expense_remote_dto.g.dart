@@ -13,7 +13,7 @@ _ExpenseRemoteDto _$ExpenseRemoteDtoFromJson(Map<String, dynamic> json) =>
       note: json['note'] as String?,
       amount: (json['amount'] as num).toDouble(),
       paidByUserId: json['paidByUserId'] as String,
-      ownerUserId: json['ownerUserId'] as String,
+      ownerUserId: json['ownerUserId'] as String?,
       expenseType: json['expenseType'] as String,
       splitType: json['splitType'] as String,
       participants: (json['participants'] as List<dynamic>)
@@ -28,6 +28,9 @@ _ExpenseRemoteDto _$ExpenseRemoteDtoFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isDisabled: json['isDisabled'] as bool? ?? false,
+      category: json['category'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$ExpenseRemoteDtoToJson(_ExpenseRemoteDto instance) =>
@@ -48,4 +51,7 @@ Map<String, dynamic> _$ExpenseRemoteDtoToJson(_ExpenseRemoteDto instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isDisabled': instance.isDisabled,
+      'category': instance.category,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
     };

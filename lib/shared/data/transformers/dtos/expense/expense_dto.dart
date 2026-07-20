@@ -23,6 +23,9 @@ sealed class ExpenseDto with _$ExpenseDto {
     @HiveField(13) required SyncStatus syncStatus,
     @HiveField(14) @Default(false) bool isDisabled,
     @HiveField(15) required String ownerUserId,
+    @HiveField(16) String? category,
+    @HiveField(17) double? latitude,
+    @HiveField(18) double? longitude,
   }) = _ExpenseDto;
 
   factory ExpenseDto.fromJson(Map<String, dynamic> json) => _$ExpenseDtoFromJson(json);

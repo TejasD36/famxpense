@@ -16,6 +16,11 @@ class PartnershipRepositoryImpl implements PartnershipRepository {
   }
 
   @override
+  Future<void> deletePartnership(String partnershipId) async {
+    await _remoteDatasource.deletePartnership(partnershipId);
+  }
+
+  @override
   Future<List<PartnershipEntity>> getPartnerships({required String userId}) async {
     final result = await _remoteDatasource.getPartnerships(userId: userId);
 

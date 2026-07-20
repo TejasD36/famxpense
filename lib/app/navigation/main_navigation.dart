@@ -1,46 +1,99 @@
-import '../../core.dart';
+import 'dart:async';
 
-class MainNavigation extends StatelessWidget {
+import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+
+import '../../core.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+
+class MainNavigation extends StatefulWidget {
   final StatefulNavigationShell shell;
 
   const MainNavigation({super.key, required this.shell});
 
-  void _onTap(int index) {
-    shell.goBranch(index, initialLocation: index == shell.currentIndex);
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  StreamSubscription<bool>? _connectivitySub;
+  bool _isOnline = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final connectivity = sl<ConnectivityService>();
+    _connectivitySub = connectivity.onStatusChanged.listen((online) {
+      if (mounted) setState(() => _isOnline = online);
+    });
+    connectivity.startMonitoring();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: shell,
+    final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push(AppRoute.addExpense.path);
-        },
-
-        child: const Icon(Icons.add),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        state.whenOrNull(unauthenticated: () {
+          context.go(AppRoute.login.path);
+        });
+      },
+      child: Scaffold(
+      body: Column(
+        children: [
+          if (!_isOnline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Row(
+                children: [
+                  Icon(Icons.cloud_off_rounded, size: 16, color: Theme.of(context).colorScheme.error),
+                  const SizedBox(width: 8),
+                  Text(
+                    'You are offline. Changes will sync when connected.',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onErrorContainer),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(child: widget.shell),
+        ],
       ),
+
+      floatingActionButton: isKeyboardVisible
+          ? null
+          : FloatingActionButton(
+              heroTag: 'add_expense_fab',
+              shape: CircleBorder(),
+              onPressed: () {
+                context.push(AppRoute.addExpense.path);
+              },
+              child: const Icon(Icons.add),
+            ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: shell.currentIndex,
-
-        onTap: _onTap,
-
-        type: BottomNavigationBarType.fixed,
-
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Partners'),
-
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Activity'),
-
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
-        ],
+      bottomNavigationBar: AnimatedBottomNavigationBar(
+        icons: _icons,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        activeIndex: widget.shell.currentIndex,
+        gapLocation: GapLocation.center,
+        notchSmoothness: NotchSmoothness.softEdge,
+        onTap: (index) => widget.shell.goBranch(index, initialLocation: index != widget.shell.currentIndex),
+        activeColor: Theme.of(context).colorScheme.primary,
+        inactiveColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        iconSize: 24,
+        elevation: 8,
       ),
-    );
+      ));
   }
+
+  static const _icons = [Icons.home_rounded, Icons.people_rounded, Icons.bar_chart_rounded, Icons.person_rounded];
 }

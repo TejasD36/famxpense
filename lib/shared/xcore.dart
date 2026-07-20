@@ -1,4 +1,7 @@
+export 'data/datasources/local/user_local_datasource.dart';
+export 'data/datasources/remote/user_remote_datasource.dart';
 export 'data/transformers/dtos/account/account_dto.dart';
+export 'data/transformers/dtos/account/manual_deposit_dto.dart';
 export 'data/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
 export 'data/transformers/dtos/expense/draft_expense_dto.dart';
 export 'data/transformers/dtos/expense/expense_dto.dart';
@@ -31,6 +34,7 @@ export 'domain/entities/partnership/partnership_entity.dart';
 export 'domain/entities/settlement/settlement_entity.dart';
 export 'domain/entities/user/user_entity.dart';
 export 'enums/account_type.dart';
+export 'enums/expense_category.dart';
 export 'enums/expense_type.dart';
 export 'enums/notification_type.dart';
 export 'enums/partnership_status.dart';

@@ -42,4 +42,17 @@ extension UserRemoteDtoMapper on UserRemoteDto {
       isActive: isActive,
     );
   }
+
+  UserDto toDto() {
+    return UserDto(
+      id: id,
+      name: name,
+      nickname: nickname,
+      email: email,
+      profileImageUrl: profileImageUrl,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isActive: isActive,
+    );
+  }
 }

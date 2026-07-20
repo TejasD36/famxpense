@@ -4,4 +4,6 @@ abstract interface class AuthLocalDatasource {
   String? getUserId();
 
   Future<void> clearSession();
+
+  Future<void> clearAllLocalData();
 }

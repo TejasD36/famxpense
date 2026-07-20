@@ -14,6 +14,8 @@ sealed class SettlementEntity with _$SettlementEntity {
     required DateTime createdAt,
     DateTime? confirmedAt,
     List<String>? relatedExpenseIds,
+    String? accountId,
+    @Default([]) List<String> participantIds,
   }) = _SettlementEntity;
 
   factory SettlementEntity.fromJson(Map<String, dynamic> json) => _$SettlementEntityFromJson(json);

@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login() {
     if (!_formKey.currentState!.validate()) return;
 
-    context.read<AuthBloc>().add(AuthEvent.login(email: _emailController.text.trim(), password: _passwordController.text.trim()));
+    context.read<AuthBloc>().add(AuthEvent.login(email: _emailController.text.trim(), password: _passwordController.text));
   }
 
   @override
@@ -34,11 +34,18 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          authenticated: (_) {
+          authenticated: (_) async {
+            final userId = sl<AuthLocalDatasource>().getUserId();
+            if (!context.mounted) return;
             context.go(AppRoute.home.path);
+            if (userId != null) {
+              await sl<SyncService>().syncAll(userId: userId);
+              sl<RefreshNotifier>().notifyDataChanged();
+            }
           },
 
           error: (message) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
           },
         );
@@ -78,7 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter email';
                         }
-
+                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                          return 'Enter a valid email address';
+                        }
                         return null;
                       },
                     ),

@@ -48,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         email: _emailController.text.trim(),
 
-        password: _passwordController.text.trim(),
+        password: _passwordController.text,
       ),
     );
   }
@@ -58,19 +58,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          authenticated: (_) {
+          authenticated: (_) async {
+            final userId = sl<AuthLocalDatasource>().getUserId();
+            if (!context.mounted) return;
             context.go(AppRoute.home.path);
+            if (userId != null) {
+              await sl<SyncService>().syncAll(userId: userId);
+              sl<RefreshNotifier>().notifyDataChanged();
+            }
           },
 
           error: (message) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
           },
         );
       },
 
       child: Scaffold(
-        appBar: AppBar(title: const Text('Register')),
-
+        appBar: AppBar(
+          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Register')),
+        ),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -154,7 +162,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailController,
 
+                      keyboardType: TextInputType.emailAddress,
+
                       decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter email';
+                        }
+                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                          return 'Enter a valid email address';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -165,6 +185,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: true,
 
                       decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+
+                      onChanged: (_) {
+                        _confirmPasswordController.text.isNotEmpty ? _formKey.currentState?.validate() : null;
+                      },
                     ),
 
                     const SizedBox(height: 16),

@@ -61,7 +61,7 @@ extension PartnerEventPatterns on PartnerEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SearchUser value)?  searchUser,TResult Function( _SendRequest value)?  sendRequest,TResult Function( _LoadPartners value)?  loadPartners,TResult Function( _AcceptRequest value)?  acceptRequest,TResult Function( _RejectRequest value)?  rejectRequest,TResult Function( _ClearSearch value)?  clearSearch,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SearchUser value)?  searchUser,TResult Function( _SendRequest value)?  sendRequest,TResult Function( _LoadPartners value)?  loadPartners,TResult Function( _AcceptRequest value)?  acceptRequest,TResult Function( _RejectRequest value)?  rejectRequest,TResult Function( _RemovePartner value)?  removePartner,TResult Function( _ClearSearch value)?  clearSearch,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _SearchUser() when searchUser != null:
@@ -69,7 +69,8 @@ return searchUser(_that);case _SendRequest() when sendRequest != null:
 return sendRequest(_that);case _LoadPartners() when loadPartners != null:
 return loadPartners(_that);case _AcceptRequest() when acceptRequest != null:
 return acceptRequest(_that);case _RejectRequest() when rejectRequest != null:
-return rejectRequest(_that);case _ClearSearch() when clearSearch != null:
+return rejectRequest(_that);case _RemovePartner() when removePartner != null:
+return removePartner(_that);case _ClearSearch() when clearSearch != null:
 return clearSearch(_that);case _:
   return orElse();
 
@@ -88,7 +89,7 @@ return clearSearch(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SearchUser value)  searchUser,required TResult Function( _SendRequest value)  sendRequest,required TResult Function( _LoadPartners value)  loadPartners,required TResult Function( _AcceptRequest value)  acceptRequest,required TResult Function( _RejectRequest value)  rejectRequest,required TResult Function( _ClearSearch value)  clearSearch,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SearchUser value)  searchUser,required TResult Function( _SendRequest value)  sendRequest,required TResult Function( _LoadPartners value)  loadPartners,required TResult Function( _AcceptRequest value)  acceptRequest,required TResult Function( _RejectRequest value)  rejectRequest,required TResult Function( _RemovePartner value)  removePartner,required TResult Function( _ClearSearch value)  clearSearch,}){
 final _that = this;
 switch (_that) {
 case _SearchUser():
@@ -96,7 +97,8 @@ return searchUser(_that);case _SendRequest():
 return sendRequest(_that);case _LoadPartners():
 return loadPartners(_that);case _AcceptRequest():
 return acceptRequest(_that);case _RejectRequest():
-return rejectRequest(_that);case _ClearSearch():
+return rejectRequest(_that);case _RemovePartner():
+return removePartner(_that);case _ClearSearch():
 return clearSearch(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -111,7 +113,7 @@ return clearSearch(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SearchUser value)?  searchUser,TResult? Function( _SendRequest value)?  sendRequest,TResult? Function( _LoadPartners value)?  loadPartners,TResult? Function( _AcceptRequest value)?  acceptRequest,TResult? Function( _RejectRequest value)?  rejectRequest,TResult? Function( _ClearSearch value)?  clearSearch,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SearchUser value)?  searchUser,TResult? Function( _SendRequest value)?  sendRequest,TResult? Function( _LoadPartners value)?  loadPartners,TResult? Function( _AcceptRequest value)?  acceptRequest,TResult? Function( _RejectRequest value)?  rejectRequest,TResult? Function( _RemovePartner value)?  removePartner,TResult? Function( _ClearSearch value)?  clearSearch,}){
 final _that = this;
 switch (_that) {
 case _SearchUser() when searchUser != null:
@@ -119,7 +121,8 @@ return searchUser(_that);case _SendRequest() when sendRequest != null:
 return sendRequest(_that);case _LoadPartners() when loadPartners != null:
 return loadPartners(_that);case _AcceptRequest() when acceptRequest != null:
 return acceptRequest(_that);case _RejectRequest() when rejectRequest != null:
-return rejectRequest(_that);case _ClearSearch() when clearSearch != null:
+return rejectRequest(_that);case _RemovePartner() when removePartner != null:
+return removePartner(_that);case _ClearSearch() when clearSearch != null:
 return clearSearch(_that);case _:
   return null;
 
@@ -137,14 +140,15 @@ return clearSearch(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String query)?  searchUser,TResult Function( UserEntity user)?  sendRequest,TResult Function()?  loadPartners,TResult Function( PartnershipEntity partnership)?  acceptRequest,TResult Function( PartnershipEntity partnership)?  rejectRequest,TResult Function()?  clearSearch,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String query)?  searchUser,TResult Function( UserEntity user)?  sendRequest,TResult Function()?  loadPartners,TResult Function( PartnershipEntity partnership)?  acceptRequest,TResult Function( PartnershipEntity partnership)?  rejectRequest,TResult Function( String partnershipId)?  removePartner,TResult Function()?  clearSearch,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchUser() when searchUser != null:
 return searchUser(_that.query);case _SendRequest() when sendRequest != null:
 return sendRequest(_that.user);case _LoadPartners() when loadPartners != null:
 return loadPartners();case _AcceptRequest() when acceptRequest != null:
 return acceptRequest(_that.partnership);case _RejectRequest() when rejectRequest != null:
-return rejectRequest(_that.partnership);case _ClearSearch() when clearSearch != null:
+return rejectRequest(_that.partnership);case _RemovePartner() when removePartner != null:
+return removePartner(_that.partnershipId);case _ClearSearch() when clearSearch != null:
 return clearSearch();case _:
   return orElse();
 
@@ -163,14 +167,15 @@ return clearSearch();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String query)  searchUser,required TResult Function( UserEntity user)  sendRequest,required TResult Function()  loadPartners,required TResult Function( PartnershipEntity partnership)  acceptRequest,required TResult Function( PartnershipEntity partnership)  rejectRequest,required TResult Function()  clearSearch,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String query)  searchUser,required TResult Function( UserEntity user)  sendRequest,required TResult Function()  loadPartners,required TResult Function( PartnershipEntity partnership)  acceptRequest,required TResult Function( PartnershipEntity partnership)  rejectRequest,required TResult Function( String partnershipId)  removePartner,required TResult Function()  clearSearch,}) {final _that = this;
 switch (_that) {
 case _SearchUser():
 return searchUser(_that.query);case _SendRequest():
 return sendRequest(_that.user);case _LoadPartners():
 return loadPartners();case _AcceptRequest():
 return acceptRequest(_that.partnership);case _RejectRequest():
-return rejectRequest(_that.partnership);case _ClearSearch():
+return rejectRequest(_that.partnership);case _RemovePartner():
+return removePartner(_that.partnershipId);case _ClearSearch():
 return clearSearch();}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -185,14 +190,15 @@ return clearSearch();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String query)?  searchUser,TResult? Function( UserEntity user)?  sendRequest,TResult? Function()?  loadPartners,TResult? Function( PartnershipEntity partnership)?  acceptRequest,TResult? Function( PartnershipEntity partnership)?  rejectRequest,TResult? Function()?  clearSearch,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String query)?  searchUser,TResult? Function( UserEntity user)?  sendRequest,TResult? Function()?  loadPartners,TResult? Function( PartnershipEntity partnership)?  acceptRequest,TResult? Function( PartnershipEntity partnership)?  rejectRequest,TResult? Function( String partnershipId)?  removePartner,TResult? Function()?  clearSearch,}) {final _that = this;
 switch (_that) {
 case _SearchUser() when searchUser != null:
 return searchUser(_that.query);case _SendRequest() when sendRequest != null:
 return sendRequest(_that.user);case _LoadPartners() when loadPartners != null:
 return loadPartners();case _AcceptRequest() when acceptRequest != null:
 return acceptRequest(_that.partnership);case _RejectRequest() when rejectRequest != null:
-return rejectRequest(_that.partnership);case _ClearSearch() when clearSearch != null:
+return rejectRequest(_that.partnership);case _RemovePartner() when removePartner != null:
+return removePartner(_that.partnershipId);case _ClearSearch() when clearSearch != null:
 return clearSearch();case _:
   return null;
 
@@ -552,6 +558,78 @@ $PartnershipEntityCopyWith<$Res> get partnership {
     return _then(_self.copyWith(partnership: value));
   });
 }
+}
+
+/// @nodoc
+
+
+class _RemovePartner with DiagnosticableTreeMixin implements PartnerEvent {
+  const _RemovePartner({required this.partnershipId});
+  
+
+ final  String partnershipId;
+
+/// Create a copy of PartnerEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RemovePartnerCopyWith<_RemovePartner> get copyWith => __$RemovePartnerCopyWithImpl<_RemovePartner>(this, _$identity);
+
+
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'PartnerEvent.removePartner'))
+    ..add(DiagnosticsProperty('partnershipId', partnershipId));
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RemovePartner&&(identical(other.partnershipId, partnershipId) || other.partnershipId == partnershipId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,partnershipId);
+
+@override
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'PartnerEvent.removePartner(partnershipId: $partnershipId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RemovePartnerCopyWith<$Res> implements $PartnerEventCopyWith<$Res> {
+  factory _$RemovePartnerCopyWith(_RemovePartner value, $Res Function(_RemovePartner) _then) = __$RemovePartnerCopyWithImpl;
+@useResult
+$Res call({
+ String partnershipId
+});
+
+
+
+
+}
+/// @nodoc
+class __$RemovePartnerCopyWithImpl<$Res>
+    implements _$RemovePartnerCopyWith<$Res> {
+  __$RemovePartnerCopyWithImpl(this._self, this._then);
+
+  final _RemovePartner _self;
+  final $Res Function(_RemovePartner) _then;
+
+/// Create a copy of PartnerEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? partnershipId = null,}) {
+  return _then(_RemovePartner(
+partnershipId: null == partnershipId ? _self.partnershipId : partnershipId // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
 }
 
 /// @nodoc

@@ -5,5 +5,7 @@ abstract interface class PartnershipRemoteDatasource {
 
   Future<void> updateRequest(PartnershipRemoteDto partnership);
 
+  Future<void> deletePartnership(String partnershipId);
+
   Future<List<PartnershipRemoteDto>> getPartnerships({required String userId});
 }

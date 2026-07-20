@@ -11,7 +11,7 @@ sealed class ExpenseRemoteDto with _$ExpenseRemoteDto {
     String? note,
     required double amount,
     required String paidByUserId,
-    required String ownerUserId,
+    String? ownerUserId,
     required String expenseType,
     required String splitType,
     required List<Map<String, dynamic>> participants,
@@ -22,6 +22,9 @@ sealed class ExpenseRemoteDto with _$ExpenseRemoteDto {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDisabled,
+    String? category,
+    double? latitude,
+    double? longitude,
   }) = _ExpenseRemoteDto;
 
   factory ExpenseRemoteDto.fromJson(Map<String, dynamic> json) => _$ExpenseRemoteDtoFromJson(json);

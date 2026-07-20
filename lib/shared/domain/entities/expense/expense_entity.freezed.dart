@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExpenseEntity implements DiagnosticableTreeMixin {
 
- String get id; String get title; String? get note; double get amount; String get paidByUserId; String get ownerUserId; ExpenseType get expenseType; SplitType get splitType; List<ExpenseParticipantEntity> get participants; String? get groupId; String? get accountId; DateTime get expenseDate; DateTime get createdAt; DateTime get updatedAt; SyncStatus get syncStatus; bool get isDisabled;
+ String get id; String get title; String? get note; double get amount; String get paidByUserId; String get ownerUserId; ExpenseType get expenseType; SplitType get splitType; List<ExpenseParticipantEntity> get participants; String? get groupId; String? get accountId; DateTime get expenseDate; DateTime get createdAt; DateTime get updatedAt; SyncStatus get syncStatus; bool get isDisabled; String? get category; double? get latitude; double? get longitude;
 /// Create a copy of ExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $ExpenseEntityCopyWith<ExpenseEntity> get copyWith => _$ExpenseEntityCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ExpenseEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('category', category))..add(DiagnosticsProperty('latitude', latitude))..add(DiagnosticsProperty('longitude', longitude));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,note,amount,paidByUserId,ownerUserId,expenseType,splitType,const DeepCollectionEquality().hash(participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled);
+int get hashCode => Object.hashAll([runtimeType,id,title,note,amount,paidByUserId,ownerUserId,expenseType,splitType,const DeepCollectionEquality().hash(participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,category,latitude,longitude]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ExpenseEntity(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, ownerUserId: $ownerUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled)';
+  return 'ExpenseEntity(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, ownerUserId: $ownerUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, category: $category, latitude: $latitude, longitude: $longitude)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ExpenseEntityCopyWith<$Res>  {
   factory $ExpenseEntityCopyWith(ExpenseEntity value, $Res Function(ExpenseEntity) _then) = _$ExpenseEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, ExpenseType expenseType, SplitType splitType, List<ExpenseParticipantEntity> participants, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus, bool isDisabled
+ String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, ExpenseType expenseType, SplitType splitType, List<ExpenseParticipantEntity> participants, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus, bool isDisabled, String? category, double? latitude, double? longitude
 });
 
 
@@ -71,7 +71,7 @@ class _$ExpenseEntityCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? category = freezed,Object? latitude = freezed,Object? longitude = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -89,7 +89,10 @@ as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
 as SyncStatus,isDisabled: null == isDisabled ? _self.isDisabled : isDisabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 
@@ -171,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled,  String? category,  double? latitude,  double? longitude)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExpenseEntity() when $default != null:
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled);case _:
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.category,_that.latitude,_that.longitude);case _:
   return orElse();
 
 }
@@ -192,10 +195,10 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled,  String? category,  double? latitude,  double? longitude)  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseEntity():
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled);}
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.category,_that.latitude,_that.longitude);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -209,10 +212,10 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String? note,  double amount,  String paidByUserId,  String ownerUserId,  ExpenseType expenseType,  SplitType splitType,  List<ExpenseParticipantEntity> participants,  String? groupId,  String? accountId,  DateTime expenseDate,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus,  bool isDisabled,  String? category,  double? latitude,  double? longitude)?  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseEntity() when $default != null:
-return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled);case _:
+return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,_that.ownerUserId,_that.expenseType,_that.splitType,_that.participants,_that.groupId,_that.accountId,_that.expenseDate,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDisabled,_that.category,_that.latitude,_that.longitude);case _:
   return null;
 
 }
@@ -224,7 +227,7 @@ return $default(_that.id,_that.title,_that.note,_that.amount,_that.paidByUserId,
 @JsonSerializable()
 
 class _ExpenseEntity with DiagnosticableTreeMixin implements ExpenseEntity {
-  const _ExpenseEntity({required this.id, required this.title, this.note, required this.amount, required this.paidByUserId, required this.ownerUserId, required this.expenseType, required this.splitType, required final  List<ExpenseParticipantEntity> participants, this.groupId, this.accountId, required this.expenseDate, required this.createdAt, required this.updatedAt, required this.syncStatus, this.isDisabled = false}): _participants = participants;
+  const _ExpenseEntity({required this.id, required this.title, this.note, required this.amount, required this.paidByUserId, required this.ownerUserId, required this.expenseType, required this.splitType, required final  List<ExpenseParticipantEntity> participants, this.groupId, this.accountId, required this.expenseDate, required this.createdAt, required this.updatedAt, required this.syncStatus, this.isDisabled = false, this.category, this.latitude, this.longitude}): _participants = participants;
   factory _ExpenseEntity.fromJson(Map<String, dynamic> json) => _$ExpenseEntityFromJson(json);
 
 @override final  String id;
@@ -249,6 +252,9 @@ class _ExpenseEntity with DiagnosticableTreeMixin implements ExpenseEntity {
 @override final  DateTime updatedAt;
 @override final  SyncStatus syncStatus;
 @override@JsonKey() final  bool isDisabled;
+@override final  String? category;
+@override final  double? latitude;
+@override final  double? longitude;
 
 /// Create a copy of ExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -264,21 +270,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ExpenseEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('note', note))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('paidByUserId', paidByUserId))..add(DiagnosticsProperty('ownerUserId', ownerUserId))..add(DiagnosticsProperty('expenseType', expenseType))..add(DiagnosticsProperty('splitType', splitType))..add(DiagnosticsProperty('participants', participants))..add(DiagnosticsProperty('groupId', groupId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('expenseDate', expenseDate))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDisabled', isDisabled))..add(DiagnosticsProperty('category', category))..add(DiagnosticsProperty('latitude', latitude))..add(DiagnosticsProperty('longitude', longitude));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.note, note) || other.note == note)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.paidByUserId, paidByUserId) || other.paidByUserId == paidByUserId)&&(identical(other.ownerUserId, ownerUserId) || other.ownerUserId == ownerUserId)&&(identical(other.expenseType, expenseType) || other.expenseType == expenseType)&&(identical(other.splitType, splitType) || other.splitType == splitType)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.expenseDate, expenseDate) || other.expenseDate == expenseDate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDisabled, isDisabled) || other.isDisabled == isDisabled)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,note,amount,paidByUserId,ownerUserId,expenseType,splitType,const DeepCollectionEquality().hash(_participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled);
+int get hashCode => Object.hashAll([runtimeType,id,title,note,amount,paidByUserId,ownerUserId,expenseType,splitType,const DeepCollectionEquality().hash(_participants),groupId,accountId,expenseDate,createdAt,updatedAt,syncStatus,isDisabled,category,latitude,longitude]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ExpenseEntity(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, ownerUserId: $ownerUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled)';
+  return 'ExpenseEntity(id: $id, title: $title, note: $note, amount: $amount, paidByUserId: $paidByUserId, ownerUserId: $ownerUserId, expenseType: $expenseType, splitType: $splitType, participants: $participants, groupId: $groupId, accountId: $accountId, expenseDate: $expenseDate, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDisabled: $isDisabled, category: $category, latitude: $latitude, longitude: $longitude)';
 }
 
 
@@ -289,7 +295,7 @@ abstract mixin class _$ExpenseEntityCopyWith<$Res> implements $ExpenseEntityCopy
   factory _$ExpenseEntityCopyWith(_ExpenseEntity value, $Res Function(_ExpenseEntity) _then) = __$ExpenseEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, ExpenseType expenseType, SplitType splitType, List<ExpenseParticipantEntity> participants, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus, bool isDisabled
+ String id, String title, String? note, double amount, String paidByUserId, String ownerUserId, ExpenseType expenseType, SplitType splitType, List<ExpenseParticipantEntity> participants, String? groupId, String? accountId, DateTime expenseDate, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus, bool isDisabled, String? category, double? latitude, double? longitude
 });
 
 
@@ -306,7 +312,7 @@ class __$ExpenseEntityCopyWithImpl<$Res>
 
 /// Create a copy of ExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? note = freezed,Object? amount = null,Object? paidByUserId = null,Object? ownerUserId = null,Object? expenseType = null,Object? splitType = null,Object? participants = null,Object? groupId = freezed,Object? accountId = freezed,Object? expenseDate = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDisabled = null,Object? category = freezed,Object? latitude = freezed,Object? longitude = freezed,}) {
   return _then(_ExpenseEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -324,7 +330,10 @@ as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
 as SyncStatus,isDisabled: null == isDisabled ? _self.isDisabled : isDisabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
+as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 

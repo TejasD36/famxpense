@@ -21,6 +21,7 @@ extension PartnershipRemoteMapper on PartnershipEntity {
       createdAt: createdAt,
 
       updatedAt: updatedAt,
+      participantIds: [senderId, receiverId],
     );
   }
 }
@@ -40,7 +41,7 @@ extension PartnershipRemoteDtoMapper on PartnershipRemoteDto {
       senderNickname: senderNickname,
       receiverNickname: receiverNickname,
 
-      status: PartnershipStatus.values.byName(status),
+      status: PartnershipStatus.values.where((e) => e.name == status).firstOrNull ?? PartnershipStatus.pending,
 
       createdAt: createdAt,
 

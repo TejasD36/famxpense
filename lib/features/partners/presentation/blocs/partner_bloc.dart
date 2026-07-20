@@ -1,6 +1,4 @@
-import '../../../../shared/data/datasources/local/user_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
-import '../../domain/usecases/search_user_usecase.dart';
 import '../../xcore.dart';
 
 part 'partner_bloc.freezed.dart';
@@ -11,6 +9,7 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
   final SearchUserUsecase _searchUserUsecase;
   final SendPartnershipRequestUsecase _sendRequestUsecase;
   final GetPartnershipsUsecase _getPartnershipsUsecase;
+  final PartnershipRepository _partnershipRepository;
   final AuthLocalDatasource _authLocalDatasource;
   final UserLocalDatasource _userLocalDatasource;
 
@@ -18,11 +17,13 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     required SearchUserUsecase searchUserUsecase,
     required SendPartnershipRequestUsecase sendRequestUsecase,
     required GetPartnershipsUsecase getPartnershipsUsecase,
+    required PartnershipRepository partnershipRepository,
     required AuthLocalDatasource authLocalDatasource,
     required UserLocalDatasource userLocalDatasource,
   }) : _searchUserUsecase = searchUserUsecase,
        _sendRequestUsecase = sendRequestUsecase,
        _getPartnershipsUsecase = getPartnershipsUsecase,
+       _partnershipRepository = partnershipRepository,
        _authLocalDatasource = authLocalDatasource,
        _userLocalDatasource = userLocalDatasource,
        super(const PartnerState.initial()) {
@@ -31,22 +32,32 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     on<_LoadPartners>(_onLoadPartners);
     on<_AcceptRequest>(_onAcceptRequest);
     on<_RejectRequest>(_onRejectRequest);
+    on<_RemovePartner>(_onRemovePartner);
     on<_ClearSearch>(_onClearSearch);
   }
 
   Future<void> _onSearchUser(_SearchUser event, Emitter<PartnerState> emit) async {
     try {
-      emit(const PartnerState.loading());
-
       final currentUserId = _authLocalDatasource.getUserId();
 
       if (currentUserId == null) {
         throw Exception('User not logged in');
       }
 
+      /// Capture current partner lists before search
+      final previousState = state;
+      final connected = previousState is _Loaded ? previousState.connectedPartners : <PartnershipEntity>[];
+      final incoming = previousState is _Loaded ? previousState.incomingRequests : <PartnershipEntity>[];
+      final outgoing = previousState is _Loaded ? previousState.outgoingRequests : <PartnershipEntity>[];
+
       final user = await _searchUserUsecase(query: event.query, currentUserId: currentUserId);
 
-      emit(PartnerState.loaded(searchedUser: user));
+      emit(PartnerState.loaded(
+        searchedUser: user,
+        connectedPartners: connected,
+        incomingRequests: incoming,
+        outgoingRequests: outgoing,
+      ));
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
@@ -66,7 +77,7 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
 
       if (currentUser == null) throw Exception('Current user not found');
 
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
 
       final partnership = PartnershipEntity(
         id: const Uuid().v4(),
@@ -88,6 +99,12 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       );
 
       await _sendRequestUsecase(partnership);
+
+      await sl<NotificationService>().notifyPartnerRequest(
+        receiverUserId: event.user.id,
+        senderNickname: currentUser.nickname,
+        partnershipId: partnership.id,
+      );
 
       emit(currentState.copyWith(outgoingRequests: [...currentState.outgoingRequests, partnership]));
     } catch (e) {
@@ -125,11 +142,81 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     }
   }
 
-  Future<void> _onAcceptRequest(_AcceptRequest event, Emitter<PartnerState> emit) async {}
+  Future<void> _onAcceptRequest(_AcceptRequest event, Emitter<PartnerState> emit) async {
+    try {
+      final updated = event.partnership.copyWith(status: PartnershipStatus.accepted, updatedAt: DateTime.now().toUtc());
+      await _sendRequestUsecase(updated);
 
-  Future<void> _onRejectRequest(_RejectRequest event, Emitter<PartnerState> emit) async {}
+      final accepterNickname = () {
+        final user = _userLocalDatasource.getCurrentUser();
+        return user?.nickname ?? 'Someone';
+      }();
+
+      await sl<NotificationService>().notifyPartnerAccepted(
+        senderUserId: event.partnership.senderId,
+        accepterNickname: accepterNickname,
+        partnershipId: updated.id,
+      );
+
+      final currentState = state;
+      if (currentState is _Loaded) {
+        emit(currentState.copyWith(
+          connectedPartners: [...currentState.connectedPartners, updated],
+          incomingRequests: currentState.incomingRequests.where((e) => e.id != updated.id).toList(),
+        ));
+      } else {
+        add(const _LoadPartners());
+      }
+    } catch (e) {
+      emit(PartnerState.error(message: e.toString()));
+    }
+  }
+
+  Future<void> _onRejectRequest(_RejectRequest event, Emitter<PartnerState> emit) async {
+    try {
+      final updated = event.partnership.copyWith(status: PartnershipStatus.rejected, updatedAt: DateTime.now().toUtc());
+      await _sendRequestUsecase(updated);
+
+      final currentState = state;
+      if (currentState is _Loaded) {
+        emit(currentState.copyWith(
+          incomingRequests: currentState.incomingRequests.where((e) => e.id != updated.id).toList(),
+        ));
+      } else {
+        add(const _LoadPartners());
+      }
+    } catch (e) {
+      emit(PartnerState.error(message: e.toString()));
+    }
+  }
+
+  Future<void> _onRemovePartner(_RemovePartner event, Emitter<PartnerState> emit) async {
+    try {
+      await _partnershipRepository.deletePartnership(event.partnershipId);
+
+      final currentState = state;
+      if (currentState is _Loaded) {
+        emit(currentState.copyWith(
+          connectedPartners: currentState.connectedPartners.where((p) => p.id != event.partnershipId).toList(),
+        ));
+      } else {
+        add(const _LoadPartners());
+      }
+    } catch (e) {
+      emit(PartnerState.error(message: e.toString()));
+    }
+  }
 
   Future<void> _onClearSearch(_ClearSearch event, Emitter<PartnerState> emit) async {
-    emit(const PartnerState.initial());
+    final previousState = state;
+    if (previousState is _Loaded) {
+      emit(PartnerState.loaded(
+        connectedPartners: previousState.connectedPartners,
+        incomingRequests: previousState.incomingRequests,
+        outgoingRequests: previousState.outgoingRequests,
+      ));
+    } else {
+      emit(const PartnerState.initial());
+    }
   }
 }

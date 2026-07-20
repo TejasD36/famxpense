@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users: any authenticated user can read all users (needed for search),
+    // write only own document
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Expenses: read if participant (via participantIds array),
+    // write only as payer
+    match /expenses/{expenseId} {
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if request.auth.uid == request.resource.data.paidByUserId;
+      allow update: if request.auth.uid == resource.data.paidByUserId;
+      allow delete: if request.auth.uid == resource.data.paidByUserId;
+    }
+
+    // Accounts: read/write own only
+    match /accounts/{accountId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // Settlements: read if participant, create/update if participant
+    match /settlements/{settlementId} {
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if request.auth.uid == request.resource.data.fromUserId;
+      allow update: if request.auth.uid == resource.data.fromUserId
+        || request.auth.uid == resource.data.toUserId;
+      allow delete: if false;
+    }
+
+    // Partnerships: uses senderId/receiverId (not userId/partnerId)
+    match /partnerships/{partnershipId} {
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if request.auth.uid == request.resource.data.senderId;
+      allow update: if request.auth.uid == resource.data.senderId
+        || request.auth.uid == resource.data.receiverId;
+      allow delete: if request.auth.uid == resource.data.senderId;
+    }
+
+    // Notifications: read own only, create allowed for any authed user
+    // (notifications are created by the sender on behalf of the recipient)
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+      allow update: if request.auth.uid == resource.data.userId;
+      allow delete: if false;
+    }
+
+    // Debt ledgers: read if participant, write if participant
+    match /debt_ledgers/{ledgerId} {
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if request.auth.uid == request.resource.data.userA
+        || request.auth.uid == request.resource.data.userB;
+      allow update: if request.auth.uid == resource.data.userA
+        || request.auth.uid == resource.data.userB;
+      allow delete: if false;
+    }
+
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

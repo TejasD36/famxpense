@@ -14,6 +14,11 @@ class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto> imple
   }
 
   @override
+  Future<SettlementDto?> getSettlementById(String settlementId) async {
+    return get(settlementId);
+  }
+
+  @override
   Future<List<SettlementDto>> getPendingSettlements() async {
     return box.values.where((settlement) => settlement.status == SettlementStatus.pending).toList();
   }
@@ -21,5 +26,13 @@ class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto> imple
   @override
   Future<void> deleteSettlement(String settlementId) async {
     await delete(settlementId);
+  }
+
+  @override
+  Future<void> updateSettlementStatus(String settlementId, SettlementStatus status) async {
+    final s = get(settlementId);
+    if (s != null) {
+      await put(key: settlementId, value: s.copyWith(status: status));
+    }
   }
 }

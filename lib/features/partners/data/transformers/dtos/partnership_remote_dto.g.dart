@@ -19,6 +19,11 @@ _PartnershipRemoteDto _$PartnershipRemoteDtoFromJson(
   status: json['status'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
+  participantIds:
+      (json['participantIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$PartnershipRemoteDtoToJson(
@@ -34,4 +39,5 @@ Map<String, dynamic> _$PartnershipRemoteDtoToJson(
   'status': instance.status,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
+  'participantIds': instance.participantIds,
 };

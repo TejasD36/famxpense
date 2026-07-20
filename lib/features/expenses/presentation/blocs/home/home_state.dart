@@ -12,6 +12,10 @@ sealed class HomeState with _$HomeState {
     required double sharedSpend,
     required int pendingSyncCount,
     required List<ExpenseEntity> recentExpenses,
+    @Default([]) List<DebtLedgerEntity> debts,
+    @Default({}) Map<String, String> accountNames,
+    @Default([]) List<SettlementEntity> incomingPendingSettlements,
+    @Default([]) List<SettlementEntity> outgoingPendingSettlements,
   }) = HomeLoaded;
 
   const factory HomeState.empty() = HomeEmpty;

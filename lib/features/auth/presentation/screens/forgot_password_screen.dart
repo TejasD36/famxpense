@@ -30,13 +30,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         state.whenOrNull(
-          unauthenticated: () {
+          passwordResetSent: () {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
 
             Navigator.pop(context);
           },
 
           error: (message) {
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
           },
         );
@@ -78,7 +80,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please enter email';
                         }
-
+                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                          return 'Enter a valid email address';
+                        }
                         return null;
                       },
                     ),
