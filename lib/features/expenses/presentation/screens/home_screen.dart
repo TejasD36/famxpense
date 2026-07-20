@@ -841,7 +841,7 @@ class _DebtSummaryCards extends StatelessWidget {
                                 return;
                               }
 
-                              await sl<SettleDebtUsecase>()(
+                              final settleError = await sl<SettleDebtUsecase>()(
                                 fromUserId: fromUserId,
                                 toUserId: toUserId,
                                 amount: settleAmount,
@@ -852,7 +852,7 @@ class _DebtSummaryCards extends StatelessWidget {
                               Navigator.pop(ctx);
                               messenger.showSnackBar(
                                 SnackBar(
-                                  content: Text('Settled successfully from $selectedAccountName'),
+                                  content: Text(settleError ?? 'Settled successfully from $selectedAccountName'),
                                   behavior: SnackBarBehavior.floating,
                                   margin: EdgeInsets.only(bottom: bottomInset),
                                 ),

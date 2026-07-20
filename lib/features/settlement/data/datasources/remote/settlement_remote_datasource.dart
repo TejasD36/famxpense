@@ -5,5 +5,6 @@ abstract interface class SettlementRemoteDatasource {
   Future<List<SettlementEntity>> fetchSettlements({required String userId});
   Future<SettlementEntity?> fetchSettlementById(String settlementId);
   Future<void> updateSettlementStatus(String settlementId, SettlementStatus status);
+  Future<void> deleteSettlement(String settlementId);
   Stream<List<SettlementEntity>> streamPendingSettlements({required String userId});
 }

@@ -28,6 +28,9 @@ class ProcessSettlementUsecase {
       settlement.amount,
     );
 
+    /// Auto-reject any other pending settlements between the same pair (race condition guard)
+    await _autoRejectDuplicates(settlement.fromUserId, settlement.toUserId, settlement.id);
+
     /// Determine deposit account: use provided accountId, or recipient's default/first account
     final depositAccountId = toAccountId ?? await _resolveDepositAccount(settlement.toUserId);
     if (depositAccountId != null) {
@@ -49,6 +52,40 @@ class ProcessSettlementUsecase {
     sl<SyncService>().syncAll(userId: settlement.toUserId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();
     });
+  }
+
+  Future<void> _autoRejectDuplicates(String userA, String userB, String excludeId) async {
+    try {
+      final all = await sl<SettlementLocalDatasource>().getSettlements();
+      final duplicates = all.where((s) =>
+          s.id != excludeId &&
+          s.status == SettlementStatus.pending &&
+          ((s.fromUserId == userA && s.toUserId == userB) ||
+           (s.fromUserId == userB && s.toUserId == userA)));
+
+      for (final s in duplicates) {
+        await _settlementRepository.updateSettlementStatus(s.id, SettlementStatus.rejected);
+
+        /// Refund payer's account if it was deducted
+        if (s.accountId != null) {
+          try {
+            final accounts = await _accountRepository.getAccounts(userId: s.fromUserId);
+            final account = accounts.where((a) => a.id == s.accountId).firstOrNull;
+            if (account != null) {
+              await _accountRepository.updateBalance(s.accountId!, account.currentBalance + s.amount);
+            }
+          } catch (e, stackTrace) {
+            AppLogger.error('Duplicate settlement refund failed', e, stackTrace);
+          }
+        }
+
+        try {
+          await sl<SettlementRemoteDatasource>().updateSettlementStatus(s.id, SettlementStatus.rejected);
+        } catch (_) {}
+      }
+    } catch (e, stackTrace) {
+      AppLogger.error('Auto-reject duplicates failed', e, stackTrace);
+    }
   }
 
   Future<String?> _resolveDepositAccount(String userId) async {

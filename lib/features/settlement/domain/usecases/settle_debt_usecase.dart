@@ -11,12 +11,16 @@ class SettleDebtUsecase {
   }) : _settlementRepository = settlementRepository,
        _accountRepository = accountRepository;
 
-  Future<void> call({
+  Future<String?> call({
     required String fromUserId,
     required String toUserId,
     required double amount,
     String? fromAccountId,
   }) async {
+    /// Prevent duplicate pending settlements
+    final hasPending = await _settlementRepository.hasPendingSettlement(fromUserId, toUserId);
+    if (hasPending) return 'A pending settlement already exists between you and this partner';
+
     final now = DateTime.now().toUtc();
     final settlement = SettlementEntity(
       id: const Uuid().v4(),
@@ -67,5 +71,30 @@ class SettleDebtUsecase {
     } catch (e, stackTrace) {
       AppLogger.error('Settlement notification failed', e, stackTrace);
     }
+    return null;
+  }
+
+  Future<void> cancel(String settlementId) async {
+    final settlement = await _settlementRepository.getSettlementById(settlementId);
+    if (settlement == null) return;
+
+    await _settlementRepository.deleteSettlement(settlementId);
+
+    /// Refund payer's account if it was deducted
+    if (settlement.accountId != null) {
+      try {
+        final accounts = await _accountRepository.getAccounts(userId: settlement.fromUserId);
+        final account = accounts.where((a) => a.id == settlement.accountId).firstOrNull;
+        if (account != null) {
+          await _accountRepository.updateBalance(settlement.accountId!, account.currentBalance + settlement.amount);
+        }
+      } catch (e, stackTrace) {
+        AppLogger.error('Cancel settlement refund failed', e, stackTrace);
+      }
+    }
+
+    sl<SyncService>().syncAll(userId: settlement.fromUserId).then((_) {
+      sl<RefreshNotifier>().notifyDataChanged();
+    });
   }
 }

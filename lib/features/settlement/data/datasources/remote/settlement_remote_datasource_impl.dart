@@ -35,6 +35,11 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
   }
 
   @override
+  Future<void> deleteSettlement(String settlementId) async {
+    await _firestore.collection(_collection).doc(settlementId).delete();
+  }
+
+  @override
   Stream<List<SettlementEntity>> streamPendingSettlements({required String userId}) {
     return _firestore
         .collection(_collection)

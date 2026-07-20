@@ -379,14 +379,22 @@ class _ActivityScreenState extends State<ActivityScreen> {
             children: [
               Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   Text(
-                    DateFormat('dd MMM yyyy · h:mm a').format(date),
+                    DateFormat('dd MMM yyyy').format(date),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
-                  if (category != null && category != ExpenseCategory.other.name) ...[
-                    const SizedBox(width: 8),
+                  if (isExpanded) ...[
+                    Text(
+                      DateFormat('h:mm a').format(date),
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                    ),
+                  ],
+                  if (category != null && category != ExpenseCategory.other.name)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                       decoration: BoxDecoration(
@@ -398,7 +406,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
                       ),
                     ),
-                  ],
                 ],
               ),
             ],

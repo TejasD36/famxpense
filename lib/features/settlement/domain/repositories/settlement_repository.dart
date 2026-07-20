@@ -5,4 +5,6 @@ abstract interface class SettlementRepository {
   Future<SettlementEntity?> getSettlementById(String settlementId);
   Future<void> createSettlement(SettlementEntity settlement);
   Future<void> updateSettlementStatus(String settlementId, SettlementStatus status);
+  Future<void> deleteSettlement(String settlementId);
+  Future<bool> hasPendingSettlement(String fromUserId, String toUserId);
 }

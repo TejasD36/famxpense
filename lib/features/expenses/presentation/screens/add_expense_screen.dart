@@ -106,7 +106,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Please fill all required fields (Title and Amount)'),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+      ));
+      return;
+    }
 
     final authState = context.read<AuthBloc>().state;
     String? userId;
