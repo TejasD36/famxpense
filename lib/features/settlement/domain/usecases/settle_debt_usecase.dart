@@ -30,6 +30,10 @@ class SettleDebtUsecase {
 
     await _settlementRepository.createSettlement(settlement);
 
+    sl<SyncService>().syncAll(userId: fromUserId).then((_) {
+      sl<RefreshNotifier>().notifyDataChanged();
+    });
+
     /// Deduct from payer's selected account (money set aside pending confirmation)
     if (fromAccountId != null) {
       try {

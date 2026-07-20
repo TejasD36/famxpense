@@ -197,27 +197,31 @@ class SyncService {
     try {
       final localLedgers = await _debtLedgerLocal.getLedgers();
       final localByUser = localLedgers.where((l) => l.userA == userId || l.userB == userId).toList();
+      final localById = {for (final l in localByUser) l.id: l};
 
-      /// Upload local ledgers first so remote has the latest values
-      for (final ledger in localByUser) {
-        try {
-          await _debtLedgerRemote.saveLedger(ledger.toEntity());
-        } catch (e, stackTrace) {
-          AppLogger.warning('Failed uploading ledger: ${ledger.id}');
-          AppLogger.error('Ledger upload error', e, stackTrace);
+      /// Fetch remote ledgers first
+      final remoteLedgers = await _debtLedgerRemote.fetchLedgers(userId: userId);
+      final remoteById = {for (final r in remoteLedgers) r.id: r};
+
+      /// Merge: keep whichever has the newer updatedAt
+      for (final remote in remoteLedgers) {
+        final local = localById[remote.id];
+        if (local == null || remote.updatedAt.isAfter(local.updatedAt)) {
+          await _debtLedgerLocal.saveLedger(remote.toDto());
         }
       }
 
-      /// Fetch remote ledgers and merge: keep local value if ledger already exists,
-      /// save remote-only ledgers (created on another device)
-      final remoteLedgers = await _debtLedgerRemote.fetchLedgers(userId: userId);
-      final localById = {for (final l in localByUser) l.id: l};
-
-      for (final remote in remoteLedgers) {
-        if (!localById.containsKey(remote.id)) {
-          await _debtLedgerLocal.saveLedger(remote.toDto());
+      /// Upload only ledgers that are newer than remote or don't exist remotely
+      for (final ledger in localByUser) {
+        final remote = remoteById[ledger.id];
+        if (remote == null || ledger.updatedAt.isAfter(remote.updatedAt)) {
+          try {
+            await _debtLedgerRemote.saveLedger(ledger.toEntity());
+          } catch (e, stackTrace) {
+            AppLogger.warning('Failed uploading ledger: ${ledger.id}');
+            AppLogger.error('Ledger upload error', e, stackTrace);
+          }
         }
-        // Ledger already exists locally — local value was already uploaded, keep it
       }
 
       AppLogger.success('Debt ledger sync completed (${remoteLedgers.length} remote)');
@@ -234,22 +238,13 @@ class SyncService {
     try {
       final localSettlements = await _settlementLocal.getSettlements();
       final localByUser = localSettlements.where((s) => s.fromUserId == userId || s.toUserId == userId).toList();
-
-      /// Upload local settlements to remote
-      for (final settlement in localByUser) {
-        try {
-          await _settlementRemote.createSettlement(settlement.toEntity());
-        } catch (e, stackTrace) {
-          AppLogger.warning('Failed uploading settlement: ${settlement.id}');
-          AppLogger.error('Settlement upload error', e, stackTrace);
-        }
-      }
-
-      /// Fetch remote settlements
-      final remoteSettlements = await _settlementRemote.fetchSettlements(userId: userId);
       final localById = {for (final s in localByUser) s.id: s};
 
-      /// Save any remote-only settlements locally and handle status transitions
+      /// Fetch remote settlements FIRST to avoid overwriting status changes
+      final remoteSettlements = await _settlementRemote.fetchSettlements(userId: userId);
+      final remoteById = {for (final r in remoteSettlements) r.id: r};
+
+      /// Merge: save remote-only settlements and handle status transitions
       for (final remote in remoteSettlements) {
         final local = localById[remote.id];
         if (local == null) {
@@ -273,6 +268,18 @@ class SyncService {
             } catch (e, stackTrace) {
               AppLogger.error('Rejected settlement refund failed', e, stackTrace);
             }
+          }
+        }
+      }
+
+      /// Upload only settlements that don't exist remotely (local-only)
+      for (final settlement in localByUser) {
+        if (!remoteById.containsKey(settlement.id)) {
+          try {
+            await _settlementRemote.createSettlement(settlement.toEntity());
+          } catch (e, stackTrace) {
+            AppLogger.warning('Failed uploading settlement: ${settlement.id}');
+            AppLogger.error('Settlement upload error', e, stackTrace);
           }
         }
       }
@@ -323,9 +330,10 @@ class SyncService {
     AppLogger.sync('Notification sync started');
 
     try {
-      /// Upload local notifications
+      /// Upload local notifications (only own notifications — others fail the update rule)
       final local = await _notificationLocal.getNotifications();
       for (final n in local) {
+        if (n.userId != userId) continue;
         try {
           await _notificationRemote.uploadNotification(n);
         } catch (e, stackTrace) {

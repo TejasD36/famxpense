@@ -306,7 +306,8 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMM yyyy').format(expense.expenseDate),
+                          DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)
+,
                           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -420,7 +421,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMM yyyy').format(settlement.createdAt),
+                          DateFormat('dd MMM yyyy · h:mm a').format(settlement.createdAt),
                           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],

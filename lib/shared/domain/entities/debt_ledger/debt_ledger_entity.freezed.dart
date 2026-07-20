@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DebtLedgerEntity implements DiagnosticableTreeMixin {
 
- String get id; String get userA; String get userB; double get netBalance; DateTime get updatedAt;
+ String get id; String get userA; String get userB; double get netBalance; DateTime get updatedAt; List<String> get participantIds;
 /// Create a copy of DebtLedgerEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $DebtLedgerEntityCopyWith<DebtLedgerEntity> get copyWith => _$DebtLedgerEntityCo
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'DebtLedgerEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userA', userA))..add(DiagnosticsProperty('userB', userB))..add(DiagnosticsProperty('netBalance', netBalance))..add(DiagnosticsProperty('updatedAt', updatedAt));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userA', userA))..add(DiagnosticsProperty('userB', userB))..add(DiagnosticsProperty('netBalance', netBalance))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('participantIds', participantIds));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebtLedgerEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userA, userA) || other.userA == userA)&&(identical(other.userB, userB) || other.userB == userB)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebtLedgerEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userA, userA) || other.userA == userA)&&(identical(other.userB, userB) || other.userB == userB)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.participantIds, participantIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userA,userB,netBalance,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userA,userB,netBalance,updatedAt,const DeepCollectionEquality().hash(participantIds));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DebtLedgerEntity(id: $id, userA: $userA, userB: $userB, netBalance: $netBalance, updatedAt: $updatedAt)';
+  return 'DebtLedgerEntity(id: $id, userA: $userA, userB: $userB, netBalance: $netBalance, updatedAt: $updatedAt, participantIds: $participantIds)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $DebtLedgerEntityCopyWith<$Res>  {
   factory $DebtLedgerEntityCopyWith(DebtLedgerEntity value, $Res Function(DebtLedgerEntity) _then) = _$DebtLedgerEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String userA, String userB, double netBalance, DateTime updatedAt
+ String id, String userA, String userB, double netBalance, DateTime updatedAt, List<String> participantIds
 });
 
 
@@ -71,14 +71,15 @@ class _$DebtLedgerEntityCopyWithImpl<$Res>
 
 /// Create a copy of DebtLedgerEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userA = null,Object? userB = null,Object? netBalance = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userA = null,Object? userB = null,Object? netBalance = null,Object? updatedAt = null,Object? participantIds = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userA: null == userA ? _self.userA : userA // ignore: cast_nullable_to_non_nullable
 as String,userB: null == userB ? _self.userB : userB // ignore: cast_nullable_to_non_nullable
 as String,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
 as double,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,participantIds: null == participantIds ? _self.participantIds : participantIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt,  List<String> participantIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DebtLedgerEntity() when $default != null:
-return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt);case _:
+return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt,_that.participantIds);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt,  List<String> participantIds)  $default,) {final _that = this;
 switch (_that) {
 case _DebtLedgerEntity():
-return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt);}
+return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt,_that.participantIds);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -198,10 +199,10 @@ return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userA,  String userB,  double netBalance,  DateTime updatedAt,  List<String> participantIds)?  $default,) {final _that = this;
 switch (_that) {
 case _DebtLedgerEntity() when $default != null:
-return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt);case _:
+return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedAt,_that.participantIds);case _:
   return null;
 
 }
@@ -213,7 +214,7 @@ return $default(_that.id,_that.userA,_that.userB,_that.netBalance,_that.updatedA
 @JsonSerializable()
 
 class _DebtLedgerEntity with DiagnosticableTreeMixin implements DebtLedgerEntity {
-  const _DebtLedgerEntity({required this.id, required this.userA, required this.userB, required this.netBalance, required this.updatedAt});
+  const _DebtLedgerEntity({required this.id, required this.userA, required this.userB, required this.netBalance, required this.updatedAt, final  List<String> participantIds = const []}): _participantIds = participantIds;
   factory _DebtLedgerEntity.fromJson(Map<String, dynamic> json) => _$DebtLedgerEntityFromJson(json);
 
 @override final  String id;
@@ -221,6 +222,13 @@ class _DebtLedgerEntity with DiagnosticableTreeMixin implements DebtLedgerEntity
 @override final  String userB;
 @override final  double netBalance;
 @override final  DateTime updatedAt;
+ final  List<String> _participantIds;
+@override@JsonKey() List<String> get participantIds {
+  if (_participantIds is EqualUnmodifiableListView) return _participantIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_participantIds);
+}
+
 
 /// Create a copy of DebtLedgerEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -236,21 +244,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'DebtLedgerEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userA', userA))..add(DiagnosticsProperty('userB', userB))..add(DiagnosticsProperty('netBalance', netBalance))..add(DiagnosticsProperty('updatedAt', updatedAt));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userA', userA))..add(DiagnosticsProperty('userB', userB))..add(DiagnosticsProperty('netBalance', netBalance))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('participantIds', participantIds));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebtLedgerEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userA, userA) || other.userA == userA)&&(identical(other.userB, userB) || other.userB == userB)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebtLedgerEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userA, userA) || other.userA == userA)&&(identical(other.userB, userB) || other.userB == userB)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._participantIds, _participantIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userA,userB,netBalance,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userA,userB,netBalance,updatedAt,const DeepCollectionEquality().hash(_participantIds));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DebtLedgerEntity(id: $id, userA: $userA, userB: $userB, netBalance: $netBalance, updatedAt: $updatedAt)';
+  return 'DebtLedgerEntity(id: $id, userA: $userA, userB: $userB, netBalance: $netBalance, updatedAt: $updatedAt, participantIds: $participantIds)';
 }
 
 
@@ -261,7 +269,7 @@ abstract mixin class _$DebtLedgerEntityCopyWith<$Res> implements $DebtLedgerEnti
   factory _$DebtLedgerEntityCopyWith(_DebtLedgerEntity value, $Res Function(_DebtLedgerEntity) _then) = __$DebtLedgerEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userA, String userB, double netBalance, DateTime updatedAt
+ String id, String userA, String userB, double netBalance, DateTime updatedAt, List<String> participantIds
 });
 
 
@@ -278,14 +286,15 @@ class __$DebtLedgerEntityCopyWithImpl<$Res>
 
 /// Create a copy of DebtLedgerEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userA = null,Object? userB = null,Object? netBalance = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userA = null,Object? userB = null,Object? netBalance = null,Object? updatedAt = null,Object? participantIds = null,}) {
   return _then(_DebtLedgerEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userA: null == userA ? _self.userA : userA // ignore: cast_nullable_to_non_nullable
 as String,userB: null == userB ? _self.userB : userB // ignore: cast_nullable_to_non_nullable
 as String,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
 as double,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,participantIds: null == participantIds ? _self._participantIds : participantIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

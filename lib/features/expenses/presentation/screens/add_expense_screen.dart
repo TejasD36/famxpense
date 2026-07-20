@@ -173,9 +173,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         return;
       }
       for (final entry in _manualAmounts.entries) {
-        if (entry.value <= 0 && entry.key != autoId) {
+        if (entry.value < 0) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Each participant must have a share greater than 0'),
+            content: const Text('Shares cannot be negative'),
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
           ));
@@ -189,14 +189,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           ));
           return;
         }
-      }
-      if (_manualAmounts.values.any((v) => v == 0)) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('One participant has 0 share. Please remove them or adjust amounts.'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-        ));
-        return;
       }
     }
 

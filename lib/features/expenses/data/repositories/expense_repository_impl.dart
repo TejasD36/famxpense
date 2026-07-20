@@ -1,5 +1,7 @@
 import '../../../account/domain/repositories/account_repository.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
+import '../../../debt_ledger/data/datasources/remote/debt_ledger_remote_datasource.dart';
 import '../../../debt_ledger/domain/usecases/compute_debt_usecase.dart';
 import '../../xcore.dart';
 
@@ -67,6 +69,17 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
     /// Compute debt for shared expenses
     if (expense.expenseType == ExpenseType.shared) {
+      /// Fetch latest debt ledgers from Firestore before computing,
+      /// so we net against ledgers created on other devices
+      try {
+        final remoteLedgers = await sl<DebtLedgerRemoteDatasource>().fetchLedgers(userId: expense.paidByUserId);
+        for (final ledger in remoteLedgers) {
+          await sl<DebtLedgerLocalDatasource>().saveLedger(ledger.toDto());
+        }
+      } catch (_) {
+        // Offline — use local data as fallback
+      }
+
       try {
         await _computeDebtUsecase(
           paidByUserId: expense.paidByUserId,

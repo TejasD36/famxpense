@@ -21,6 +21,7 @@ extension PartnershipRemoteMapper on PartnershipEntity {
       createdAt: createdAt,
 
       updatedAt: updatedAt,
+      participantIds: [senderId, receiverId],
     );
   }
 }

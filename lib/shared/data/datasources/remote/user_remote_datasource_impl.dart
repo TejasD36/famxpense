@@ -21,17 +21,29 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
 
     QuerySnapshot<Map<String, dynamic>> snapshot;
 
-    /// EMAIL SEARCH
+    /// EMAIL SEARCH — exact match only
 
     if (query.contains('@')) {
       snapshot = await _firestore.collection(_collection).where('email', isEqualTo: query.trim()).limit(1).get();
     } else {
-      /// NICKNAME SEARCH
+      /// NICKNAME SEARCH — prefix (starts-with) match on lowercase field
 
-      snapshot = await _firestore.collection(_collection).where('nicknameLowercase', isEqualTo: query.toLowerCase().trim()).limit(1).get();
+      final queryLower = query.trim().toLowerCase();
+      snapshot = await _firestore
+          .collection(_collection)
+          .where('nicknameLowercase', isGreaterThanOrEqualTo: queryLower)
+          .where('nicknameLowercase', isLessThanOrEqualTo: '$queryLower\uf8ff')
+          .limit(1)
+          .get();
 
+      /// FALLBACK: legacy users without nicknameLowercase field
       if (snapshot.docs.isEmpty) {
-        snapshot = await _firestore.collection(_collection).where('nickname', isEqualTo: query.trim()).limit(1).get();
+        snapshot = await _firestore
+            .collection(_collection)
+            .where('nickname', isGreaterThanOrEqualTo: query.trim())
+            .where('nickname', isLessThanOrEqualTo: '${query.trim()}\uf8ff')
+            .limit(1)
+            .get();
       }
     }
 

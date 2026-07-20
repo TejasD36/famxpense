@@ -14,19 +14,12 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
 
   @override
   Future<List<SettlementEntity>> fetchSettlements({required String userId}) async {
-    final fromQuery = await _firestore.collection(_collection).where('fromUserId', isEqualTo: userId).get();
-    final toQuery = await _firestore.collection(_collection).where('toUserId', isEqualTo: userId).get();
+    final snapshot = await _firestore
+        .collection(_collection)
+        .where('participantIds', arrayContains: userId)
+        .get();
 
-    final seenIds = <String>{};
-    final results = <SettlementEntity>[];
-
-    for (final doc in [...fromQuery.docs, ...toQuery.docs]) {
-      if (seenIds.add(doc.id)) {
-        results.add(_fromJson(doc.data()));
-      }
-    }
-
-    return results;
+    return snapshot.docs.map((doc) => _fromJson(doc.data())).toList();
   }
 
   @override
@@ -45,7 +38,7 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
   Stream<List<SettlementEntity>> streamPendingSettlements({required String userId}) {
     return _firestore
         .collection(_collection)
-        .where('toUserId', isEqualTo: userId)
+        .where('participantIds', arrayContains: userId)
         .where('status', isEqualTo: SettlementStatus.pending.name)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => _fromJson(doc.data())).toList());
@@ -62,6 +55,7 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
       'confirmedAt': e.confirmedAt?.toIso8601String(),
       'relatedExpenseIds': e.relatedExpenseIds,
       if (e.accountId != null) 'accountId': e.accountId,
+      'participantIds': [e.fromUserId, e.toUserId],
     };
   }
 
@@ -76,6 +70,7 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
       confirmedAt: json['confirmedAt'] != null ? DateTime.parse(json['confirmedAt'] as String) : null,
       relatedExpenseIds: (json['relatedExpenseIds'] as List<dynamic>?)?.cast<String>(),
       accountId: json['accountId'] as String?,
+      participantIds: (json['participantIds'] as List<dynamic>?)?.cast<String>() ?? [json['fromUserId'] as String, json['toUserId'] as String],
     );
   }
 }

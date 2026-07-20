@@ -175,7 +175,7 @@ Future<void> initDependencies() async {
   /// ACCOUNT
   sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());
   sl.registerLazySingleton<ManualDepositLocalDatasource>(() => ManualDepositLocalDatasourceImpl());
-  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
+  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl()));
   sl.registerLazySingleton(() => GetAccountsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SaveAccountUsecase(repository: sl()));
   sl.registerLazySingleton(() => DeleteAccountUsecase(repository: sl()));

@@ -382,7 +382,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
               Row(
                 children: [
                   Text(
-                    DateFormat('dd MMM yyyy').format(date),
+                    DateFormat('dd MMM yyyy · h:mm a').format(date),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   if (category != null && category != ExpenseCategory.other.name) ...[

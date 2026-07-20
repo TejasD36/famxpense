@@ -46,7 +46,9 @@ class ProcessSettlementUsecase {
       await sl<SettlementRemoteDatasource>().updateSettlementStatus(settlementId, SettlementStatus.confirmed);
     } catch (_) {}
 
-    sl<RefreshNotifier>().notifyDataChanged();
+    sl<SyncService>().syncAll(userId: settlement.toUserId).then((_) {
+      sl<RefreshNotifier>().notifyDataChanged();
+    });
   }
 
   Future<String?> _resolveDepositAccount(String userId) async {

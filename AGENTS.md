@@ -39,6 +39,18 @@
 - `flutter analyze lib/` — must pass with zero issues
 - `flutter pub run build_runner build --delete-conflicting-outputs` — re-run after modifying any freezed/json_serializable model files
 
+### Firestore participantIds Pattern (debt_ledgers, settlements, partnerships)
+- Separate `allow read` lines for two-field OR collections DON'T work with Firestore collection queries — every field in a rule condition needs a `where` filter in the query
+- Fix: `participantIds: [userA, userB]` array field, `.where('participantIds', arrayContains: userId)` query, `request.auth.uid in resource.data.participantIds` rule
+- Applied to: debt_ledgers, settlements (entity + remote datasource), partnerships (remote DTO + remote datasource)
+- PartnershipRemoteDto added `@Default([]) List<String> participantIds` (freezed → auto-serialized to/from Firestore)
+- SettlementEntity: `_fromJson` fallback `[fromUserId, toUserId]` for legacy docs without the field
+- `participantIds` field is **Firestore-only** — not stored in Hive (entity/remote-dto level only, not local DTO)
+
+### Notification Sync
+- `syncNotifications` filters `n.userId != userId` to skip uploading notifications that fail Firestore update rule (`auth.uid == resource.data.userId`)
+- Remote notifications fetched for the current user are still saved locally
+
 ## Critical Context
 - GoRouter's `StatefulShellRoute.indexedStack` does NOT fire `RouteAware.didPopNext()` on child routes — use `RefreshNotifier` instead
 - Freezed classes use private variant names (`_Loading`, `_Loaded`, etc.) — cannot reference them from outside their library

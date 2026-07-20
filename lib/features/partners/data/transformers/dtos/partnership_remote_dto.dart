@@ -25,6 +25,7 @@ sealed class PartnershipRemoteDto with _$PartnershipRemoteDto {
     required DateTime createdAt,
 
     required DateTime updatedAt,
+    @Default([]) List<String> participantIds,
   }) = _PartnershipRemoteDto;
 
   factory PartnershipRemoteDto.fromJson(Map<String, dynamic> json) => _$PartnershipRemoteDtoFromJson(json);

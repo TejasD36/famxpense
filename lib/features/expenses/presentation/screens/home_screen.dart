@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                       child: ListView(
-                        physics: const ClampingScrollPhysics(),
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(20),
                         children: [
                           /// Header
@@ -364,10 +364,10 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: Colors.orange.withValues(alpha: 0.15),
-                    child: Text(
-                      '@',
-                      style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold),
-                    ),
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold),
+                      ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -519,7 +519,7 @@ class _ExpenseTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text([DateFormat('dd MMM yyyy').format(expense.expenseDate), ?accountName].join(' • ')),
+            Text([DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate), ?accountName].join(' • ')),
             if (cat != null && cat != ExpenseCategory.other.name) ...[
               const SizedBox(height: 4),
               Container(

@@ -45,13 +45,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           .map((d) => d.toEntity())
           .toList();
 
-      if (expenses.isEmpty) {
-        emit(
-          HomeState.empty(),
-        );
-        return;
-      }
-
       expenses.sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
 
       double userShare(ExpenseEntity expense) {

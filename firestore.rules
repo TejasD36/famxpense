@@ -33,8 +33,9 @@ service cloud.firestore {
 
     // Settlements: read if participant, create/update if participant
     match /settlements/{settlementId} {
-      allow read: if request.auth != null && resource.data.fromUserId == request.auth.uid;
-      allow read: if request.auth != null && resource.data.toUserId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
       allow create: if request.auth.uid == request.resource.data.fromUserId;
       allow update: if request.auth.uid == resource.data.fromUserId
         || request.auth.uid == resource.data.toUserId;
@@ -43,8 +44,9 @@ service cloud.firestore {
 
     // Partnerships: uses senderId/receiverId (not userId/partnerId)
     match /partnerships/{partnershipId} {
-      allow read: if request.auth != null && resource.data.senderId == request.auth.uid;
-      allow read: if request.auth != null && resource.data.receiverId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
       allow create: if request.auth.uid == request.resource.data.senderId;
       allow update: if request.auth.uid == resource.data.senderId
         || request.auth.uid == resource.data.receiverId;
@@ -62,9 +64,10 @@ service cloud.firestore {
     }
 
     // Debt ledgers: read if participant, write if participant
-    match /debtLedgers/{ledgerId} {
-      allow read: if request.auth != null && resource.data.userA == request.auth.uid;
-      allow read: if request.auth != null && resource.data.userB == request.auth.uid;
+    match /debt_ledgers/{ledgerId} {
+      allow read: if request.auth != null
+        && resource.data.participantIds != null
+        && resource.data.participantIds.hasAny([request.auth.uid]);
       allow create: if request.auth.uid == request.resource.data.userA
         || request.auth.uid == request.resource.data.userB;
       allow update: if request.auth.uid == resource.data.userA

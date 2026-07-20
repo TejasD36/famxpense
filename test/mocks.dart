@@ -1,3 +1,4 @@
+import 'package:famxpense/core/services/sync/sync_service.dart';
 import 'package:famxpense/features/account/data/datasources/account_local_datasource.dart';
 import 'package:famxpense/features/account/domain/repositories/account_repository.dart';
 import 'package:famxpense/features/auth/data/datasources/local/auth_local_datasource.dart';
@@ -17,6 +18,7 @@ class MockAccountLocalDatasource extends Mock implements AccountLocalDatasource 
 class MockNotificationLocalDatasource extends Mock implements NotificationLocalDatasource {}
 class MockAuthLocalDatasource extends Mock implements AuthLocalDatasource {}
 class MockSettlementRemoteDatasource extends Mock implements SettlementRemoteDatasource {}
+class MockSyncService extends Mock implements SyncService {}
 
 /// Register fallback values for enum types used with `any()` matchers.
 void registerFallbacks() {

@@ -24,12 +24,18 @@ class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
         _notifyParticipants(event.expense);
       }
 
-      sl<RefreshNotifier>().notifyDataChanged();
+      _syncAfterAdd(event.expense);
 
       emit(const AddExpenseState.success());
     } catch (e) {
       emit(AddExpenseState.error(e.toString()));
     }
+  }
+
+  void _syncAfterAdd(ExpenseEntity expense) {
+    sl<SyncService>().syncAll(userId: expense.paidByUserId).then((_) {
+      sl<RefreshNotifier>().notifyDataChanged();
+    });
   }
 
   Future<void> _notifyParticipants(ExpenseEntity expense) async {

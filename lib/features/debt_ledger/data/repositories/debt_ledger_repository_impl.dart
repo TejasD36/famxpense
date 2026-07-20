@@ -18,35 +18,35 @@ class DebtLedgerRepositoryImpl implements DebtLedgerRepository {
 
   @override
   Future<void> updateDebt(String userA, String userB, double delta) async {
+    final sorted = [userA, userB]..sort();
+    final canonicalA = sorted[0];
+    final canonicalB = sorted[1];
+    final id = '${canonicalA}_$canonicalB';
+
+    if (canonicalA == userB && canonicalB == userA) {
+      delta = -delta;
+    }
+
     final all = await _localDatasource.getLedgers();
-    final existing = all.where((l) {
-      return (l.userA == userA && l.userB == userB) || (l.userA == userB && l.userB == userA);
-    }).toList();
+    final existing = all.where((l) => l.id == id || (l.userA == canonicalA && l.userB == canonicalB)).toList();
 
     if (existing.isEmpty) {
-      final ledger = DebtLedgerDto(
-        id: const Uuid().v4(),
-        userA: userA,
-        userB: userB,
+      await _localDatasource.saveLedger(DebtLedgerDto(
+        id: id,
+        userA: canonicalA,
+        userB: canonicalB,
         netBalance: delta,
         updatedAt: DateTime.now().toUtc(),
-      );
-      await _localDatasource.saveLedger(ledger);
+      ));
     } else {
       final current = existing.first;
-      final currentA = current.userA;
-      final currentB = current.userB;
-
-      double newBalance;
-      if (currentA == userA && currentB == userB) {
-        newBalance = current.netBalance + delta;
-      } else {
-        /// reversed — userA == current.userB, so delta applies in opposite direction
-        newBalance = current.netBalance - delta;
-      }
-
-      final updated = current.copyWith(netBalance: newBalance, updatedAt: DateTime.now().toUtc());
-      await _localDatasource.saveLedger(updated);
+      await _localDatasource.saveLedger(current.copyWith(
+        id: id,
+        userA: canonicalA,
+        userB: canonicalB,
+        netBalance: current.netBalance + delta,
+        updatedAt: DateTime.now().toUtc(),
+      ));
     }
   }
 }

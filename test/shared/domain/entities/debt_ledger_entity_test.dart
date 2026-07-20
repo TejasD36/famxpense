@@ -21,6 +21,18 @@ void main() {
       expect(entity.updatedAt, now);
     });
 
+    test('participantIds defaults to empty list', () {
+      final entity = DebtLedgerEntity(
+        id: 'ledger-0',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+      );
+
+      expect(entity.participantIds, []);
+    });
+
     test('toJson / fromJson roundtrip', () {
       final entity = DebtLedgerEntity(
         id: 'ledger-2',
@@ -40,6 +52,36 @@ void main() {
       expect(restored.updatedAt, entity.updatedAt);
     });
 
+    test('toJson / fromJson roundtrip with participantIds', () {
+      final entity = DebtLedgerEntity(
+        id: 'ledger-3',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+        participantIds: ['user-a', 'user-b'],
+      );
+
+      final json = entity.toJson();
+      final restored = DebtLedgerEntity.fromJson(json);
+
+      expect(restored.participantIds, ['user-a', 'user-b']);
+    });
+
+    test('fromJson defaults participantIds when missing', () {
+      final json = {
+        'id': 'ledger-4',
+        'userA': 'user-a',
+        'userB': 'user-b',
+        'netBalance': 100.0,
+        'updatedAt': now.toIso8601String(),
+      };
+
+      final entity = DebtLedgerEntity.fromJson(json);
+
+      expect(entity.participantIds, []);
+    });
+
     test('copyWith updates fields', () {
       final entity = DebtLedgerEntity(
         id: 'ledger-1',
@@ -54,23 +96,59 @@ void main() {
       expect(updated.id, 'ledger-1');
     });
 
-    test('equality works', () {
-      final a = DebtLedgerEntity(
-        id: 'ledger-1',
-        userA: 'user-a',
-        userB: 'user-b',
-        netBalance: 100.0,
-        updatedAt: now,
-      );
-      final b = DebtLedgerEntity(
-        id: 'ledger-1',
+    test('copyWith updates participantIds', () {
+      final entity = DebtLedgerEntity(
+        id: 'ledger-5',
         userA: 'user-a',
         userB: 'user-b',
         netBalance: 100.0,
         updatedAt: now,
       );
 
+      final updated = entity.copyWith(participantIds: ['user-a', 'user-b']);
+      expect(updated.participantIds, ['user-a', 'user-b']);
+    });
+
+    test('equality works with participantIds', () {
+      final a = DebtLedgerEntity(
+        id: 'ledger-6',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+        participantIds: ['user-a', 'user-b'],
+      );
+      final b = DebtLedgerEntity(
+        id: 'ledger-6',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+        participantIds: ['user-a', 'user-b'],
+      );
+
       expect(a, equals(b));
+    });
+
+    test('inequality on different participantIds', () {
+      final a = DebtLedgerEntity(
+        id: 'ledger-7',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+        participantIds: ['user-a', 'user-b'],
+      );
+      final b = DebtLedgerEntity(
+        id: 'ledger-7',
+        userA: 'user-a',
+        userB: 'user-b',
+        netBalance: 100.0,
+        updatedAt: now,
+        participantIds: ['user-a', 'user-c'],
+      );
+
+      expect(a, isNot(equals(b)));
     });
 
     test('inequality on different fields', () {

@@ -1,3 +1,4 @@
+import 'package:famxpense/core/services/sync/sync_service.dart';
 import 'package:famxpense/core/services/refresh/refresh_notifier.dart';
 import 'package:famxpense/features/settlement/domain/usecases/process_settlement_usecase.dart';
 import 'package:famxpense/shared/domain/entities/account/account_entity.dart';
@@ -28,6 +29,7 @@ void main() {
     accountRepository = MockAccountRepository();
 
     sl.registerSingleton<RefreshNotifier>(RefreshNotifier());
+    sl.registerSingleton<SyncService>(MockSyncService());
 
     usecase = ProcessSettlementUsecase(
       settlementRepository: settlementRepository,
@@ -57,6 +59,10 @@ void main() {
       when(() => settlementRepository.updateSettlementStatus(settlementId, SettlementStatus.confirmed))
           .thenAnswer((_) async {});
       when(() => debtLedgerRepository.updateDebt(any(), any(), any())).thenAnswer((_) async {});
+      when(() => accountRepository.getAccounts(userId: any(named: 'userId')))
+          .thenAnswer((_) async => []);
+      when(() => sl<SyncService>().syncAll(userId: any(named: 'userId')))
+          .thenAnswer((_) async => true);
 
       await usecase.confirm(settlementId: settlementId, toAccountId: 'deposit-account-1');
 
@@ -92,6 +98,8 @@ void main() {
       when(() => debtLedgerRepository.updateDebt(any(), any(), any())).thenAnswer((_) async {});
       when(() => accountRepository.getAccounts(userId: any(named: 'userId'))).thenAnswer((_) async => [depositAccount]);
       when(() => accountRepository.updateBalance(any(), any())).thenAnswer((_) async {});
+      when(() => sl<SyncService>().syncAll(userId: any(named: 'userId')))
+          .thenAnswer((_) async => true);
 
       await usecase.confirm(settlementId: settlementId, toAccountId: 'deposit-account-1');
 

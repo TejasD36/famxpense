@@ -11,6 +11,7 @@ sealed class DebtLedgerEntity with _$DebtLedgerEntity {
     required String userB,
     required double netBalance,
     required DateTime updatedAt,
+    @Default([]) List<String> participantIds,
   }) = _DebtLedgerEntity;
 
   factory DebtLedgerEntity.fromJson(Map<String, dynamic> json) => _$DebtLedgerEntityFromJson(json);

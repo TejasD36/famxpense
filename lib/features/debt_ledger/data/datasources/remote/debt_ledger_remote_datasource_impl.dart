@@ -14,19 +14,12 @@ class DebtLedgerRemoteDatasourceImpl implements DebtLedgerRemoteDatasource {
 
   @override
   Future<List<DebtLedgerEntity>> fetchLedgers({required String userId}) async {
-    final queryA = await _firestore.collection(_collection).where('userA', isEqualTo: userId).get();
-    final queryB = await _firestore.collection(_collection).where('userB', isEqualTo: userId).get();
+    final snapshot = await _firestore
+        .collection(_collection)
+        .where('participantIds', arrayContains: userId)
+        .get();
 
-    final seenIds = <String>{};
-    final results = <DebtLedgerEntity>[];
-
-    for (final doc in [...queryA.docs, ...queryB.docs]) {
-      if (seenIds.add(doc.id)) {
-        results.add(_fromJson(doc.data()));
-      }
-    }
-
-    return results;
+    return snapshot.docs.map((doc) => _fromJson(doc.data())).toList();
   }
 
   Map<String, dynamic> _toJson(DebtLedgerEntity e) {
@@ -36,6 +29,7 @@ class DebtLedgerRemoteDatasourceImpl implements DebtLedgerRemoteDatasource {
       'userB': e.userB,
       'netBalance': e.netBalance,
       'updatedAt': e.updatedAt.toIso8601String(),
+      'participantIds': [e.userA, e.userB],
     };
   }
 
@@ -46,6 +40,7 @@ class DebtLedgerRemoteDatasourceImpl implements DebtLedgerRemoteDatasource {
       userB: json['userB'] as String,
       netBalance: (json['netBalance'] as num).toDouble(),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      participantIds: (json['participantIds'] as List<dynamic>?)?.cast<String>() ?? [json['userA'] as String, json['userB'] as String],
     );
   }
 }
