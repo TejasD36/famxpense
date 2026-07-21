@@ -525,7 +525,8 @@ class _ExpenseTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(4)),
-                child: Text(cat[0].toUpperCase() + cat.substring(1), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
+                child: Text(ExpenseCategory.values.where((e) => e.name == cat).firstOrNull?.label ?? cat,
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
               ),
             ],
           ],

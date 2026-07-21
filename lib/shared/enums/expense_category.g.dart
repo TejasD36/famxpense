@@ -16,41 +16,37 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
       case 0:
         return ExpenseCategory.food;
       case 1:
-        return ExpenseCategory.grocery;
+        return ExpenseCategory.groceries;
       case 2:
-        return ExpenseCategory.clothes;
+        return ExpenseCategory.transport;
       case 3:
-        return ExpenseCategory.essentials;
+        return ExpenseCategory.shopping;
       case 4:
-        return ExpenseCategory.medical;
+        return ExpenseCategory.healthFitness;
       case 5:
-        return ExpenseCategory.snacks;
+        return ExpenseCategory.entertainment;
       case 6:
-        return ExpenseCategory.lunch;
+        return ExpenseCategory.bills;
       case 7:
-        return ExpenseCategory.dinner;
+        return ExpenseCategory.rentHousing;
       case 8:
-        return ExpenseCategory.movie;
+        return ExpenseCategory.travel;
       case 9:
-        return ExpenseCategory.traveling;
+        return ExpenseCategory.education;
       case 10:
         return ExpenseCategory.gifts;
       case 11:
-        return ExpenseCategory.insurance;
+        return ExpenseCategory.personalCare;
       case 12:
-        return ExpenseCategory.emi;
+        return ExpenseCategory.subscriptions;
       case 13:
-        return ExpenseCategory.recharge;
+        return ExpenseCategory.work;
       case 14:
-        return ExpenseCategory.electricity;
+        return ExpenseCategory.pets;
       case 15:
-        return ExpenseCategory.mobileBill;
+        return ExpenseCategory.investments;
       case 16:
-        return ExpenseCategory.subscription;
-      case 17:
         return ExpenseCategory.other;
-      case 18:
-        return ExpenseCategory.fruits;
       default:
         return ExpenseCategory.food;
     }
@@ -61,42 +57,38 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
     switch (obj) {
       case ExpenseCategory.food:
         writer.writeByte(0);
-      case ExpenseCategory.grocery:
+      case ExpenseCategory.groceries:
         writer.writeByte(1);
-      case ExpenseCategory.clothes:
+      case ExpenseCategory.transport:
         writer.writeByte(2);
-      case ExpenseCategory.essentials:
+      case ExpenseCategory.shopping:
         writer.writeByte(3);
-      case ExpenseCategory.medical:
+      case ExpenseCategory.healthFitness:
         writer.writeByte(4);
-      case ExpenseCategory.snacks:
+      case ExpenseCategory.entertainment:
         writer.writeByte(5);
-      case ExpenseCategory.lunch:
+      case ExpenseCategory.bills:
         writer.writeByte(6);
-      case ExpenseCategory.dinner:
+      case ExpenseCategory.rentHousing:
         writer.writeByte(7);
-      case ExpenseCategory.movie:
+      case ExpenseCategory.travel:
         writer.writeByte(8);
-      case ExpenseCategory.traveling:
+      case ExpenseCategory.education:
         writer.writeByte(9);
       case ExpenseCategory.gifts:
         writer.writeByte(10);
-      case ExpenseCategory.insurance:
+      case ExpenseCategory.personalCare:
         writer.writeByte(11);
-      case ExpenseCategory.emi:
+      case ExpenseCategory.subscriptions:
         writer.writeByte(12);
-      case ExpenseCategory.recharge:
+      case ExpenseCategory.work:
         writer.writeByte(13);
-      case ExpenseCategory.electricity:
+      case ExpenseCategory.pets:
         writer.writeByte(14);
-      case ExpenseCategory.mobileBill:
+      case ExpenseCategory.investments:
         writer.writeByte(15);
-      case ExpenseCategory.subscription:
-        writer.writeByte(16);
       case ExpenseCategory.other:
-        writer.writeByte(17);
-      case ExpenseCategory.fruits:
-        writer.writeByte(18);
+        writer.writeByte(16);
     }
   }
 

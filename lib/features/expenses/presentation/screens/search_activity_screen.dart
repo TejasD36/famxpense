@@ -82,7 +82,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
     for (final dto in allExpenses) {
       final e = dto.toEntity();
       final catLabel = e.category != null && e.category != ExpenseCategory.other.name
-          ? e.category![0].toUpperCase() + e.category!.substring(1)
+          ? ExpenseCategory.values.where((c) => c.name == e.category).firstOrNull?.label ?? e.category!
           : '';
       final paidBy = nickname(e.paidByUserId) ?? e.paidByUserId;
       final partnerNames = e.participants
@@ -262,6 +262,17 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
     );
   }
 
+  Widget _buildCategoryRow(String category) {
+    final catEnum = ExpenseCategory.values.where((c) => c.name == category).firstOrNull;
+    return Row(
+      children: [
+        Icon(catEnum?.icon ?? Icons.label_rounded, size: 14, color: catEnum?.color),
+        const SizedBox(width: 4),
+        Text(catEnum?.label ?? category, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
   String? _nickname(String userId) {
     final user = sl<UserLocalDatasource>().getUser(userId);
     return user?.nickname;
@@ -361,14 +372,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                       ),
                       if (expense.category != null && expense.category != ExpenseCategory.other.name) ...[
                         const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.label_rounded, size: 14),
-                            const SizedBox(width: 4),
-                            Text(expense.category![0].toUpperCase() + expense.category!.substring(1),
-                                style: const TextStyle(fontSize: 12)),
-                          ],
-                        ),
+                        _buildCategoryRow(expense.category!),
                       ],
                     ],
                   ),

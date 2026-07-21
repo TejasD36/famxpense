@@ -352,6 +352,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
+  Widget _buildCategoryBadge(String category, ThemeData theme) {
+    final catEnum = ExpenseCategory.values.where((c) => c.name == category).firstOrNull;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: catEnum?.color.withValues(alpha: 0.15) ?? theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(catEnum?.icon, size: 10, color: catEnum?.color),
+          const SizedBox(width: 4),
+          Text(
+            catEnum?.label ?? category,
+            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: catEnum?.color),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showTransactionDetail(ExpenseEntity expense) {
     showModalBottomSheet(
       context: context,
@@ -405,17 +427,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     ),
                   ],
                   if (category != null && category != ExpenseCategory.other.name)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        category[0].toUpperCase() + category.substring(1),
-                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500),
-                      ),
-                    ),
+                    _buildCategoryBadge(category, Theme.of(context)),
                 ],
               ),
             ],

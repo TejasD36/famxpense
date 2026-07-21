@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../account/presentation/widgets/account_picker_sheet.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
@@ -72,6 +74,23 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         _selectedAccount = selected;
       });
     }
+
+    _autoCaptureLocation();
+  }
+
+  Future<void> _autoCaptureLocation() async {
+    final locationService = sl<LocationService>();
+    final permission = await locationService.requestPermission();
+    if (!mounted) return;
+    if (!permission) return;
+    final position = await locationService.getCurrentPosition();
+    if (!mounted) return;
+    if (position != null && _latitude == null && _longitude == null) {
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+    }
   }
 
   @override
@@ -108,21 +127,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
-    final locationService = sl<LocationService>();
-    final position = await locationService.getCurrentPosition();
+  Future<void> _openMapPicker() async {
+    final position = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MapPickerScreen(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+        ),
+      ),
+    );
     if (!mounted) return;
     if (position != null) {
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Could not get location. Check location permissions.'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-      ));
     }
   }
 
@@ -266,29 +286,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return _manualAmounts[userId] ?? 0;
   }
 
-  String _categoryLabel(ExpenseCategory c) {
-    return switch (c) {
-      ExpenseCategory.food => 'Food',
-      ExpenseCategory.grocery => 'Grocery',
-      ExpenseCategory.clothes => 'Clothes',
-      ExpenseCategory.essentials => 'Essentials',
-      ExpenseCategory.medical => 'Medical',
-      ExpenseCategory.snacks => 'Snacks',
-      ExpenseCategory.lunch => 'Lunch',
-      ExpenseCategory.dinner => 'Dinner',
-      ExpenseCategory.movie => 'Movie',
-      ExpenseCategory.traveling => 'Traveling',
-      ExpenseCategory.gifts => 'Gifts',
-      ExpenseCategory.insurance => 'Insurance',
-      ExpenseCategory.emi => 'EMI',
-      ExpenseCategory.recharge => 'Recharge',
-      ExpenseCategory.electricity => 'Electricity',
-      ExpenseCategory.mobileBill => 'Mobile Bill',
-      ExpenseCategory.subscription => 'Subscription',
-      ExpenseCategory.fruits => 'Fruits',
-      ExpenseCategory.other => 'Other',
-    };
-  }
+
 
   void _initManualAmounts() {
     final total = double.tryParse(_amountController.text.trim()) ?? 0;
@@ -460,9 +458,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       /// Category
                       DropdownButtonFormField<String>(
                         initialValue: _category,
-                        decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          labelText: 'Category',
+                          border: const OutlineInputBorder(),
+                          prefixIcon: _category != null
+                              ? Icon(
+                                  ExpenseCategory.values.where((e) => e.name == _category).firstOrNull?.icon,
+                                  color: ExpenseCategory.values.where((e) => e.name == _category).firstOrNull?.color,
+                                )
+                              : null,
+                        ),
                         items: ExpenseCategory.values.map((c) {
-                          return DropdownMenuItem(value: c.name, child: Text(_categoryLabel(c)));
+                          return DropdownMenuItem(
+                            value: c.name,
+                            child: Row(
+                              children: [
+                                Icon(c.icon, size: 20, color: c.color),
+                                const SizedBox(width: 12),
+                                Text(c.label),
+                              ],
+                            ),
+                          );
                         }).toList(),
                         onChanged: (v) => setState(() => _category = v),
                       ),
@@ -566,7 +582,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         children: [
                           Expanded(
                             child: InkWell(
-                              onTap: _getCurrentLocation,
+                              onTap: _openMapPicker,
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),

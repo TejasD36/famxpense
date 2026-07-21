@@ -17,3 +17,4 @@ export 'presentation/screens/add_expense_screen.dart';
 export 'presentation/screens/home_screen.dart';
 export 'presentation/screens/search_activity_screen.dart';
 export 'presentation/widgets/transaction_detail_sheet.dart';
+export 'presentation/widgets/map_picker_screen.dart';
