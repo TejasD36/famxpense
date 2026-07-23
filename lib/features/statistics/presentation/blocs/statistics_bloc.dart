@@ -61,7 +61,7 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         final userShare = participant.amount;
         totalSpent += userShare;
 
-        final category = expense.category ?? 'other';
+        final category = expense.category ?? ExpenseCategory.other.name;
         categoryTotals.update(category, (v) => v + userShare, ifAbsent: () => userShare);
 
         final day = expense.expenseDate.day;

@@ -3,6 +3,7 @@ import 'dart:async';
 import '../core.dart';
 import '../features/auth/data/datasources/local/auth_local_datasource.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../flavors.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -83,12 +84,31 @@ class _AppState extends State<App> {
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, state) {
           return MaterialApp.router(
-            title: 'FamXpense',
+            title: F.title,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: state.themeMode,
             routerConfig: _router,
+            builder: (context, child) {
+              if (kDebugMode) {
+                return Banner(
+                  location: BannerLocation.topStart,
+                  message: '${F.name}${F.appFlavor == Flavor.dev ? ' DEV' : ''}',
+                  color: F.appFlavor == Flavor.dev
+                      ? Colors.deepOrange.withAlpha(150)
+                      : Colors.green.withAlpha(150),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.0,
+                    letterSpacing: 1.0,
+                  ),
+                  textDirection: TextDirection.ltr,
+                  child: child!,
+                );
+              }
+              return child!;
+            },
           );
         },
       ),

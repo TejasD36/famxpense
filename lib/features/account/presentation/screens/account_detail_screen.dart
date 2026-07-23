@@ -424,7 +424,9 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
 
               /// Update account balance
               try {
-                await sl<AccountRepository>().updateBalance(account.id, account.currentBalance + amount);
+                final currentAccounts = await sl<AccountRepository>().getAccounts(userId: account.userId);
+                final currentAccount = currentAccounts.firstWhere((a) => a.id == account.id);
+                await sl<AccountRepository>().updateBalance(account.id, currentAccount.currentBalance + amount);
               } catch (e) {
                 AppLogger.error('Balance update failed', e);
               }
@@ -497,7 +499,8 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
             onPressed: () async {
               final name = controller.text.trim();
               if (name.isEmpty) return;
-              await sl<AccountRepository>().saveAccount(account.copyWith(accountName: name, updatedAt: DateTime.now().toUtc()));
+              if (!ctx.mounted) return;
+              context.read<AccountBloc>().add(AccountEvent.saveAccount(account: account.copyWith(accountName: name, updatedAt: DateTime.now().toUtc())));
               sl<RefreshNotifier>().notifyDataChanged();
               if (!ctx.mounted) return;
               Navigator.pop(ctx);

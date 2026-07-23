@@ -5,7 +5,7 @@ class AuthLocalDatasourceImpl implements AuthLocalDatasource {
 
   Box get _authBox => _box ??= Hive.box(HiveBoxes.auth);
 
-  static const _userIdKey = 'user_id';
+  static const _userIdKey = 'userId';
 
   @override
   Future<void> saveUserId(String userId) async {
@@ -28,12 +28,10 @@ class AuthLocalDatasourceImpl implements AuthLocalDatasource {
       HiveBoxes.users,
       HiveBoxes.expenses,
       HiveBoxes.accounts,
-      HiveBoxes.groups,
       HiveBoxes.settlements,
       HiveBoxes.partnerships,
       HiveBoxes.debtLedger,
       HiveBoxes.notifications,
-      HiveBoxes.draftExpenses,
     ];
 
     for (final boxName in userBoxes) {

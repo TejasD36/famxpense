@@ -68,12 +68,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: _dateRange ?? DateTimeRange(
-        start: _selectedMonth,
-        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now)
-            ? now
-            : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
-      ),
+      initialDateRange:
+          _dateRange ??
+          DateTimeRange(
+            start: _selectedMonth,
+            end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now)
+                ? now
+                : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
+          ),
     );
     if (picked != null) {
       setState(() {
@@ -114,7 +116,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         DateFormat('yyyy-MM-dd').format(txn.date),
         txn.amount.toStringAsFixed(2),
         switch (txn) {
-          ExpenseTxn(:final title, :final category) => category.isNotEmpty && category != 'other' ? '$title ($category)' : title,
+          ExpenseTxn(:final title, :final category) => category.isNotEmpty && category != ExpenseCategory.other.name ? '$title ($category)' : title,
           DepositTxn(:final description) => description,
           SettlementTxn(:final isIncoming) => isIncoming ? 'Settlement received' : 'Settlement paid',
         },
@@ -154,7 +156,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       body: Column(
         children: [
-          _MonthBar(selectedMonth: _selectedMonth, onPrev: _prevMonth, onNext: _nextMonth, onCalendar: _pickDateRange, dateRange: _dateRange, onClearRange: _clearDateRange),
+          _MonthBar(
+            selectedMonth: _selectedMonth,
+            onPrev: _prevMonth,
+            onNext: _nextMonth,
+            onCalendar: _pickDateRange,
+            dateRange: _dateRange,
+            onClearRange: _clearDateRange,
+          ),
           Expanded(
             child: BlocBuilder<StatisticsBloc, StatisticsState>(
               builder: (context, state) {
@@ -178,7 +187,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ) => RefreshIndicator(
                         onRefresh: () async => _load(),
                         child: SingleChildScrollView(
-                          physics: const ClampingScrollPhysics(),
+                          physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +281,14 @@ class _MonthBar extends StatelessWidget {
   final DateTimeRange? dateRange;
   final VoidCallback? onClearRange;
 
-  const _MonthBar({required this.selectedMonth, required this.onPrev, required this.onNext, required this.onCalendar, this.dateRange, this.onClearRange});
+  const _MonthBar({
+    required this.selectedMonth,
+    required this.onPrev,
+    required this.onNext,
+    required this.onCalendar,
+    this.dateRange,
+    this.onClearRange,
+  });
 
   bool get _isAtCurrentMonth {
     final now = DateTime.now();
@@ -413,7 +429,7 @@ class _AccountBalanceSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text('Account Balance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                  Text(formatIndianRupee(totalBalance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(formatIndianRupee(totalBalance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 12),

@@ -1,4 +1,6 @@
 export '../../core.dart';
+export 'data/datasources/local/partnership_local_datasource.dart';
+export 'data/datasources/local/partnership_local_datasource_impl.dart';
 export 'data/datasources/remote/partnership_remote_datasource.dart';
 export 'data/datasources/remote/partnership_remote_datasource_impl.dart';
 export 'data/repositories/partnership_repository_impl.dart';

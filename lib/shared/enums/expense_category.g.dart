@@ -46,6 +46,8 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
       case 15:
         return ExpenseCategory.investments;
       case 16:
+        return ExpenseCategory.household;
+      case 17:
         return ExpenseCategory.other;
       default:
         return ExpenseCategory.food;
@@ -87,8 +89,10 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
         writer.writeByte(14);
       case ExpenseCategory.investments:
         writer.writeByte(15);
-      case ExpenseCategory.other:
+      case ExpenseCategory.household:
         writer.writeByte(16);
+      case ExpenseCategory.other:
+        writer.writeByte(17);
     }
   }
 

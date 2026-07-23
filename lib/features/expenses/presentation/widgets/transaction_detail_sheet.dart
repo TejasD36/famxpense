@@ -61,7 +61,8 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
             if (expense.note != null) _infoRow(context, 'Note', expense.note!),
             _infoRow(context, 'Date', DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)),
             _infoRow(context, 'Type', expense.expenseType == ExpenseType.personal ? 'Personal' : 'Shared'),
-            if (expense.accountId != null) _infoRow(context, 'Account', expense.accountId!),
+            if (expense.accountId != null)
+              _infoRow(context, 'Account', _resolveAccountName(expense.accountId!)),
             _infoRow(context, 'Status', expense.syncStatus == SyncStatus.synced ? 'Synced' : 'Pending'),
             const SizedBox(height: 12),
             _participantsSection(context, expense, userId),
@@ -127,6 +128,12 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
         ],
       ),
     );
+  }
+
+  String _resolveAccountName(String accountId) {
+    final accounts = Hive.box<AccountDto>(HiveBoxes.accounts).values.toList();
+    final match = accounts.where((a) => a.id == accountId).firstOrNull;
+    return match?.accountName ?? accountId;
   }
 
   Widget _participantsSection(BuildContext context, ExpenseEntity expense, String? userId) {

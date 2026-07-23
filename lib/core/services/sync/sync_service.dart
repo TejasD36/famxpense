@@ -128,13 +128,6 @@ class SyncService {
 
       await _expenseLocal.saveExpenses(merged);
 
-      try {
-        await _expenseLocal.clearOldSyncedExpenses(ownerUserId: userId);
-      } catch (e, stackTrace) {
-        AppLogger.warning('Failed to clear old expenses');
-        AppLogger.error('Clear old expenses error', e, stackTrace);
-      }
-
       AppLogger.success('Expense sync completed');
       return true;
     } catch (e, stackTrace) {

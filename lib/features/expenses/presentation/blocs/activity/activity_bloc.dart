@@ -8,13 +8,13 @@ part 'activity_event.dart';
 part 'activity_state.dart';
 
 class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
-  final GetCurrentMonthExpensesUsecase _getExpensesUsecase;
+  final ExpenseRepository _expenseRepository;
   final SettlementLocalDatasource _settlementLocal;
 
   ActivityBloc({
-    required GetCurrentMonthExpensesUsecase getExpensesUsecase,
+    required ExpenseRepository expenseRepository,
     required SettlementLocalDatasource settlementLocal,
-  }) : _getExpensesUsecase = getExpensesUsecase,
+  }) : _expenseRepository = expenseRepository,
        _settlementLocal = settlementLocal,
        super(const ActivityState.initial()) {
     on<LoadExpensesEvent>(_onLoadExpenses);
@@ -25,7 +25,16 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
 
     try {
       final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-      final expenses = await _getExpensesUsecase();
+      final allExpenses = await _expenseRepository.getExpenses();
+
+      var expenses = allExpenses;
+      if (event.month != null) {
+        expenses = allExpenses.where((e) =>
+          e.expenseDate.year == event.month!.year &&
+          e.expenseDate.month == event.month!.month,
+        ).toList();
+      }
+
       final settlements = await _settlementLocal.getSettlements();
 
       /// Only show confirmed settlements involving the current user

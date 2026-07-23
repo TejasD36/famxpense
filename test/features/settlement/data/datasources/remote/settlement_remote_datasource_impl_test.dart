@@ -154,54 +154,6 @@ void main() {
       });
     });
 
-    group('streamPendingSettlements', () {
-      test('streams pending settlements where user is participant', () async {
-        await datasource.createSettlement(
-          SettlementEntity(
-            id: 's-9',
-            fromUserId: 'user-a',
-            toUserId: 'user-b',
-            amount: 100.0,
-            status: SettlementStatus.pending,
-            createdAt: now,
-          ),
-        );
-        await datasource.createSettlement(
-          SettlementEntity(
-            id: 's-10',
-            fromUserId: 'user-b',
-            toUserId: 'user-a',
-            amount: 50.0,
-            status: SettlementStatus.pending,
-            createdAt: now,
-          ),
-        );
-        await datasource.createSettlement(
-          SettlementEntity(
-            id: 's-11',
-            fromUserId: 'user-b',
-            toUserId: 'user-a',
-            amount: 25.0,
-            status: SettlementStatus.confirmed,
-            createdAt: now,
-          ),
-        );
-
-        final stream = datasource.streamPendingSettlements(userId: 'user-a');
-        final results = await stream.first;
-
-        expect(results.length, 2);
-        expect(results.every((s) => s.status == SettlementStatus.pending), true);
-        expect(results.map((s) => s.id).toSet(), {'s-9', 's-10'});
-      });
-
-      test('emits empty list when no pending settlements', () async {
-        final stream = datasource.streamPendingSettlements(userId: 'user-a');
-        final results = await stream.first;
-        expect(results, isEmpty);
-      });
-    });
-
     group('legacy document support', () {
       test('reads document without participantIds field with fallback', () async {
         await fakeFirestore.collection('settlements').doc('s-legacy').set({

@@ -30,6 +30,12 @@ class SettlementRepositoryImpl implements SettlementRepository {
   @override
   Future<void> createSettlement(SettlementEntity settlement) async {
     await _localDatasource.saveSettlement(settlement.toDto());
+    try {
+      await _remoteDatasource.createSettlement(settlement);
+    } catch (e, stackTrace) {
+      AppLogger.warning('Settlement remote sync failed, will retry later');
+      AppLogger.error('Settlement remote sync error', e, stackTrace);
+    }
   }
 
   @override

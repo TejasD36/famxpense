@@ -46,6 +46,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   build_runner: ^2.4.8
   fake_cloud_firestore: ^4.1.0
+#  flutter_flavorizr: ^2.6.0
   flutter_launcher_icons: ^0.14.4
   flutter_lints: ^6.0.0
   flutter_test:
@@ -61,3 +62,33 @@ flutter:
   assets:
     - assets/images/
     - assets/
+
+#flavorizr:
+#  flavors:
+#    prod:
+#      app:
+#        name: "FamXpense"
+#
+#      android:
+#        applicationId: "com.tejasd.famxpense"
+#      ios:
+#        bundleId: "com.tejasd.famxpense"
+#      macos:
+#        bundleId: "com.tejasd.famxpense"
+#      linux:
+#        applicationId: "com.tejasd.famxpense"
+#      windows: {}
+#
+#    dev:
+#      app:
+#        name: "FamXpense Dev"
+#
+#      android:
+#        applicationId: "com.tejasd.famxpense.dev"
+#      ios:
+#        bundleId: "com.tejasd.famxpense.dev"
+#      macos:
+#        bundleId: "com.tejasd.famxpense.dev"
+#      linux:
+#        applicationId: "com.tejasd.famxpense.dev"
+#      windows: {}

@@ -7,7 +7,7 @@ class UserLocalDatasourceImpl extends BaseHiveService<UserDto> implements UserLo
 
   @override
   UserDto? getCurrentUser() {
-    final userId = _authBox.get('user_id');
+    final userId = _authBox.get('userId');
 
     if (userId == null) {
       return null;

@@ -13,14 +13,15 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   final Set<String> _expandedIds = {};
   _ActivityFilter _filter = _ActivityFilter.all;
+  DateTime? _selectedMonth;
 
   @override
   void initState() {
     super.initState();
-    context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+    _load();
     final notifier = sl<RefreshNotifier>();
     if (notifier.hasData) {
-      context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+      _load();
     }
     notifier.addListener(_onDataChanged);
   }
@@ -32,9 +33,43 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   void _onDataChanged() {
-    if (mounted) {
+    if (mounted) _load();
+  }
+
+  void _load() {
+    if (_selectedMonth != null) {
+      context.read<ActivityBloc>().add(ActivityEvent.loadExpenses(month: _selectedMonth));
+    } else {
       context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
     }
+  }
+
+  void _prevMonth() {
+    setState(() {
+      _selectedMonth = _selectedMonth != null
+          ? DateTime(_selectedMonth!.year, _selectedMonth!.month - 1)
+          : DateTime(DateTime.now().year, DateTime.now().month - 1);
+      _load();
+    });
+  }
+
+  void _nextMonth() {
+    final next = _selectedMonth != null
+        ? DateTime(_selectedMonth!.year, _selectedMonth!.month + 1)
+        : DateTime(DateTime.now().year, DateTime.now().month);
+    final now = DateTime(DateTime.now().year, DateTime.now().month);
+    if (next.isAfter(now)) return;
+    setState(() {
+      _selectedMonth = next;
+      _load();
+    });
+  }
+
+  void _clearMonthFilter() {
+    setState(() {
+      _selectedMonth = null;
+      _load();
+    });
   }
 
   String? _nickname(String userId) {
@@ -101,14 +136,18 @@ class _ActivityScreenState extends State<ActivityScreen> {
           ),
         ],
       ),
-      body: BlocBuilder<ActivityBloc, ActivityState>(
-        builder: (context, state) {
-          return state.when(
-            initial: () => const SizedBox(),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            empty: () => const Center(child: Text('No expenses yet')),
-            error: (message) => Center(child: Text(message)),
-            loaded: (items) {
+      body: Column(
+        children: [
+          _buildMonthBar(),
+          Expanded(
+            child: BlocBuilder<ActivityBloc, ActivityState>(
+              builder: (context, state) {
+                return state.when(
+                  initial: () => const SizedBox(),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  empty: () => const Center(child: Text('No expenses yet')),
+                  error: (message) => Center(child: Text(message)),
+                  loaded: (items) {
               final userId = sl<AuthLocalDatasource>().getUserId();
 
               var filtered = items;
@@ -147,7 +186,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
               return RefreshIndicator(
                 onRefresh: () async {
-                  context.read<ActivityBloc>().add(const ActivityEvent.loadExpenses());
+                  _load();
                   await context.read<ActivityBloc>().stream.firstWhere((s) => s is! ActivityLoading);
                 },
                 child: CustomScrollView(
@@ -190,9 +229,62 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ],
               ),
             );
-            },
-          );
-        },
+              },
+            );
+          },
+        ),
+      ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthBar() {
+    final now = DateTime.now();
+    final isAll = _selectedMonth == null;
+    final label = isAll ? 'All' : DateFormat('MMM yyyy').format(_selectedMonth!);
+    final isAtCurrent = _selectedMonth != null &&
+        _selectedMonth!.month == now.month && _selectedMonth!.year == now.year;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left_rounded),
+            onPressed: _prevMonth,
+            tooltip: 'Previous month',
+          ),
+          GestureDetector(
+            onTap: isAll ? null : _clearMonthFilter,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                if (!isAll) ...[
+                  const SizedBox(width: 4),
+                  Icon(Icons.close_rounded, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ],
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.chevron_right_rounded,
+                color: isAtCurrent ? Theme.of(context).disabledColor : null),
+            onPressed: isAtCurrent ? null : _nextMonth,
+            tooltip: 'Next month',
+          ),
+          const Spacer(),
+          if (!isAll)
+            TextButton.icon(
+              onPressed: _clearMonthFilter,
+              icon: const Icon(Icons.all_inclusive_rounded, size: 18),
+              label: const Text('All'),
+            ),
+        ],
       ),
     );
   }

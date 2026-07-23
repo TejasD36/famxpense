@@ -62,9 +62,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     AccountEntity? selected;
     if (userAccounts.isNotEmpty) {
       final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
-      selected = defaultId != null
-          ? userAccounts.where((a) => a.id == defaultId).firstOrNull
-          : userAccounts.first;
+      selected = defaultId != null ? userAccounts.where((a) => a.id == defaultId).firstOrNull : userAccounts.first;
     }
 
     if (mounted) {
@@ -131,10 +129,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final position = await Navigator.push<LatLng>(
       context,
       MaterialPageRoute(
-        builder: (_) => MapPickerScreen(
-          initialLatitude: _latitude,
-          initialLongitude: _longitude,
-        ),
+        builder: (_) => MapPickerScreen(initialLatitude: _latitude, initialLongitude: _longitude),
       ),
     );
     if (!mounted) return;
@@ -155,11 +150,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Please fill all required fields (Title and Amount)'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please fill all required fields (Title and Amount)'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ),
+      );
       return;
     }
 
@@ -172,11 +169,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('User not found'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('User not found'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ),
+      );
       return;
     }
 
@@ -186,22 +185,26 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     /// Shared expense with no partners
     if (_expenseType == ExpenseType.shared && _selectedPartners.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('No partner selected for shared expense. Switch to Personal or add a partner.'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No partner selected for shared expense. Switch to Personal or add a partner.'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ),
+      );
       return;
     }
 
     /// Balance check
     if (_selectedAccount != null && amount > _selectedAccount!.currentBalance && !_forceSubmit) {
       setState(() => _amountExceedsBalance = true);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Insufficient balance. Tick "Add anyway" to proceed.'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Insufficient balance. Tick "Add anyway" to proceed.'),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+        ),
+      );
       return;
     }
 
@@ -213,35 +216,39 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
       final autoId = participantIds.length > 1 ? participantIds.last : null;
       if (autoId != null) {
-        final sumOthers = _manualAmounts.entries
-            .where((e) => e.key != autoId)
-            .fold(0.0, (s, e) => s + e.value);
+        final sumOthers = _manualAmounts.entries.where((e) => e.key != autoId).fold(0.0, (s, e) => s + e.value);
         _manualAmounts[autoId] = amount - sumOthers;
       }
       final manualTotal = _manualAmounts.values.fold(0.0, (a, b) => a + b);
       if ((manualTotal - amount).abs() > 0.01) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          ),
+        );
         return;
       }
       for (final entry in _manualAmounts.entries) {
         if (entry.value < 0) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Shares cannot be negative'),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Shares cannot be negative'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+            ),
+          );
           return;
         }
         if (entry.value > amount) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('A participant share cannot exceed the total amount'),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('A participant share cannot exceed the total amount'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+            ),
+          );
           return;
         }
       }
@@ -285,8 +292,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
     return _manualAmounts[userId] ?? 0;
   }
-
-
 
   void _initManualAmounts() {
     final total = double.tryParse(_amountController.text.trim()) ?? 0;
@@ -368,33 +373,30 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     ..._connectedPartners.map((p) {
                       final isSelected = _selectedPartners.any((sp) => sp.id == p.id);
                       final nickname = pickerUserId == p.senderId ? p.receiverNickname : p.senderNickname;
-                    return CheckboxListTile(
-                      value: isSelected,
-                      title: Text('@$nickname'),
-                      onChanged: (checked) {
-                        setSheetState(() {
-                          if (checked == true) {
-                            if (!_selectedPartners.any((sp) => sp.id == p.id)) {
-                              _selectedPartners.add(p);
+                      return CheckboxListTile(
+                        value: isSelected,
+                        title: Text('@$nickname'),
+                        onChanged: (checked) {
+                          setSheetState(() {
+                            if (checked == true) {
+                              if (!_selectedPartners.any((sp) => sp.id == p.id)) {
+                                _selectedPartners.add(p);
+                              }
+                            } else {
+                              _selectedPartners.removeWhere((sp) => sp.id == p.id);
                             }
-                          } else {
-                            _selectedPartners.removeWhere((sp) => sp.id == p.id);
-                          }
-                        });
-                      },
-                    );
-                  }),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Done'),
-                ),
-              ],
+                          });
+                        },
+                      );
+                    }),
+                  const SizedBox(height: 12),
+                  FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    ),
+          );
+        },
+      ),
     );
     if (!mounted) return;
     setState(() {});
@@ -409,19 +411,23 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       listener: (context, state) {
         state.whenOrNull(
           success: () {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: const Text('Expense added successfully'),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-            ));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Expense added successfully'),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+              ),
+            );
             context.goNamed(AppRoute.home.name);
           },
           error: (message) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(message),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-            ));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+              ),
+            );
           },
         );
       },
@@ -458,16 +464,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       /// Category
                       DropdownButtonFormField<String>(
                         initialValue: _category,
-                        decoration: InputDecoration(
-                          labelText: 'Category',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: _category != null
-                              ? Icon(
-                                  ExpenseCategory.values.where((e) => e.name == _category).firstOrNull?.icon,
-                                  color: ExpenseCategory.values.where((e) => e.name == _category).firstOrNull?.color,
-                                )
-                              : null,
-                        ),
+                        decoration: InputDecoration(labelText: 'Category', border: const OutlineInputBorder()),
                         items: ExpenseCategory.values.map((c) {
                           return DropdownMenuItem(
                             value: c.name,
@@ -543,10 +540,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Checkbox(
-                              value: _forceSubmit,
-                              onChanged: (v) => setState(() => _forceSubmit = v ?? false),
-                            ),
+                            Checkbox(value: _forceSubmit, onChanged: (v) => setState(() => _forceSubmit = v ?? false)),
                             const Text('Add anyway', style: TextStyle(fontSize: 13)),
                           ],
                         ),
@@ -607,11 +601,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           ),
                           if (_latitude != null) ...[
                             const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: _clearLocation,
-                              tooltip: 'Remove location',
-                            ),
+                            IconButton(icon: const Icon(Icons.close), onPressed: _clearLocation, tooltip: 'Remove location'),
                           ],
                         ],
                       ),
@@ -801,9 +791,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
       // For auto-complete entry, compute amount = total - sum of others
       final autoAmount = isAuto && total > 0
-          ? total - _manualAmounts.entries
-              .where((e) => e.key != pid)
-              .fold(0.0, (s, e) => s + e.value)
+          ? total - _manualAmounts.entries.where((e) => e.key != pid).fold(0.0, (s, e) => s + e.value)
           : 0.0;
 
       if (isAuto && autoAmount >= 0) {
@@ -817,10 +805,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
 
       final isSelf = pid == userId;
-      final partnerEntity = isSelf ? null : _selectedPartners.firstWhere(
-        (p) => _partnerUserId(p, userId) == pid,
-        orElse: () => _selectedPartners.first,
-      );
+      final partnerEntity = isSelf
+          ? null
+          : _selectedPartners.firstWhere((p) => _partnerUserId(p, userId) == pid, orElse: () => _selectedPartners.first);
       final label = isSelf ? 'You' : '@${partnerEntity?.senderNickname ?? pid}';
 
       widgets.add(
@@ -834,7 +821,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               if (_splitType == SplitType.equal)
                 Text(formatIndianRupee(perPerson), style: const TextStyle(fontWeight: FontWeight.w600))
               else if (isAuto)
-                Text(formatIndianRupee(autoAmount), style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey))
+                Text(
+                  formatIndianRupee(autoAmount),
+                  style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
+                )
               else
                 SizedBox(
                   width: 100,

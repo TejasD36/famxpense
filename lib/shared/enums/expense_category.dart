@@ -53,6 +53,9 @@ enum ExpenseCategory {
   investments,
 
   @HiveField(16)
+  household,
+
+  @HiveField(17)
   other;
 
   String get label {
@@ -73,6 +76,7 @@ enum ExpenseCategory {
       ExpenseCategory.work => 'Work',
       ExpenseCategory.pets => 'Pets',
       ExpenseCategory.investments => 'Investments',
+      ExpenseCategory.household => 'Household',
       ExpenseCategory.other => 'Other',
     };
   }
@@ -95,6 +99,7 @@ enum ExpenseCategory {
       ExpenseCategory.work => Icons.work_rounded,
       ExpenseCategory.pets => Icons.pets_rounded,
       ExpenseCategory.investments => Icons.trending_up_rounded,
+      ExpenseCategory.household => Icons.cleaning_services_rounded,
       ExpenseCategory.other => Icons.more_horiz_rounded,
     };
   }
@@ -117,6 +122,7 @@ enum ExpenseCategory {
       ExpenseCategory.work => Colors.blueGrey.shade400,
       ExpenseCategory.pets => Colors.deepOrange.shade400,
       ExpenseCategory.investments => Colors.lightGreen.shade600,
+      ExpenseCategory.household => Colors.yellow.shade700,
       ExpenseCategory.other => Colors.grey.shade400,
     };
   }

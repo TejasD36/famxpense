@@ -4,7 +4,6 @@ enum AppRoute {
   register('/register', 'register'),
   forgotPassword('/forgotPassword', 'forgotPassword'),
   home('/home', 'home'),
-  groups('/groups', 'groups'),
   activity('/activity', 'activity'),
   profile('/profile', 'profile'),
   addExpense('/addExpense', 'addExpense'),

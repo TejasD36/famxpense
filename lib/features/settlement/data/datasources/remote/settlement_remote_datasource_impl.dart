@@ -39,16 +39,6 @@ class SettlementRemoteDatasourceImpl implements SettlementRemoteDatasource {
     await _firestore.collection(_collection).doc(settlementId).delete();
   }
 
-  @override
-  Stream<List<SettlementEntity>> streamPendingSettlements({required String userId}) {
-    return _firestore
-        .collection(_collection)
-        .where('participantIds', arrayContains: userId)
-        .where('status', isEqualTo: SettlementStatus.pending.name)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => _fromJson(doc.data())).toList());
-  }
-
   Map<String, dynamic> _toJson(SettlementEntity e) {
     return {
       'id': e.id,
