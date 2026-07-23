@@ -20,4 +20,6 @@ samples, guidance on mobile development, and a full API reference.
 
 ## Pending Bugs
 
-- Expense Settled from user B pending request is shown for user B but for user A there did not shown option to confirm request
+- Add Personal & Shared filter in Activity view
+- in split preview sometime invalid partner id is shown in add expense screen though when selected and the selecte partner id is shown correctly for Split with only in split view my id is shown in place of partner id
+- While adding investment bank account of only that user that to default bank account should be visible (check for similar scenario)

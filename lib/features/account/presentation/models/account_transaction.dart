@@ -1,4 +1,5 @@
 import '../../../../shared/domain/entities/expense/expense_entity.dart';
+import '../../../../shared/domain/entities/income/income_entity.dart';
 import '../../../../shared/domain/entities/settlement/settlement_entity.dart';
 
 sealed class AccountTransaction {
@@ -33,4 +34,11 @@ class ManualDepositEntry extends AccountTransaction {
   @override
   final DateTime date;
   ManualDepositEntry({required this.id, required this.amount, required this.description, required this.date});
+}
+
+class IncomeEntry extends AccountTransaction {
+  final IncomeEntity income;
+  @override
+  DateTime get date => income.createdAt;
+  IncomeEntry(this.income);
 }

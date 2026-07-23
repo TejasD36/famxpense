@@ -13,6 +13,7 @@ import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/expenses/presentation/screens/home_screen.dart';
 import '../../features/expenses/presentation/screens/search_activity_screen.dart';
+import '../../features/income/presentation/screens/income_list_screen.dart';
 import '../../features/notification/presentation/blocs/notification_bloc.dart';
 import '../../features/notification/presentation/screens/notification_screen.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
@@ -151,6 +152,11 @@ class AppRouter {
           path: AppRoute.settlements.path,
           name: AppRoute.settlements.name,
           builder: (_, _) => const SettlementScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.income.path,
+          name: AppRoute.income.name,
+          builder: (_, _) => const IncomeListScreen(),
         ),
       ],
     );

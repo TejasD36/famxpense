@@ -8,6 +8,7 @@ import 'package:famxpense/shared/data/transformers/dtos/account/manual_deposit_d
 import 'package:famxpense/shared/data/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/notification/notification_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/partnership/partnership_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
@@ -15,6 +16,7 @@ import 'package:famxpense/shared/data/transformers/dtos/user/user_dto.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_category.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
+import 'package:famxpense/shared/enums/income_source.dart';
 import 'package:famxpense/shared/enums/notification_type.dart';
 import 'package:famxpense/shared/enums/partnership_status.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
@@ -30,6 +32,8 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());
+    registerAdapter(IncomeDtoAdapter());
+    registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
@@ -52,6 +56,8 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());
+    registerAdapter(IncomeDtoAdapter());
+    registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());

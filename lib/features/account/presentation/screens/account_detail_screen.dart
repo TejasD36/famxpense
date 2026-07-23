@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../xcore.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../expenses/data/datasources/local/expense_local_datasource.dart';
+import '../../../income/domain/repositories/income_repository.dart';
 import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 import '../models/account_transaction.dart';
 
@@ -56,6 +57,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     final expenseDtos = await sl<ExpenseLocalDatasource>().getExpenses(ownerUserId: userId);
     final settlementDtos = await sl<SettlementLocalDatasource>().getSettlements();
     final depositDtos = await sl<ManualDepositLocalDatasource>().getByAccount(account.id);
+    final incomeEntities = await sl<IncomeRepository>().getIncomesByAccount(account.id);
 
     final defaultAccountId = await AppSettings.getDefaultAccountId(userId: userId);
 
@@ -102,6 +104,12 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
         date: dto.createdAt,
       ));
       totalDeposited += dto.amount;
+    }
+
+    /// Income entries
+    for (final entity in incomeEntities) {
+      transactions.add(IncomeEntry(entity));
+      totalDeposited += entity.amount;
     }
 
     transactions.sort((a, b) => b.date.compareTo(a.date));
@@ -353,6 +361,14 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
           title: description,
           subtitle: 'Deposit · ${_formatDate(date)}',
           amount: amount,
+          amountColor: Colors.green,
+        ),
+      IncomeEntry(:final income) => _TransactionTile(
+          icon: income.source.icon,
+          iconColor: Colors.green,
+          title: income.description,
+          subtitle: '${income.source.label} · ${_formatDate(income.createdAt)}',
+          amount: income.amount,
           amountColor: Colors.green,
         ),
     };

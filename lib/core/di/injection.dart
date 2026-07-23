@@ -66,6 +66,10 @@ import '../../features/partners/domain/usecases/search_user_usecase.dart';
 import '../../features/partners/domain/usecases/send_partnership_request_usecase.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/statistics/presentation/blocs/statistics_bloc.dart';
+import '../../features/income/data/datasources/income_local_datasource.dart';
+import '../../features/income/data/datasources/income_local_datasource_impl.dart';
+import '../../features/income/data/repositories/income_repository_impl.dart';
+import '../../features/income/domain/repositories/income_repository.dart';
 import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
 import '../../shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import '../../shared/data/repositories/user_repository_impl.dart';
@@ -203,4 +207,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => NotificationService(sl(), sl()));
   sl.registerLazySingleton(() => RealtimeNotificationService(sl(), sl()));
   sl.registerFactory(() => NotificationBloc(datasource: sl()));
+
+  /// INCOME
+  sl.registerLazySingleton<IncomeLocalDatasource>(() => IncomeLocalDatasourceImpl());
+  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl()));
 }

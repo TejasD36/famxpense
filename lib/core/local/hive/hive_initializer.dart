@@ -35,6 +35,8 @@ abstract final class HiveInitializer {
       Hive.openBox(HiveBoxes.settings),
 
       Hive.openBox<ManualDepositDto>(HiveBoxes.manualDeposits),
+
+      Hive.openBox<IncomeDto>(HiveBoxes.incomes),
     ]);
   }
 }

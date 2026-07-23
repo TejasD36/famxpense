@@ -130,6 +130,14 @@ class ProfileDrawer extends StatelessWidget {
             ),
             const Divider(),
 
+            /// Income
+            ListTile(
+              leading: const Icon(Icons.account_balance_rounded),
+              title: const Text('Income'),
+              onTap: () => context.pushNamed(AppRoute.income.name),
+            ),
+            const Divider(),
+
             /// Settings
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),

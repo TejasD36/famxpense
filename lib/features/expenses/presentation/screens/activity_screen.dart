@@ -2,6 +2,7 @@ import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
 
 enum _ActivityFilter { all, expenses, deposits, settlements }
+enum _ExpenseTypeFilter { all, personal, shared }
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -13,6 +14,7 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   final Set<String> _expandedIds = {};
   _ActivityFilter _filter = _ActivityFilter.all;
+  _ExpenseTypeFilter _expenseTypeFilter = _ExpenseTypeFilter.all;
   DateTime? _selectedMonth;
 
   @override
@@ -98,6 +100,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
               _filterOption(label: 'Expenses only', value: _ActivityFilter.expenses, icon: Icons.shopping_bag_rounded),
               _filterOption(label: 'Deposits only', value: _ActivityFilter.deposits, icon: Icons.account_balance_rounded),
               _filterOption(label: 'Settlements only', value: _ActivityFilter.settlements, icon: Icons.swap_horiz_rounded),
+              const SizedBox(height: 8),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text('Expense Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              _expenseTypeOption(label: 'Both', value: _ExpenseTypeFilter.all, icon: Icons.all_inclusive_rounded),
+              _expenseTypeOption(label: 'Personal', value: _ExpenseTypeFilter.personal, icon: Icons.person_rounded),
+              _expenseTypeOption(label: 'Shared', value: _ExpenseTypeFilter.shared, icon: Icons.groups_rounded),
             ],
           ),
         ),
@@ -113,6 +123,19 @@ class _ActivityScreenState extends State<ActivityScreen> {
       trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
       onTap: () {
         setState(() => _filter = value);
+        context.pop();
+      },
+    );
+  }
+
+  Widget _expenseTypeOption({required String label, required _ExpenseTypeFilter value, required IconData icon}) {
+    final isSelected = _expenseTypeFilter == value;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Theme.of(context).colorScheme.primary : null),
+      title: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : null)),
+      trailing: isSelected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
+      onTap: () {
+        setState(() => _expenseTypeFilter = value);
         context.pop();
       },
     );
@@ -157,6 +180,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 filtered = items.where((i) => i is SettlementItem && (i).settlement.toUserId == userId).toList();
               } else if (_filter == _ActivityFilter.settlements) {
                 filtered = items.where((i) => i is SettlementItem && (i).settlement.fromUserId == userId).toList();
+              }
+
+              if (_expenseTypeFilter != _ExpenseTypeFilter.all) {
+                filtered = filtered.where((item) {
+                  if (item is! ExpenseItem) return true;
+                  return item.expense.expenseType.name == _expenseTypeFilter.name;
+                }).toList();
               }
 
               if (filtered.isEmpty) {

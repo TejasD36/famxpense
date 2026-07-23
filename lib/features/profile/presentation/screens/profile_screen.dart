@@ -307,6 +307,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
 
+                      /// Income
+                      Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                            child: const Icon(Icons.account_balance_rounded),
+                          ),
+                          title: const Text('Income', style: TextStyle(fontWeight: FontWeight.w600)),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => context.pushNamed(AppRoute.income.name),
+                        ),
+                      ),
+
                       /// Settings Header
                       const SizedBox(height: 8),
                       const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
