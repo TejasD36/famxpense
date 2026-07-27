@@ -24,13 +24,17 @@ class IncomeDtoAdapter extends TypeAdapter<IncomeDto> {
       source: fields[4] as IncomeSource,
       description: fields[5] as String,
       createdAt: fields[6] as DateTime,
+      updatedAt: fields[7] as DateTime,
+      syncStatus: fields[8] == null
+          ? SyncStatus.pending
+          : fields[8] as SyncStatus,
     );
   }
 
   @override
   void write(BinaryWriter writer, IncomeDto obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +48,11 @@ class IncomeDtoAdapter extends TypeAdapter<IncomeDto> {
       ..writeByte(5)
       ..write(obj.description)
       ..writeByte(6)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(7)
+      ..write(obj.updatedAt)
+      ..writeByte(8)
+      ..write(obj.syncStatus);
   }
 
   @override
@@ -70,6 +78,10 @@ _IncomeDto _$IncomeDtoFromJson(Map<String, dynamic> json) => _IncomeDto(
   source: $enumDecode(_$IncomeSourceEnumMap, json['source']),
   description: json['description'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  syncStatus:
+      $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
+      SyncStatus.pending,
 );
 
 Map<String, dynamic> _$IncomeDtoToJson(_IncomeDto instance) =>
@@ -81,6 +93,8 @@ Map<String, dynamic> _$IncomeDtoToJson(_IncomeDto instance) =>
       'source': _$IncomeSourceEnumMap[instance.source]!,
       'description': instance.description,
       'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
     };
 
 const _$IncomeSourceEnumMap = {
@@ -92,4 +106,10 @@ const _$IncomeSourceEnumMap = {
   IncomeSource.gift: 'gift',
   IncomeSource.refund: 'refund',
   IncomeSource.other: 'other',
+};
+
+const _$SyncStatusEnumMap = {
+  SyncStatus.synced: 'synced',
+  SyncStatus.pending: 'pending',
+  SyncStatus.failed: 'failed',
 };

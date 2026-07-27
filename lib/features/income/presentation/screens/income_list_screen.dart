@@ -1,4 +1,4 @@
-import '../../../account/data/datasources/account_local_datasource.dart';
+import '../../../account/domain/repositories/account_repository.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
 
@@ -12,22 +12,49 @@ class IncomeListScreen extends StatefulWidget {
 class _IncomeListScreenState extends State<IncomeListScreen> {
   List<IncomeEntity> _incomes = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    sl<RefreshNotifier>().addListener(_refresh);
     _load();
   }
 
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() => _load();
+
   Future<void> _load() async {
-    final userId = sl<AuthLocalDatasource>().getUserId();
-    if (userId == null) return;
-    final all = await sl<IncomeRepository>().getAllIncomes();
-    if (!mounted) return;
     setState(() {
-      _incomes = all.where((i) => i.userId == userId).toList();
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final userId = sl<AuthLocalDatasource>().getUserId();
+      if (userId == null) {
+        if (!mounted) return;
+        setState(() { _loading = false; });
+        return;
+      }
+      final all = await sl<IncomeRepository>().getAllIncomes();
+      if (!mounted) return;
+      setState(() {
+        _incomes = all.where((i) => i.userId == userId).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      AppLogger.error('Income load failed', e);
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load incomes. Pull down to retry.';
+        _loading = false;
+      });
+    }
   }
 
   void _addIncome(IncomeEntity income) async {
@@ -46,9 +73,16 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _incomes.isEmpty
-              ? const Center(child: Text('No income recorded yet'))
-              : _buildList(),
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ),
+                )
+              : _incomes.isEmpty
+                  ? const Center(child: Text('No income recorded yet'))
+                  : _buildList(),
     );
   }
 
@@ -112,18 +146,17 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
 
-    final accounts = sl<AccountLocalDatasource>().getAccounts();
-
     final amountCtl = TextEditingController();
     final descCtl = TextEditingController();
     var selectedSource = IncomeSource.salary;
     String? selectedAccountId;
     var selectedDate = DateTime.now();
     var accountsLoaded = false;
-    var accountList = <AccountDto>[];
+    var accountLoadError = false;
+    var accountList = <AccountEntity>[];
 
-    accounts.then((list) async {
-      accountList = list.where((a) => a.userId == userId && !a.isArchived).toList();
+    sl<AccountRepository>().getAccounts(userId: userId).then((list) async {
+      accountList = list.where((a) => !a.isArchived).toList();
       if (accountList.isNotEmpty) {
         final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
         selectedAccountId = defaultId != null && accountList.any((a) => a.id == defaultId)
@@ -131,6 +164,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             : accountList.first.id;
       }
       accountsLoaded = true;
+    }).catchError((_) {
+      accountsLoaded = true;
+      accountLoadError = true;
     });
 
     showModalBottomSheet(
@@ -223,6 +259,8 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
                 if (!accountsLoaded)
                   const LinearProgressIndicator()
+                else if (accountLoadError)
+                  Text('Failed to load accounts', style: TextStyle(color: Theme.of(ctx).colorScheme.error))
                 else if (accountList.isEmpty)
                   const Text('No accounts found. Create one first.', style: TextStyle(color: Colors.grey))
                 else
@@ -243,8 +281,10 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
                 FilledButton(
                   onPressed: () async {
-                    final amount = double.tryParse(amountCtl.text.trim());
-                    if (amount == null || amount <= 0) {
+                    final raw = amountCtl.text.trim();
+                    final cleaned = raw.replaceAll(RegExp(r'[^0-9.]'), '');
+                    final amount = double.tryParse(cleaned);
+                    if (amount == null || amount <= 0 || amount > 999999999) {
                       if (ctx.mounted) {
                         ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
                       }
@@ -258,6 +298,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                     }
                     final desc = descCtl.text.trim().isEmpty ? 'Income: ${selectedSource.label}' : descCtl.text.trim();
 
+                    final now = DateTime.now().toUtc();
                     final income = IncomeEntity(
                       id: const Uuid().v4(),
                       userId: userId,
@@ -266,9 +307,10 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                       source: selectedSource,
                       description: desc,
                       createdAt: selectedDate.toUtc(),
+                      updatedAt: now,
                     );
 
-                    Navigator.pop(ctx);
+                    if (ctx.mounted) Navigator.pop(ctx);
                     _addIncome(income);
                   },
                   child: const Text('Add'),

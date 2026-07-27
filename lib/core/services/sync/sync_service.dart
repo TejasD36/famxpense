@@ -333,28 +333,28 @@ class SyncService {
 
     try {
       final localIncomes = await _incomeLocal.fetchAll();
-      final localById = {for (final i in localIncomes) i.id: i};
 
-      /// Fetch remote incomes
-      final remoteIncomes = await _incomeRemote.fetchIncomes(userId: userId);
-
-      /// Download remote incomes not found locally
-      for (final remote in remoteIncomes) {
-        if (!localById.containsKey(remote.id)) {
-          await _incomeLocal.save(remote);
+      /// Upload pending local incomes to remote, then mark synced
+      for (final income in localIncomes) {
+        if (income.syncStatus != SyncStatus.pending) continue;
+        try {
+          await _incomeRemote.createIncome(income);
+          final synced = income.copyWith(syncStatus: SyncStatus.synced);
+          await _incomeLocal.save(synced);
+        } catch (e, stackTrace) {
+          AppLogger.warning('Failed uploading income: ${income.id}');
+          AppLogger.error('Income upload error', e, stackTrace);
         }
       }
 
-      /// Upload local incomes to remote
-      final remoteById = {for (final r in remoteIncomes) r.id: r};
-      for (final income in localIncomes) {
-        if (!remoteById.containsKey(income.id)) {
-          try {
-            await _incomeRemote.createIncome(income);
-          } catch (e, stackTrace) {
-            AppLogger.warning('Failed uploading income: ${income.id}');
-            AppLogger.error('Income upload error', e, stackTrace);
-          }
+      /// Fetch remote incomes and merge any not found locally
+      final remoteIncomes = await _incomeRemote.fetchIncomes(userId: userId);
+      final localAfterUpload = await _incomeLocal.fetchAll();
+      final localIds = localAfterUpload.map((i) => i.id).toSet();
+
+      for (final remote in remoteIncomes) {
+        if (!localIds.contains(remote.id)) {
+          await _incomeLocal.save(remote);
         }
       }
 

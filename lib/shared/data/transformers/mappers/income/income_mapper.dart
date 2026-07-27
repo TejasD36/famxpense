@@ -10,6 +10,8 @@ extension IncomeDtoMapper on IncomeDto {
       source: source,
       description: description,
       createdAt: createdAt,
+      updatedAt: updatedAt,
+      syncStatus: syncStatus,
     );
   }
 }
@@ -24,6 +26,8 @@ extension IncomeEntityMapper on IncomeEntity {
       source: source,
       description: description,
       createdAt: createdAt,
+      updatedAt: updatedAt,
+      syncStatus: syncStatus,
     );
   }
 }

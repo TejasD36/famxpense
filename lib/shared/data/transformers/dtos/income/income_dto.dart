@@ -14,6 +14,8 @@ sealed class IncomeDto with _$IncomeDto {
     @HiveField(4) required IncomeSource source,
     @HiveField(5) required String description,
     @HiveField(6) required DateTime createdAt,
+    @HiveField(7) required DateTime updatedAt,
+    @HiveField(8) @Default(SyncStatus.pending) SyncStatus syncStatus,
   }) = _IncomeDto;
 
   factory IncomeDto.fromJson(Map<String, dynamic> json) => _$IncomeDtoFromJson(json);

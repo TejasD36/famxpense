@@ -15,6 +15,10 @@ _IncomeEntity _$IncomeEntityFromJson(Map<String, dynamic> json) =>
       source: $enumDecode(_$IncomeSourceEnumMap, json['source']),
       description: json['description'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      syncStatus:
+          $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
+          SyncStatus.pending,
     );
 
 Map<String, dynamic> _$IncomeEntityToJson(_IncomeEntity instance) =>
@@ -26,6 +30,8 @@ Map<String, dynamic> _$IncomeEntityToJson(_IncomeEntity instance) =>
       'source': _$IncomeSourceEnumMap[instance.source]!,
       'description': instance.description,
       'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
     };
 
 const _$IncomeSourceEnumMap = {
@@ -37,4 +43,10 @@ const _$IncomeSourceEnumMap = {
   IncomeSource.gift: 'gift',
   IncomeSource.refund: 'refund',
   IncomeSource.other: 'other',
+};
+
+const _$SyncStatusEnumMap = {
+  SyncStatus.synced: 'synced',
+  SyncStatus.pending: 'pending',
+  SyncStatus.failed: 'failed',
 };

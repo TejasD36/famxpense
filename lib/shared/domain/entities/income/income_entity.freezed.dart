@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$IncomeEntity implements DiagnosticableTreeMixin {
 
- String get id; String get userId; String get accountId; double get amount; IncomeSource get source; String get description; DateTime get createdAt;
+ String get id; String get userId; String get accountId; double get amount; IncomeSource get source; String get description; DateTime get createdAt; DateTime get updatedAt; SyncStatus get syncStatus;
 /// Create a copy of IncomeEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $IncomeEntityCopyWith<IncomeEntity> get copyWith => _$IncomeEntityCopyWithImpl<I
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'IncomeEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IncomeEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IncomeEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt);
+int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'IncomeEntity(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt)';
+  return 'IncomeEntity(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $IncomeEntityCopyWith<$Res>  {
   factory $IncomeEntityCopyWith(IncomeEntity value, $Res Function(IncomeEntity) _then) = _$IncomeEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String userId, String accountId, double amount, IncomeSource source, String description, DateTime createdAt
+ String id, String userId, String accountId, double amount, IncomeSource source, String description, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus
 });
 
 
@@ -71,7 +71,7 @@ class _$IncomeEntityCopyWithImpl<$Res>
 
 /// Create a copy of IncomeEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -80,7 +80,9 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as IncomeSource,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
+as SyncStatus,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _IncomeEntity() when $default != null:
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt);case _:
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus)  $default,) {final _that = this;
 switch (_that) {
 case _IncomeEntity():
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt);}
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +202,10 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String accountId,  double amount,  IncomeSource source,  String description,  DateTime createdAt,  DateTime updatedAt,  SyncStatus syncStatus)?  $default,) {final _that = this;
 switch (_that) {
 case _IncomeEntity() when $default != null:
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt);case _:
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);case _:
   return null;
 
 }
@@ -215,7 +217,7 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 @JsonSerializable()
 
 class _IncomeEntity with DiagnosticableTreeMixin implements IncomeEntity {
-  const _IncomeEntity({required this.id, required this.userId, required this.accountId, required this.amount, required this.source, required this.description, required this.createdAt});
+  const _IncomeEntity({required this.id, required this.userId, required this.accountId, required this.amount, required this.source, required this.description, required this.createdAt, required this.updatedAt, this.syncStatus = SyncStatus.pending});
   factory _IncomeEntity.fromJson(Map<String, dynamic> json) => _$IncomeEntityFromJson(json);
 
 @override final  String id;
@@ -225,6 +227,8 @@ class _IncomeEntity with DiagnosticableTreeMixin implements IncomeEntity {
 @override final  IncomeSource source;
 @override final  String description;
 @override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override@JsonKey() final  SyncStatus syncStatus;
 
 /// Create a copy of IncomeEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -240,21 +244,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'IncomeEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IncomeEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IncomeEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt);
+int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'IncomeEntity(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt)';
+  return 'IncomeEntity(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$IncomeEntityCopyWith<$Res> implements $IncomeEntityCopyWi
   factory _$IncomeEntityCopyWith(_IncomeEntity value, $Res Function(_IncomeEntity) _then) = __$IncomeEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userId, String accountId, double amount, IncomeSource source, String description, DateTime createdAt
+ String id, String userId, String accountId, double amount, IncomeSource source, String description, DateTime createdAt, DateTime updatedAt, SyncStatus syncStatus
 });
 
 
@@ -282,7 +286,7 @@ class __$IncomeEntityCopyWithImpl<$Res>
 
 /// Create a copy of IncomeEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,}) {
   return _then(_IncomeEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -291,7 +295,9 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as IncomeSource,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
+as SyncStatus,
   ));
 }
 
