@@ -5,6 +5,8 @@ import '../../../features/debt_ledger/data/datasources/remote/debt_ledger_remote
 import '../../../features/expenses/data/datasources/local/expense_local_datasource.dart';
 import '../../../features/expenses/data/datasources/remote/expense_remote_datasource.dart';
 import '../../../features/expenses/data/transformers/mappers/expense_remote_mapper.dart';
+import '../../../features/income/data/datasources/income_local_datasource.dart';
+import '../../../features/income/data/datasources/remote/income_remote_datasource.dart';
 import '../../../features/notification/data/datasources/notification_local_datasource.dart';
 import '../../../features/notification/data/datasources/remote/notification_remote_datasource.dart';
 import '../../../features/partners/data/datasources/remote/partnership_remote_datasource.dart';
@@ -35,6 +37,8 @@ class SyncService {
   final UserLocalDatasource _userLocal;
   final UserRemoteDatasource _userRemote;
   final PartnershipRemoteDatasource _partnershipRemote;
+  final IncomeLocalDatasource _incomeLocal;
+  final IncomeRemoteDatasource _incomeRemote;
   final NotificationLocalDatasource _notificationLocal;
   final NotificationRemoteDatasource _notificationRemote;
 
@@ -50,6 +54,8 @@ class SyncService {
     required UserLocalDatasource userLocal,
     required UserRemoteDatasource userRemote,
     required PartnershipRemoteDatasource partnershipRemote,
+    required IncomeLocalDatasource incomeLocal,
+    required IncomeRemoteDatasource incomeRemote,
     required NotificationLocalDatasource notificationLocal,
     required NotificationRemoteDatasource notificationRemote,
   }) : _expenseLocal = expenseLocal,
@@ -63,6 +69,8 @@ class SyncService {
        _userLocal = userLocal,
        _userRemote = userRemote,
        _partnershipRemote = partnershipRemote,
+       _incomeLocal = incomeLocal,
+       _incomeRemote = incomeRemote,
        _notificationLocal = notificationLocal,
        _notificationRemote = notificationRemote;
 
@@ -80,6 +88,7 @@ class SyncService {
       await syncDebtLedgers(userId: userId);
       await syncSettlements(userId: userId);
       await syncUsers(userId: userId);
+      await syncIncomes(userId: userId);
       await syncNotifications(userId: userId);
 
       AppLogger.success('Full sync completed');
@@ -315,6 +324,44 @@ class SyncService {
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('User sync failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> syncIncomes({required String userId}) async {
+    AppLogger.sync('Income sync started');
+
+    try {
+      final localIncomes = await _incomeLocal.fetchAll();
+      final localById = {for (final i in localIncomes) i.id: i};
+
+      /// Fetch remote incomes
+      final remoteIncomes = await _incomeRemote.fetchIncomes(userId: userId);
+
+      /// Download remote incomes not found locally
+      for (final remote in remoteIncomes) {
+        if (!localById.containsKey(remote.id)) {
+          await _incomeLocal.save(remote);
+        }
+      }
+
+      /// Upload local incomes to remote
+      final remoteById = {for (final r in remoteIncomes) r.id: r};
+      for (final income in localIncomes) {
+        if (!remoteById.containsKey(income.id)) {
+          try {
+            await _incomeRemote.createIncome(income);
+          } catch (e, stackTrace) {
+            AppLogger.warning('Failed uploading income: ${income.id}');
+            AppLogger.error('Income upload error', e, stackTrace);
+          }
+        }
+      }
+
+      AppLogger.success('Income sync completed (${remoteIncomes.length} remote)');
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error('Income sync failed', e, stackTrace);
       return false;
     }
   }

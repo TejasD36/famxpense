@@ -122,9 +122,14 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
     var accountsLoaded = false;
     var accountList = <AccountDto>[];
 
-    accounts.then((list) {
-      accountList = list;
-      if (list.isNotEmpty) selectedAccountId = list.first.id;
+    accounts.then((list) async {
+      accountList = list.where((a) => a.userId == userId && !a.isArchived).toList();
+      if (accountList.isNotEmpty) {
+        final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
+        selectedAccountId = defaultId != null && accountList.any((a) => a.id == defaultId)
+            ? defaultId
+            : accountList.first.id;
+      }
       accountsLoaded = true;
     });
 

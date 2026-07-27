@@ -808,7 +808,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       final partnerEntity = isSelf
           ? null
           : _selectedPartners.firstWhere((p) => _partnerUserId(p, userId) == pid, orElse: () => _selectedPartners.first);
-      final label = isSelf ? 'You' : '@${partnerEntity?.senderNickname ?? pid}';
+      final label = isSelf
+          ? 'You'
+          : partnerEntity != null
+              ? (userId == partnerEntity.senderId ? '@${partnerEntity.receiverNickname}' : '@${partnerEntity.senderNickname}')
+              : pid;
 
       widgets.add(
         Padding(

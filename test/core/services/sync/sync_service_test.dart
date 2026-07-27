@@ -7,6 +7,8 @@ import 'package:famxpense/features/debt_ledger/data/datasources/debt_ledger_loca
 import 'package:famxpense/features/debt_ledger/data/datasources/remote/debt_ledger_remote_datasource.dart';
 import 'package:famxpense/features/expenses/data/datasources/local/expense_local_datasource.dart';
 import 'package:famxpense/features/expenses/data/datasources/remote/expense_remote_datasource.dart';
+import 'package:famxpense/features/income/data/datasources/income_local_datasource.dart';
+import 'package:famxpense/features/income/data/datasources/remote/income_remote_datasource.dart';
 import 'package:famxpense/features/notification/data/datasources/notification_local_datasource.dart';
 import 'package:famxpense/features/notification/data/datasources/remote/notification_remote_datasource.dart';
 import 'package:famxpense/features/partners/data/datasources/remote/partnership_remote_datasource.dart';
@@ -28,6 +30,8 @@ class MockSettlementRemote extends Mock implements SettlementRemoteDatasource {}
 class MockUserLocal extends Mock implements UserLocalDatasource {}
 class MockUserRemote extends Mock implements UserRemoteDatasource {}
 class MockPartnershipRemote extends Mock implements PartnershipRemoteDatasource {}
+class MockIncomeLocal extends Mock implements IncomeLocalDatasource {}
+class MockIncomeRemote extends Mock implements IncomeRemoteDatasource {}
 class MockNotificationLocal extends Mock implements NotificationLocalDatasource {}
 class MockNotificationRemote extends Mock implements NotificationRemoteDatasource {}
 
@@ -59,6 +63,8 @@ void main() {
   late MockUserLocal userLocal;
   late MockUserRemote userRemote;
   late MockPartnershipRemote partnershipRemote;
+  late MockIncomeLocal incomeLocal;
+  late MockIncomeRemote incomeRemote;
 
   setUp(() {
     expenseLocal = MockExpenseLocalDatasource();
@@ -72,6 +78,8 @@ void main() {
     userLocal = MockUserLocal();
     userRemote = MockUserRemote();
     partnershipRemote = MockPartnershipRemote();
+    incomeLocal = MockIncomeLocal();
+    incomeRemote = MockIncomeRemote();
     notificationLocal = MockNotificationLocal();
     notificationRemote = MockNotificationRemote();
 
@@ -87,6 +95,8 @@ void main() {
       userLocal: userLocal,
       userRemote: userRemote,
       partnershipRemote: partnershipRemote,
+      incomeLocal: incomeLocal,
+      incomeRemote: incomeRemote,
       notificationLocal: notificationLocal,
       notificationRemote: notificationRemote,
     );
@@ -111,6 +121,9 @@ void main() {
       when(() => settlementRemote.fetchSettlements(userId: any(named: 'userId')))
           .thenAnswer((_) async => []);
       when(() => partnershipRemote.getPartnerships(userId: any(named: 'userId')))
+          .thenAnswer((_) async => []);
+      when(() => incomeLocal.fetchAll()).thenAnswer((_) async => []);
+      when(() => incomeRemote.fetchIncomes(userId: any(named: 'userId')))
           .thenAnswer((_) async => []);
       when(() => notificationLocal.getNotifications()).thenAnswer((_) async => []);
       when(() => notificationRemote.fetchNotifications(userId: any(named: 'userId')))

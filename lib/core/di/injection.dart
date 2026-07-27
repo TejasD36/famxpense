@@ -68,6 +68,8 @@ import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/statistics/presentation/blocs/statistics_bloc.dart';
 import '../../features/income/data/datasources/income_local_datasource.dart';
 import '../../features/income/data/datasources/income_local_datasource_impl.dart';
+import '../../features/income/data/datasources/remote/income_remote_datasource.dart';
+import '../../features/income/data/datasources/remote/income_remote_datasource_impl.dart';
 import '../../features/income/data/repositories/income_repository_impl.dart';
 import '../../features/income/domain/repositories/income_repository.dart';
 import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
@@ -169,6 +171,8 @@ Future<void> initDependencies() async {
       userLocal: sl(),
       userRemote: sl(),
       partnershipRemote: sl(),
+      incomeLocal: sl(),
+      incomeRemote: sl(),
       notificationLocal: sl(),
       notificationRemote: sl(),
     ),
@@ -210,5 +214,6 @@ Future<void> initDependencies() async {
 
   /// INCOME
   sl.registerLazySingleton<IncomeLocalDatasource>(() => IncomeLocalDatasourceImpl());
-  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl()));
+  sl.registerLazySingleton<IncomeRemoteDatasource>(() => IncomeRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), remoteDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl()));
 }
