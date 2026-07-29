@@ -1,6 +1,7 @@
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../account/domain/repositories/account_repository.dart';
 import '../../../debt_ledger/domain/repositories/debt_ledger_repository.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../xcore.dart';
 
 class ProcessSettlementUsecase {
@@ -39,6 +40,13 @@ class ProcessSettlementUsecase {
         final account = accounts.where((a) => a.id == depositAccountId).firstOrNull;
         if (account != null) {
           await _accountRepository.updateBalance(depositAccountId, account.currentBalance + settlement.amount);
+          if (account.isSavings) {
+            try {
+              await sl<SavingsRepository>().computeCurrentMonth(depositAccountId, account.currentBalance + settlement.amount, account.monthlySavingsGoal);
+            } catch (e, stackTrace) {
+              AppLogger.error('Savings snapshot update failed after deposit', e, stackTrace);
+            }
+          }
         }
       } catch (e, stackTrace) {
         AppLogger.error('Recipient deposit failed', e, stackTrace);
@@ -73,6 +81,13 @@ class ProcessSettlementUsecase {
             final account = accounts.where((a) => a.id == s.accountId).firstOrNull;
             if (account != null) {
               await _accountRepository.updateBalance(s.accountId!, account.currentBalance + s.amount);
+              if (account.isSavings) {
+                try {
+                  await sl<SavingsRepository>().computeCurrentMonth(s.accountId!, account.currentBalance + s.amount, account.monthlySavingsGoal);
+                } catch (e, stackTrace) {
+                  AppLogger.error('Savings snapshot update failed after duplicate refund', e, stackTrace);
+                }
+              }
             }
           } catch (e, stackTrace) {
             AppLogger.error('Duplicate settlement refund failed', e, stackTrace);
@@ -108,6 +123,13 @@ class ProcessSettlementUsecase {
         final account = accounts.where((a) => a.id == settlement.accountId).firstOrNull;
         if (account != null) {
           await _accountRepository.updateBalance(settlement.accountId!, account.currentBalance + settlement.amount);
+          if (account.isSavings) {
+            try {
+              await sl<SavingsRepository>().computeCurrentMonth(settlement.accountId!, account.currentBalance + settlement.amount, account.monthlySavingsGoal);
+            } catch (e, stackTrace) {
+              AppLogger.error('Savings snapshot update failed after reject refund', e, stackTrace);
+            }
+          }
         }
       } catch (e, stackTrace) {
         AppLogger.error('Payer account refund failed', e, stackTrace);

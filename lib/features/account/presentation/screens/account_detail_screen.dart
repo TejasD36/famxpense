@@ -497,6 +497,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
               Navigator.pop(ctx);
               if (!mounted) return;
               _loadTransactions();
+              sl<RefreshNotifier>().notifyDataChanged();
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Deposit recorded')));
             },
             child: const Text('Add'),

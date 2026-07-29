@@ -41,6 +41,12 @@ class SettlementRepositoryImpl implements SettlementRepository {
   @override
   Future<void> updateSettlementStatus(String settlementId, SettlementStatus status) async {
     await _localDatasource.updateSettlementStatus(settlementId, status);
+    try {
+      await _remoteDatasource.updateSettlementStatus(settlementId, status);
+    } catch (e, stackTrace) {
+      AppLogger.warning('Settlement status remote sync failed');
+      AppLogger.error('Settlement status remote sync error', e, stackTrace);
+    }
   }
 
   @override

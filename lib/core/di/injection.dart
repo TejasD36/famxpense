@@ -210,7 +210,7 @@ Future<void> initDependencies() async {
 
   /// DEBT LEDGER
   sl.registerLazySingleton<DebtLedgerLocalDatasource>(() => DebtLedgerLocalDatasourceImpl());
-  sl.registerLazySingleton<DebtLedgerRepository>(() => DebtLedgerRepositoryImpl(localDatasource: sl()));
+  sl.registerLazySingleton<DebtLedgerRepository>(() => DebtLedgerRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
   sl.registerLazySingleton(() => ComputeDebtUsecase(repository: sl()));
   sl.registerLazySingleton(() => GetDebtsUsecase(repository: sl()));
 

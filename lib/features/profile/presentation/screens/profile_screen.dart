@@ -634,73 +634,97 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   }
 }
 
-class _SettlementsTile extends StatelessWidget {
+class _SettlementsTile extends StatefulWidget {
+  @override
+  State<_SettlementsTile> createState() => _SettlementsTileState();
+}
+
+class _SettlementsTileState extends State<_SettlementsTile> {
+  List<SettlementDto> _settlementDtos = [];
+  List<DebtLedgerDto> _debtLedgerDtos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+    try {
+      final results = await Future.wait([
+        sl<SettlementLocalDatasource>().getSettlements(),
+        sl<DebtLedgerLocalDatasource>().getLedgers(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _settlementDtos = (results[0] as List<SettlementDto>)
+              .where((d) => d.fromUserId == userId || d.toUserId == userId)
+              .toList();
+          _debtLedgerDtos = results[1] as List<DebtLedgerDto>;
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-    return FutureBuilder<Map<String, dynamic>>(
-      future: Future.wait([
-        sl<SettlementLocalDatasource>().getSettlements(),
-        sl<DebtLedgerLocalDatasource>().getLedgers(),
-      ]).then((results) => <String, dynamic>{
-        'settlements': (results[0] as List<SettlementDto>)
-            .where((d) => d.fromUserId == userId || d.toUserId == userId)
-            .map((d) => d.toEntity())
-            .toList(),
-        'debts': results[1] as List<DebtLedgerDto>,
-      }),
-      builder: (context, snapshot) {
-        final settlements = (snapshot.data?['settlements'] as List<SettlementEntity>?) ?? <SettlementEntity>[];
-        final debtDtos = (snapshot.data?['debts'] as List<DebtLedgerDto>?) ?? <DebtLedgerDto>[];
+    final settlements = _settlementDtos.map((d) => d.toEntity()).toList();
+    final debtDtos = _debtLedgerDtos;
 
-        final pendingIncoming = settlements.where((s) => s.toUserId == userId && s.status == SettlementStatus.pending).length;
-        final pendingOutgoing = settlements.where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending).length;
-        /// Compute debt summary from debt ledger
-        double iAmOwed = 0;
-        double iOwe = 0;
-        for (final d in debtDtos) {
-          if (d.userA == userId) {
-            if (d.netBalance < 0) {
-              iAmOwed += d.netBalance.abs();
-            } else {
-              iOwe += d.netBalance;
-            }
-          } else if (d.userB == userId) {
-            if (d.netBalance > 0) {
-              iAmOwed += d.netBalance;
-            } else {
-              iOwe += d.netBalance.abs();
-            }
-          }
+    final pendingIncoming = settlements.where((s) => s.toUserId == userId && s.status == SettlementStatus.pending).length;
+    final pendingOutgoing = settlements.where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending).length;
+    double iAmOwed = 0;
+    double iOwe = 0;
+    for (final d in debtDtos) {
+      if (d.userA == userId) {
+        if (d.netBalance < 0) {
+          iAmOwed += d.netBalance.abs();
+        } else {
+          iOwe += d.netBalance;
         }
+      } else if (d.userB == userId) {
+        if (d.netBalance > 0) {
+          iAmOwed += d.netBalance;
+        } else {
+          iOwe += d.netBalance.abs();
+        }
+      }
+    }
 
-        final subtitleParts = <String>[];
-        if (pendingIncoming > 0) subtitleParts.add('$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}');
-        if (pendingOutgoing > 0) subtitleParts.add('$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}');
-        if (iAmOwed > 0) subtitleParts.add('${formatIndianRupee(iAmOwed)} owed to you');
-        if (iOwe > 0) subtitleParts.add('You owe ${formatIndianRupee(iOwe)}');
-        if (subtitleParts.isEmpty) subtitleParts.add('All settled up');
+    final subtitleParts = <String>[];
+    if (pendingIncoming > 0) subtitleParts.add('$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}');
+    if (pendingOutgoing > 0) subtitleParts.add('$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}');
+    if (iAmOwed > 0) subtitleParts.add('${formatIndianRupee(iAmOwed)} owed to you');
+    if (iOwe > 0) subtitleParts.add('You owe ${formatIndianRupee(iOwe)}');
+    if (subtitleParts.isEmpty) subtitleParts.add('All settled up');
 
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.green.withValues(alpha: 0.12),
-              child: const Icon(Icons.account_balance_rounded, color: Colors.green),
-            ),
-            title: const Text('Settlements & Balance', style: TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text(
-              subtitleParts.join(' • '),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.pushNamed(AppRoute.settlements.name),
-          ),
-        );
-      },
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.green.withValues(alpha: 0.12),
+          child: const Icon(Icons.account_balance_rounded, color: Colors.green),
+        ),
+        title: const Text('Settlements & Balance', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          subtitleParts.join(' • '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => context.pushNamed(AppRoute.settlements.name),
+      ),
     );
   }
 }

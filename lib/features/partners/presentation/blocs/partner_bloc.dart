@@ -167,6 +167,8 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       } else {
         add(const _LoadPartners());
       }
+
+      sl<RefreshNotifier>().notifyDataChanged();
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
@@ -185,6 +187,8 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       } else {
         add(const _LoadPartners());
       }
+
+      sl<RefreshNotifier>().notifyDataChanged();
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
@@ -202,6 +206,8 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       } else {
         add(const _LoadPartners());
       }
+
+      sl<RefreshNotifier>().notifyDataChanged();
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }

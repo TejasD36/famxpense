@@ -1,4 +1,5 @@
 import '../../../account/domain/repositories/account_repository.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../xcore.dart';
 
 class SettleDebtUsecase {
@@ -45,6 +46,13 @@ class SettleDebtUsecase {
         final account = accounts.where((a) => a.id == fromAccountId).firstOrNull;
         if (account != null) {
           await _accountRepository.updateBalance(fromAccountId, account.currentBalance - amount);
+          if (account.isSavings) {
+            try {
+              await sl<SavingsRepository>().computeCurrentMonth(fromAccountId, account.currentBalance - amount, account.monthlySavingsGoal);
+            } catch (e, stackTrace) {
+              AppLogger.error('Savings snapshot update failed after settlement deduction', e, stackTrace);
+            }
+          }
           AppLogger.success('Settlement deducted from account: ${account.accountName}');
         }
       } catch (e, stackTrace) {
@@ -78,20 +86,29 @@ class SettleDebtUsecase {
     final settlement = await _settlementRepository.getSettlementById(settlementId);
     if (settlement == null) return;
 
-    await _settlementRepository.deleteSettlement(settlementId);
-
-    /// Refund payer's account if it was deducted
+    /// Refund payer's account FIRST before deleting the settlement record.
+    /// If refund fails, money would be lost if we delete first.
     if (settlement.accountId != null) {
       try {
         final accounts = await _accountRepository.getAccounts(userId: settlement.fromUserId);
         final account = accounts.where((a) => a.id == settlement.accountId).firstOrNull;
         if (account != null) {
           await _accountRepository.updateBalance(settlement.accountId!, account.currentBalance + settlement.amount);
+          if (account.isSavings) {
+            try {
+              await sl<SavingsRepository>().computeCurrentMonth(settlement.accountId!, account.currentBalance + settlement.amount, account.monthlySavingsGoal);
+            } catch (e, stackTrace) {
+              AppLogger.error('Savings snapshot update failed after settlement refund', e, stackTrace);
+            }
+          }
         }
       } catch (e, stackTrace) {
         AppLogger.error('Cancel settlement refund failed', e, stackTrace);
+        rethrow;
       }
     }
+
+    await _settlementRepository.deleteSettlement(settlementId);
 
     sl<SyncService>().syncAll(userId: settlement.fromUserId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();

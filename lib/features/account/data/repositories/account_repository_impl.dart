@@ -19,6 +19,12 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<void> saveAccount(AccountEntity account) async {
     await _localDatasource.saveAccount(account.toDto());
+    try {
+      await _remoteDatasource.updateAccount(account);
+    } catch (e, stackTrace) {
+      AppLogger.warning('Account remote save failed');
+      AppLogger.error('Account remote save error', e, stackTrace);
+    }
   }
 
   @override
@@ -26,7 +32,10 @@ class AccountRepositoryImpl implements AccountRepository {
     await _localDatasource.deleteAccount(accountId);
     try {
       await _remoteDatasource.deleteAccount(accountId);
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      AppLogger.warning('Account remote delete failed');
+      AppLogger.error('Account remote delete error', e, stackTrace);
+    }
   }
 
   @override
@@ -35,5 +44,11 @@ class AccountRepositoryImpl implements AccountRepository {
     final account = dtos.firstWhere((a) => a.id == accountId);
     final updated = account.copyWith(currentBalance: newBalance, updatedAt: DateTime.now().toUtc());
     await _localDatasource.saveAccount(updated);
+    try {
+      await _remoteDatasource.updateAccount(updated.toEntity());
+    } catch (e, stackTrace) {
+      AppLogger.warning('Account balance remote sync failed');
+      AppLogger.error('Account balance remote sync error', e, stackTrace);
+    }
   }
 }
