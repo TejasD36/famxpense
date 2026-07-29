@@ -15,7 +15,8 @@ enum AppRoute {
   searchActivity('/searchActivity', 'searchActivity'),
   notifications('/notifications', 'notifications'),
   settlements('/settlements', 'settlements'),
-  income('/income', 'income');
+  income('/income', 'income'),
+  savings('/savings', 'savings');
 
   final String path;
 

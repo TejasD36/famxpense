@@ -136,6 +136,13 @@ class ProfileDrawer extends StatelessWidget {
               title: const Text('Income'),
               onTap: () => context.pushNamed(AppRoute.income.name),
             ),
+
+            /// Savings
+            ListTile(
+              leading: const Icon(Icons.savings_rounded, color: Colors.amber),
+              title: const Text('Savings'),
+              onTap: () => context.pushNamed(AppRoute.savings.name),
+            ),
             const Divider(),
 
             /// Settings
@@ -207,7 +214,14 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
   @override
   void initState() {
     super.initState();
+    sl<RefreshNotifier>().addListener(_load);
     _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -216,7 +230,7 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
     String? id = await AppSettings.getDefaultAccountId(userId: userId);
     if (id == null) {
       final dtos = await sl<AccountLocalDatasource>().getAccounts();
-      final first = dtos.where((d) => d.userId == userId).firstOrNull;
+      final first = dtos.where((d) => d.userId == userId && !d.isSavings).firstOrNull;
       if (first != null) {
         id = first.id;
         await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
@@ -235,7 +249,7 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos.where((d) => d.userId == userId).map((d) => d.toEntity()).toList();
+    final accounts = dtos.where((d) => d.userId == userId && !d.isSavings).map((d) => d.toEntity()).toList();
 
     if (!mounted) return;
 

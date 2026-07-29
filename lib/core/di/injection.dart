@@ -72,6 +72,18 @@ import '../../features/income/data/datasources/remote/income_remote_datasource.d
 import '../../features/income/data/datasources/remote/income_remote_datasource_impl.dart';
 import '../../features/income/data/repositories/income_repository_impl.dart';
 import '../../features/income/domain/repositories/income_repository.dart';
+import '../../features/savings/data/datasources/savings_local_datasource.dart';
+import '../../features/savings/data/datasources/savings_local_datasource_impl.dart';
+import '../../features/savings/data/datasources/transfer_local_datasource.dart';
+import '../../features/savings/data/datasources/transfer_local_datasource_impl.dart';
+import '../../features/savings/data/datasources/remote/monthly_saving_remote_datasource.dart';
+import '../../features/savings/data/datasources/remote/monthly_saving_remote_datasource_impl.dart';
+import '../../features/savings/data/datasources/remote/transfer_remote_datasource.dart';
+import '../../features/savings/data/datasources/remote/transfer_remote_datasource_impl.dart';
+import '../../features/savings/data/repositories/savings_repository_impl.dart';
+import '../../features/savings/data/repositories/transfer_repository_impl.dart';
+import '../../features/savings/domain/repositories/savings_repository.dart';
+import '../../features/savings/domain/repositories/transfer_repository.dart';
 import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
 import '../../shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import '../../shared/data/repositories/user_repository_impl.dart';
@@ -175,6 +187,10 @@ Future<void> initDependencies() async {
       incomeRemote: sl(),
       notificationLocal: sl(),
       notificationRemote: sl(),
+      transferLocal: sl(),
+      transferRemote: sl(),
+      monthlySavingLocal: sl(),
+      monthlySavingRemote: sl(),
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
@@ -184,7 +200,7 @@ Future<void> initDependencies() async {
   /// ACCOUNT
   sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());
   sl.registerLazySingleton<ManualDepositLocalDatasource>(() => ManualDepositLocalDatasourceImpl());
-  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl()));
+  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
   sl.registerLazySingleton(() => GetAccountsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SaveAccountUsecase(repository: sl()));
   sl.registerLazySingleton(() => DeleteAccountUsecase(repository: sl()));
@@ -215,5 +231,13 @@ Future<void> initDependencies() async {
   /// INCOME
   sl.registerLazySingleton<IncomeLocalDatasource>(() => IncomeLocalDatasourceImpl());
   sl.registerLazySingleton<IncomeRemoteDatasource>(() => IncomeRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), remoteDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl()));
+  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), remoteDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl(), refreshNotifier: sl()));
+
+  /// SAVINGS
+  sl.registerLazySingleton<TransferLocalDatasource>(() => TransferLocalDatasourceImpl());
+  sl.registerLazySingleton<TransferRemoteDatasource>(() => TransferRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<TransferRepository>(() => TransferRepositoryImpl(local: sl(), remote: sl(), refreshNotifier: sl()));
+  sl.registerLazySingleton<SavingsLocalDatasource>(() => SavingsLocalDatasourceImpl());
+  sl.registerLazySingleton<MonthlySavingRemoteDatasource>(() => MonthlySavingRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<SavingsRepository>(() => SavingsRepositoryImpl(local: sl(), accountLocal: sl(), remote: sl(), refreshNotifier: sl()));
 }

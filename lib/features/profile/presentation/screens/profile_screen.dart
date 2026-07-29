@@ -9,6 +9,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
 import '../../../notification/presentation/blocs/notification_bloc.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 
 
@@ -322,6 +323,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
 
+                      /// Savings
+                      _SavingsTile(),
+                      const SizedBox(height: 8),
+
                       /// Settings Header
                       const SizedBox(height: 8),
                       const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -527,11 +532,14 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   @override
   void initState() {
     super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _accountBoxSub = Hive.box<AccountDto>(HiveBoxes.accounts).watch().listen((_) => _load());
     _load();
   }
 
   @override
   void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
     _accountBoxSub?.cancel();
     super.dispose();
   }
@@ -542,7 +550,7 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
     String? id = await AppSettings.getDefaultAccountId(userId: userId);
     if (id == null) {
       final dtos = await sl<AccountLocalDatasource>().getAccounts();
-      final first = dtos.where((d) => d.userId == userId).firstOrNull;
+      final first = dtos.where((d) => d.userId == userId && !d.isSavings).firstOrNull;
       if (first != null) {
         id = first.id;
         await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
@@ -561,7 +569,7 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos.where((d) => d.userId == userId).map((d) => d.toEntity()).toList();
+    final accounts = dtos.where((d) => d.userId == userId && !d.isSavings).map((d) => d.toEntity()).toList();
 
     if (!mounted) return;
 
@@ -693,6 +701,59 @@ class _SettlementsTile extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _SavingsTile extends StatefulWidget {
+  @override
+  State<_SavingsTile> createState() => _SavingsTileState();
+}
+
+class _SavingsTileState extends State<_SavingsTile> {
+  double _ytdTotal = 0;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+      final total = await sl<SavingsRepository>().getTotalSavedYearToDate(userId);
+      if (mounted) setState(() { _ytdTotal = total; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.amber.withValues(alpha: 0.12),
+          child: const Icon(Icons.savings_rounded, color: Colors.amber),
+        ),
+        title: const Text('Savings', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: _loading
+            ? const Text('Loading...')
+            : Text('YTD: ${formatIndianRupee(_ytdTotal)}'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => context.pushNamed(AppRoute.savings.name),
+      ),
     );
   }
 }

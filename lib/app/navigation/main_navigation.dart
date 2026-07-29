@@ -16,6 +16,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   StreamSubscription<bool>? _connectivitySub;
+  late final RefreshNotifier _refreshNotifier;
   bool _isOnline = true;
 
   @override
@@ -26,12 +27,31 @@ class _MainNavigationState extends State<MainNavigation> {
       if (mounted) setState(() => _isOnline = online);
     });
     connectivity.startMonitoring();
+
+    _refreshNotifier = sl<RefreshNotifier>();
+    _refreshNotifier.addListener(_onRefresh);
   }
 
   @override
   void dispose() {
     _connectivitySub?.cancel();
+    _refreshNotifier.removeListener(_onRefresh);
     super.dispose();
+  }
+
+  void _onRefresh() {
+    final error = _refreshNotifier.lastSyncError;
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.orange.shade700,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      _refreshNotifier.clearSyncError();
+    }
   }
 
   @override

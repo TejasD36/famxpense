@@ -72,6 +72,24 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Transfers: read/write own only (fromUserId)
+    match /transfers/{transferId} {
+      allow read: if request.auth != null
+        && resource.data.fromUserId == request.auth.uid;
+      allow create: if request.auth.uid == request.resource.data.fromUserId;
+      allow update: if request.auth.uid == resource.data.fromUserId;
+      allow delete: if false;
+    }
+
+    // Monthly savings: read/write own only (userId)
+    match /monthly_savings/{snapshotId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId;
+      allow delete: if false;
+    }
+
     // Debt ledgers: read if participant, write if participant
     match /debt_ledgers/{ledgerId} {
       allow read: if request.auth != null

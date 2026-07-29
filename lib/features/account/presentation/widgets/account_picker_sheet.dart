@@ -54,15 +54,13 @@ class AccountPickerSheet extends StatelessWidget {
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      child: Icon(_iconForType(account.accountType)),
+                      backgroundColor: account.isSavings ? Colors.amber.withValues(alpha: 0.15) : null,
+                      child: Icon(_iconForType(account), color: account.isSavings ? Colors.amber.shade700 : null),
                     ),
                     title: Text(account.accountName),
                     subtitle: Text(formatIndianRupee(account.currentBalance)),
                     trailing: isSelected ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) : null,
-                    onTap: () {
-                      onSelected(account);
-                      Navigator.of(context).pop();
-                    },
+                    onTap: () => onSelected(account),
                   ),
                 );
               }),
@@ -72,8 +70,9 @@ class AccountPickerSheet extends StatelessWidget {
     );
   }
 
-  IconData _iconForType(AccountType type) {
-    return switch (type) {
+  IconData _iconForType(AccountEntity account) {
+    if (account.isSavings) return Icons.savings_rounded;
+    return switch (account.accountType) {
       AccountType.bank => Icons.account_balance_rounded,
       AccountType.cash => Icons.money_rounded,
       AccountType.creditCard => Icons.credit_card_rounded,

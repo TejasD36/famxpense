@@ -1,6 +1,7 @@
 import '../../../../shared/domain/entities/expense/expense_entity.dart';
 import '../../../../shared/domain/entities/income/income_entity.dart';
 import '../../../../shared/domain/entities/settlement/settlement_entity.dart';
+import '../../../../shared/domain/entities/transfer/transfer_entity.dart';
 
 sealed class AccountTransaction {
   DateTime get date;
@@ -41,4 +42,12 @@ class IncomeEntry extends AccountTransaction {
   @override
   DateTime get date => income.createdAt;
   IncomeEntry(this.income);
+}
+
+class TransferEntry extends AccountTransaction {
+  final TransferEntity transfer;
+  final bool isOutgoing;
+  @override
+  DateTime get date => transfer.createdAt;
+  TransferEntry(this.transfer, this.isOutgoing);
 }

@@ -3,6 +3,7 @@ import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
 import '../../../debt_ledger/data/datasources/remote/debt_ledger_remote_datasource.dart';
 import '../../../debt_ledger/domain/usecases/compute_debt_usecase.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../xcore.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
@@ -62,6 +63,13 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         final newBalance = account.currentBalance - expense.amount;
         await _accountRepository.updateBalance(expense.accountId!, newBalance);
         AppLogger.success('Account balance deducted: ${account.accountName} → ₹$newBalance');
+
+        /// Update monthly savings snapshot if this is a savings account
+        if (account.isSavings) {
+          final savingsRepo = sl<SavingsRepository>();
+          final goal = account.monthlySavingsGoal;
+          await savingsRepo.computeCurrentMonth(account.id, newBalance, goal);
+        }
       } catch (e, stackTrace) {
         AppLogger.error('Account balance deduction failed', e, stackTrace);
       }

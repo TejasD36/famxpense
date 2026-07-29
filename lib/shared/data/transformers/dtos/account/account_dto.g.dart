@@ -25,13 +25,17 @@ class AccountDtoAdapter extends TypeAdapter<AccountDto> {
       createdAt: fields[5] as DateTime,
       updatedAt: fields[6] as DateTime,
       isArchived: fields[7] == null ? false : fields[7] as bool,
+      isSavings: fields[8] == null ? false : fields[8] as bool,
+      monthlySavingsGoal: fields[9] == null
+          ? 0.0
+          : (fields[9] as num).toDouble(),
     );
   }
 
   @override
   void write(BinaryWriter writer, AccountDto obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +51,11 @@ class AccountDtoAdapter extends TypeAdapter<AccountDto> {
       ..writeByte(6)
       ..write(obj.updatedAt)
       ..writeByte(7)
-      ..write(obj.isArchived);
+      ..write(obj.isArchived)
+      ..writeByte(8)
+      ..write(obj.isSavings)
+      ..writeByte(9)
+      ..write(obj.monthlySavingsGoal);
   }
 
   @override
@@ -74,6 +82,8 @@ _AccountDto _$AccountDtoFromJson(Map<String, dynamic> json) => _AccountDto(
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   isArchived: json['isArchived'] as bool? ?? false,
+  isSavings: json['isSavings'] as bool? ?? false,
+  monthlySavingsGoal: (json['monthlySavingsGoal'] as num?)?.toDouble() ?? 0.0,
 );
 
 Map<String, dynamic> _$AccountDtoToJson(_AccountDto instance) =>
@@ -86,6 +96,8 @@ Map<String, dynamic> _$AccountDtoToJson(_AccountDto instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isArchived': instance.isArchived,
+      'isSavings': instance.isSavings,
+      'monthlySavingsGoal': instance.monthlySavingsGoal,
     };
 
 const _$AccountTypeEnumMap = {

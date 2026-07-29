@@ -4,6 +4,8 @@ import '../../xcore.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../expenses/data/datasources/local/expense_local_datasource.dart';
 import '../../../income/domain/repositories/income_repository.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
+import '../../../savings/domain/repositories/transfer_repository.dart';
 import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 import '../models/account_transaction.dart';
 
@@ -21,6 +23,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
   double _totalSpent = 0;
   bool _loading = true;
   bool _initialized = false;
+  int _refreshKey = 0;
 
   @override
   void initState() {
@@ -35,7 +38,10 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
   }
 
   void _onDataChanged() {
-    if (mounted) _loadTransactions();
+    if (mounted) {
+      _refreshKey++;
+      _loadTransactions();
+    }
   }
 
   @override
@@ -58,6 +64,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     final settlementDtos = await sl<SettlementLocalDatasource>().getSettlements();
     final depositDtos = await sl<ManualDepositLocalDatasource>().getByAccount(account.id);
     final incomeEntities = await sl<IncomeRepository>().getIncomesByAccount(account.id);
+    final transferDtos = await sl<TransferRepository>().getByAccount(account.id);
 
     final defaultAccountId = await AppSettings.getDefaultAccountId(userId: userId);
 
@@ -112,6 +119,18 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       totalDeposited += entity.amount;
     }
 
+    /// Transfer entries
+    for (final dto in transferDtos) {
+      final entity = dto.toEntity();
+      final isOutgoing = entity.fromAccountId == account.id;
+      transactions.add(TransferEntry(entity, isOutgoing));
+      if (isOutgoing) {
+        totalSpent += entity.amount;
+      } else {
+        totalDeposited += entity.amount;
+      }
+    }
+
     transactions.sort((a, b) => b.date.compareTo(a.date));
 
     if (!mounted) return;
@@ -132,6 +151,11 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
         title: Text(account?.accountName ?? 'Account'),
         actions: [
           if (account != null) ...[
+            IconButton(
+              icon: Icon(account.isSavings ? Icons.savings_rounded : Icons.savings_outlined, color: account.isSavings ? Colors.amber : null),
+              tooltip: account.isSavings ? 'Savings account' : 'Mark as savings',
+              onPressed: () => _toggleSavings(context, account),
+            ),
             IconButton(
               icon: const Icon(Icons.edit_rounded),
               tooltip: 'Rename',
@@ -207,12 +231,20 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                                   label: const Text('Deposit'),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: FilledButton.tonalIcon(
+                                  onPressed: () => _showTransferDialog(context, account),
+                                  icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                                  label: const Text('Transfer'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: FilledButton.tonalIcon(
                                   onPressed: () => _showUpdateBalanceDialog(context, account),
                                   icon: const Icon(Icons.edit_rounded, size: 18),
-                                  label: const Text('Set Balance'),
+                                  label: const Text('Balance'),
                                 ),
                               ),
                             ],
@@ -247,6 +279,12 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
+
+                          /// Savings Progress Section
+                          if (account.isSavings) ...[
+                            _SavingsProgressCard(account: account, key: ValueKey('savings_${account.id}_${_refreshKey}')),
+                            const SizedBox(height: 20),
+                          ],
 
                           /// Transaction History Header
                           Row(
@@ -370,6 +408,14 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
           subtitle: '${income.source.label} · ${_formatDate(income.createdAt)}',
           amount: income.amount,
           amountColor: Colors.green,
+        ),
+      TransferEntry(:final transfer, :final isOutgoing) => _TransactionTile(
+          icon: isOutgoing ? Icons.send_rounded : Icons.call_received_rounded,
+          iconColor: isOutgoing ? Colors.orange : Colors.blue,
+          title: transfer.description,
+          subtitle: isOutgoing ? 'Transfer to savings' : 'Transfer from savings',
+          amount: isOutgoing ? -transfer.amount : transfer.amount,
+          amountColor: isOutgoing ? Colors.orange : Colors.blue,
         ),
     };
   }
@@ -495,6 +541,166 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     );
   }
 
+  void _showTransferDialog(BuildContext context, AccountEntity fromAccount) {
+    final amountCtl = TextEditingController();
+    final descCtl = TextEditingController();
+    AccountEntity? toAccount;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Transfer Money'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('From', style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Card(
+                  elevation: 0,
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      backgroundColor: fromAccount.isSavings ? Colors.amber.withValues(alpha: 0.15) : null,
+                      radius: 16,
+                      child: Icon(Icons.account_balance_rounded, size: 18, color: fromAccount.isSavings ? Colors.amber.shade700 : null),
+                    ),
+                    title: Text(fromAccount.accountName, style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(formatIndianRupee(fromAccount.currentBalance), style: const TextStyle(fontSize: 12)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('To', style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Card(
+                  elevation: 0,
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      backgroundColor: toAccount?.isSavings == true ? Colors.amber.withValues(alpha: 0.15) : null,
+                      radius: 16,
+                      child: Icon(
+                        toAccount != null ? (toAccount!.isSavings ? Icons.savings_rounded : Icons.account_balance_rounded) : Icons.help_outline_rounded,
+                        size: 18,
+                      ),
+                    ),
+                    title: Text(toAccount?.accountName ?? 'Select account', style: TextStyle(fontSize: 14, color: toAccount == null ? Theme.of(context).colorScheme.onSurfaceVariant : null)),
+                    subtitle: toAccount != null ? Text(formatIndianRupee(toAccount!.currentBalance), style: const TextStyle(fontSize: 12)) : null,
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                    onTap: () async {
+                      final accounts = await sl<AccountRepository>().getAccounts(userId: fromAccount.userId);
+                      final others = accounts.where((a) => a.id != fromAccount.id && !a.isArchived).toList();
+                      if (!ctx.mounted) return;
+                      final picked = await showModalBottomSheet<AccountEntity>(
+                        context: ctx,
+                        builder: (_) => AccountPickerSheet(
+                          accounts: others,
+                          selectedAccountId: toAccount?.id,
+                          onSelected: (a) => Navigator.pop(ctx, a),
+                          onAddNew: () {
+                            Navigator.pop(ctx);
+                            context.pushNamed(AppRoute.addAccount.name);
+                          },
+                        ),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => toAccount = picked);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: amountCtl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Amount (₹)',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descCtl,
+                  decoration: InputDecoration(
+                    labelText: 'Description (optional)',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () async {
+                if (toAccount == null) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Select a destination account')));
+                  return;
+                }
+                final amount = double.tryParse(amountCtl.text.trim());
+                if (amount == null || amount <= 0) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Enter a valid amount greater than 0')));
+                  return;
+                }
+                if (amount > fromAccount.currentBalance) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Insufficient balance')));
+                  return;
+                }
+
+                final id = const Uuid().v4();
+                final now = DateTime.now().toUtc();
+                final desc = descCtl.text.trim().isEmpty ? 'Transfer' : descCtl.text.trim();
+
+                await sl<TransferRepository>().saveTransfer(TransferDto(
+                  id: id,
+                  fromAccountId: fromAccount.id,
+                  toAccountId: toAccount!.id,
+                  fromUserId: fromAccount.userId,
+                  toUserId: toAccount!.userId,
+                  amount: amount,
+                  description: desc,
+                  createdAt: now,
+                  updatedAt: now,
+                ));
+
+                await sl<AccountRepository>().updateBalance(fromAccount.id, fromAccount.currentBalance - amount);
+                await sl<AccountRepository>().updateBalance(toAccount!.id, toAccount!.currentBalance + amount);
+
+                if (toAccount!.isSavings) {
+                  final savingsRepo = sl<SavingsRepository>();
+                  await savingsRepo.computeCurrentMonth(toAccount!.id, toAccount!.currentBalance + amount, toAccount!.monthlySavingsGoal);
+                }
+
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx);
+                if (!mounted) return;
+                final updatedAccounts = await sl<AccountRepository>().getAccounts(userId: fromAccount.userId);
+                if (mounted) {
+                  setState(() {
+                    _account = updatedAccounts.firstWhere((a) => a.id == fromAccount.id);
+                  });
+                }
+                _refreshKey++;
+                _loadTransactions();
+                sl<RefreshNotifier>().notifyDataChanged();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transfer completed')));
+              },
+              child: const Text('Transfer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showRenameDialog(BuildContext context, AccountEntity account) async {
     final controller = TextEditingController(text: account.accountName);
 
@@ -563,6 +769,141 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       sl<RefreshNotifier>().notifyDataChanged();
       if (context.mounted) context.pop();
     }
+  }
+
+  Future<void> _toggleSavings(BuildContext context, AccountEntity account) async {
+    if (account.isSavings) {
+      await _showSavingsGoalDialog(context, account);
+    } else {
+      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+      final dtos = await sl<AccountLocalDatasource>().getAccounts();
+      final userAccounts = dtos.where((a) => a.userId == userId).toList();
+
+      if (userAccounts.length == 1) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Add another account to separate expenses first.'),
+          behavior: SnackBarBehavior.floating,
+        ));
+        return;
+      }
+
+      final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
+      if (defaultId == account.id) {
+        if (!context.mounted) return;
+        final pickNew = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Change Default Account'),
+            content: const Text('This account is currently your default. Choose another default account first before marking it as savings.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Go to Profile')),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
+        if (pickNew == true) {
+          context.pushNamed(AppRoute.profile.name);
+        }
+        return;
+      }
+
+      final updated = account.copyWith(isSavings: true, monthlySavingsGoal: account.monthlySavingsGoal);
+      context.read<AccountBloc>().add(AccountEvent.saveAccount(account: updated));
+      sl<RefreshNotifier>().notifyDataChanged();
+      setState(() { _account = updated; _refreshKey++; });
+
+      if (!context.mounted) return;
+      await _showSavingsGoalDialog(context, updated.copyWith(isSavings: true));
+    }
+  }
+
+  Future<void> _showSavingsGoalDialog(BuildContext context, AccountEntity account) async {
+    if (!account.isSavings) return;
+
+    final goalCtl = TextEditingController(text: account.monthlySavingsGoal > 0 ? account.monthlySavingsGoal.toStringAsFixed(0) : '');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Savings Settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Savings Account'),
+              value: account.isSavings,
+              onChanged: (v) async {
+                if (!v) {
+                  final confirmed = await showDialog<bool>(
+                    context: ctx,
+                    builder: (c) => AlertDialog(
+                      title: const Text('Disable Savings?'),
+                      content: Text('Are you sure you want to disable savings for "${account.accountName}"? This will also reset the monthly goal.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                        FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Disable')),
+                      ],
+                    ),
+                  );
+                  if (confirmed != true) return;
+                  final updated = account.copyWith(isSavings: false, monthlySavingsGoal: 0);
+                  if (!ctx.mounted) return;
+                  context.read<AccountBloc>().add(AccountEvent.saveAccount(account: updated));
+                  sl<RefreshNotifier>().notifyDataChanged();
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+                  setState(() { _account = updated; _refreshKey++; });
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: goalCtl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Monthly Goal (₹)',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              final newGoal = double.tryParse(goalCtl.text.trim()) ?? 0;
+              final oldGoal = account.monthlySavingsGoal;
+
+              if (newGoal < oldGoal && ctx.mounted) {
+                final confirmed = await showDialog<bool>(
+                  context: ctx,
+                  builder: (c) => AlertDialog(
+                    title: const Text('Decrease Goal?'),
+                    content: Text('Are you sure you want to lower your monthly goal from ${formatIndianRupee(oldGoal)} to ${formatIndianRupee(newGoal)}?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                      FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Yes, decrease')),
+                    ],
+                  ),
+                );
+                if (confirmed != true) return;
+              }
+
+              final updated = account.copyWith(monthlySavingsGoal: newGoal);
+              context.read<AccountBloc>().add(AccountEvent.saveAccount(account: updated));
+              sl<RefreshNotifier>().notifyDataChanged();
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx);
+              setState(() { _account = updated; _refreshKey++; });
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
   }
 
   IconData _iconForType(AccountType type) {
@@ -663,6 +1004,103 @@ class _MonthHeader extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.primary,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SavingsProgressCard extends StatefulWidget {
+  final AccountEntity account;
+  const _SavingsProgressCard({super.key, required this.account});
+
+  @override
+  State<_SavingsProgressCard> createState() => _SavingsProgressCardState();
+}
+
+class _SavingsProgressCardState extends State<_SavingsProgressCard> {
+  MonthlySavingEntity? _current;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final repo = sl<SavingsRepository>();
+      final result = await repo.computeCurrentMonth(widget.account.id, widget.account.currentBalance, widget.account.monthlySavingsGoal);
+      if (mounted) setState(() { _current = result; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final goal = widget.account.monthlySavingsGoal;
+    if (_loading) return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+
+    final saved = _current?.savedAmount ?? 0.0;
+    final percent = _current?.achievementPercent ?? (goal > 0 ? (saved / goal * 100).clamp(-999.0, 999.0) : 0.0);
+
+    Color barColor;
+    if (saved < 0) {
+      barColor = Colors.red;
+    } else if (percent < 50) {
+      barColor = Colors.red;
+    } else if (percent < 80) {
+      barColor = Colors.amber;
+    } else {
+      barColor = Colors.green;
+    }
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.savings_rounded, size: 18, color: Colors.amber),
+                const SizedBox(width: 8),
+                const Text('Monthly Savings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                const Spacer(),
+                Text(formatIndianRupee(saved), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: barColor)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: goal > 0 ? (saved / goal).clamp(0.0, 2.0) : 0,
+                minHeight: 10,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: barColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text('Goal: ${formatIndianRupee(goal)}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                const Spacer(),
+                Text('${percent.toStringAsFixed(1)}%', style: TextStyle(fontSize: 12, color: barColor, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            if (saved < 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Using savings reduces your monthly progress',
+                  style: TextStyle(fontSize: 11, color: Colors.red.shade400),
+                ),
+              ),
+          ],
         ),
       ),
     );

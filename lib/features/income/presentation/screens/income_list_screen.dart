@@ -1,5 +1,7 @@
 import '../../../account/domain/repositories/account_repository.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
+import '../../../savings/domain/repositories/transfer_repository.dart';
 import '../../xcore.dart';
 
 class IncomeListScreen extends StatefulWidget {
@@ -148,26 +150,18 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
     final amountCtl = TextEditingController();
     final descCtl = TextEditingController();
+    final savingsAmountCtl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
     var selectedSource = IncomeSource.salary;
     String? selectedAccountId;
     var selectedDate = DateTime.now();
     var accountsLoaded = false;
     var accountLoadError = false;
     var accountList = <AccountEntity>[];
-
-    sl<AccountRepository>().getAccounts(userId: userId).then((list) async {
-      accountList = list.where((a) => !a.isArchived).toList();
-      if (accountList.isNotEmpty) {
-        final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
-        selectedAccountId = defaultId != null && accountList.any((a) => a.id == defaultId)
-            ? defaultId
-            : accountList.first.id;
-      }
-      accountsLoaded = true;
-    }).catchError((_) {
-      accountsLoaded = true;
-      accountLoadError = true;
-    });
+    var savingsAccounts = <AccountEntity>[];
+    var transferToSavings = false;
+    var selectedSavingsId = <String>{};
+    var accountsLoadStarted = false;
 
     showModalBottomSheet(
       context: context,
@@ -176,12 +170,38 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         builder: (ctx, setSheetState) {
           void setVal(VoidCallback fn) => setSheetState(fn);
 
+          if (!accountsLoadStarted) {
+            accountsLoadStarted = true;
+            sl<AccountRepository>().getAccounts(userId: userId).then((list) async {
+              accountList = list.where((a) => !a.isArchived && !a.isSavings).toList();
+              savingsAccounts = list.where((a) => a.isSavings).toList();
+              if (savingsAccounts.length == 1 && selectedSavingsId.isEmpty) {
+                selectedSavingsId = {savingsAccounts.first.id};
+              }
+              if (accountList.isNotEmpty && selectedAccountId == null) {
+                final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
+                selectedAccountId = defaultId != null && accountList.any((a) => a.id == defaultId)
+                    ? defaultId
+                    : accountList.first.id;
+              }
+              accountsLoaded = true;
+              setVal(() {});
+            }).catchError((_) {
+              accountsLoaded = true;
+              accountLoadError = true;
+              setVal(() {});
+            });
+          }
+
           return Padding(
             padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                 Center(
                   child: Container(
                     width: 40, height: 4,
@@ -195,13 +215,21 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                 const Text('Add Income', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
 
-                TextField(
+                TextFormField(
                   controller: amountCtl,
                   keyboardType: TextInputType.number,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   decoration: InputDecoration(
                     labelText: 'Amount (₹)',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  validator: (v) {
+                    final cleaned = (v ?? '').replaceAll(RegExp(r'[^0-9.]'), '');
+                    final amt = double.tryParse(cleaned);
+                    if (amt == null || amt <= 0) return 'Enter a valid amount';
+                    if (amt > 999999999) return 'Amount too large';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 12),
 
@@ -225,7 +253,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                TextField(
+                TextFormField(
                   controller: descCtl,
                   decoration: InputDecoration(
                     labelText: 'Description',
@@ -267,40 +295,100 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                   DropdownButtonFormField<String>(
                     key: ValueKey(selectedAccountId),
                     initialValue: selectedAccountId,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
                       labelText: 'Deposit to Account',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    validator: (v) => v == null ? 'Select an account' : null,
                     items: accountList.map((a) => DropdownMenuItem(
                       value: a.id,
                       child: Text(a.accountName),
                     )).toList(),
                     onChanged: (v) => setVal(() => selectedAccountId = v),
                   ),
+                if (accountsLoaded && savingsAccounts.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Transfer to savings', style: TextStyle(fontSize: 14)),
+                    subtitle: const Text('Allocate part of this income to savings', style: TextStyle(fontSize: 12)),
+                    value: transferToSavings,
+                    onChanged: (v) => setVal(() {
+                      transferToSavings = v ?? false;
+                      if (!transferToSavings) {
+                        selectedSavingsId = {};
+                        savingsAmountCtl.clear();
+                      }
+                    }),
+                  ),
+                  if (transferToSavings) ...[
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey(selectedSavingsId.isNotEmpty ? selectedSavingsId.first : null),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      decoration: InputDecoration(
+                        labelText: 'To Savings Account',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        errorStyle: const TextStyle(fontSize: 12),
+                      ),
+                      validator: (v) => v == null ? 'Select a savings account' : null,
+                      items: savingsAccounts.map((a) => DropdownMenuItem(
+                        value: a.id,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.savings_rounded, size: 18, color: Colors.amber),
+                            const SizedBox(width: 8),
+                            Text(a.accountName),
+                          ],
+                        ),
+                      )).toList(),
+                      initialValue: selectedSavingsId.isNotEmpty ? selectedSavingsId.first : null,
+                      onChanged: (v) => setVal(() {
+                        if (v != null) selectedSavingsId = {v};
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: savingsAmountCtl,
+                      keyboardType: TextInputType.number,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      decoration: InputDecoration(
+                        labelText: 'Amount to transfer (₹)',
+                        hintText: 'Enter amount to allocate to savings',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        errorStyle: const TextStyle(fontSize: 12),
+                      ),
+                      validator: (v) {
+                        if (!transferToSavings) return null;
+                        final cleaned = (v ?? '').replaceAll(RegExp(r'[^0-9.]'), '');
+                        final amt = double.tryParse(cleaned);
+                        if (amt == null || amt <= 0) return 'Enter a valid transfer amount';
+                        final raw = amountCtl.text.trim();
+                        final incomeAmt = double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), ''));
+                        if (incomeAmt != null && amt > incomeAmt) return 'Transfer amount cannot exceed income amount';
+                        return null;
+                      },
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 20),
 
                 FilledButton(
                   onPressed: () async {
+                    if (!formKey.currentState!.validate()) return;
+                    if (selectedAccountId == null) return;
+
                     final raw = amountCtl.text.trim();
                     final cleaned = raw.replaceAll(RegExp(r'[^0-9.]'), '');
-                    final amount = double.tryParse(cleaned);
-                    if (amount == null || amount <= 0 || amount > 999999999) {
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Enter a valid amount')));
-                      }
-                      return;
-                    }
-                    if (selectedAccountId == null) {
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Select an account')));
-                      }
-                      return;
-                    }
+                    final amount = double.tryParse(cleaned)!;
+
                     final desc = descCtl.text.trim().isEmpty ? 'Income: ${selectedSource.label}' : descCtl.text.trim();
 
                     final now = DateTime.now().toUtc();
+                    final incomeId = const Uuid().v4();
                     final income = IncomeEntity(
-                      id: const Uuid().v4(),
+                      id: incomeId,
                       userId: userId,
                       accountId: selectedAccountId!,
                       amount: amount,
@@ -310,15 +398,49 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                       updatedAt: now,
                     );
 
+                    final transferAmount = transferToSavings && selectedSavingsId.isNotEmpty
+                        ? (double.tryParse(savingsAmountCtl.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0).clamp(0.0, amount)
+                        : 0.0;
+
+                    if (transferAmount > 0) {
+                      final toSavingsId = selectedSavingsId.first;
+                      await sl<TransferRepository>().saveTransfer(TransferDto(
+                        id: const Uuid().v4(),
+                        fromAccountId: selectedAccountId!,
+                        toAccountId: toSavingsId,
+                        fromUserId: userId,
+                        toUserId: userId,
+                        amount: transferAmount,
+                        description: 'Savings allocation from ${desc.isNotEmpty ? desc : selectedSource.label}',
+                        createdAt: now,
+                        updatedAt: now,
+                      ));
+                      final acctRepo = sl<AccountRepository>();
+                      final allAccounts = await acctRepo.getAccounts(userId: userId);
+                      final src = allAccounts.where((a) => a.id == selectedAccountId).firstOrNull;
+                      final dst = allAccounts.where((a) => a.id == toSavingsId).firstOrNull;
+                      if (src != null) {
+                        await acctRepo.updateBalance(selectedAccountId!, src.currentBalance - transferAmount);
+                      }
+                      if (dst != null) {
+                        await acctRepo.updateBalance(toSavingsId, dst.currentBalance + transferAmount);
+                        final savingsRepo = sl<SavingsRepository>();
+                        await savingsRepo.computeCurrentMonth(toSavingsId, dst.currentBalance + transferAmount, dst.monthlySavingsGoal);
+                      }
+                      sl<RefreshNotifier>().notifyDataChanged();
+                    }
+
                     if (ctx.mounted) Navigator.pop(ctx);
                     _addIncome(income);
                   },
                   child: const Text('Add'),
                 ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

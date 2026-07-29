@@ -1,4 +1,5 @@
 import 'package:famxpense/core/services/notification/notification_service.dart';
+import 'package:famxpense/core/services/refresh/refresh_notifier.dart';
 import 'package:famxpense/core/services/sync/sync_service.dart';
 import 'package:famxpense/features/account/data/datasources/account_local_datasource.dart';
 import 'package:famxpense/features/account/domain/repositories/account_repository.dart';
@@ -6,6 +7,9 @@ import 'package:famxpense/features/auth/data/datasources/local/auth_local_dataso
 import 'package:famxpense/features/debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
 import 'package:famxpense/features/debt_ledger/domain/repositories/debt_ledger_repository.dart';
 import 'package:famxpense/features/expenses/domain/repositories/expense_repository.dart';
+import 'package:famxpense/features/income/data/datasources/income_local_datasource.dart';
+import 'package:famxpense/features/income/data/datasources/remote/income_remote_datasource.dart';
+import 'package:famxpense/features/income/domain/repositories/income_repository.dart';
 import 'package:famxpense/features/notification/data/datasources/notification_local_datasource.dart';
 import 'package:famxpense/features/partners/data/datasources/local/partnership_local_datasource.dart';
 import 'package:famxpense/features/partners/data/datasources/remote/partnership_remote_datasource.dart';
@@ -13,14 +17,25 @@ import 'package:famxpense/features/partners/domain/repositories/partnership_repo
 import 'package:famxpense/features/partners/domain/usecases/get_partnerships_usecase.dart';
 import 'package:famxpense/features/partners/domain/usecases/search_user_usecase.dart';
 import 'package:famxpense/features/partners/domain/usecases/send_partnership_request_usecase.dart';
+import 'package:famxpense/features/savings/data/datasources/savings_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/remote/monthly_saving_remote_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/transfer_local_datasource.dart';
+import 'package:famxpense/features/savings/domain/repositories/savings_repository.dart';
 import 'package:famxpense/features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
 import 'package:famxpense/features/settlement/domain/repositories/settlement_repository.dart';
 import 'package:famxpense/shared/data/datasources/local/user_local_datasource.dart';
+import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/savings/monthly_saving_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/transfer/transfer_dto.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_participant_entity.dart';
+import 'package:famxpense/shared/domain/entities/income/income_entity.dart';
 import 'package:famxpense/shared/domain/entities/partnership/partnership_entity.dart';
+import 'package:famxpense/shared/domain/entities/savings/monthly_saving_entity.dart';
+import 'package:famxpense/shared/domain/entities/transfer/transfer_entity.dart';
 import 'package:famxpense/shared/domain/entities/user/user_entity.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
+import 'package:famxpense/shared/enums/income_source.dart';
 import 'package:famxpense/shared/enums/partnership_status.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
 import 'package:famxpense/shared/enums/split_type.dart';
@@ -47,6 +62,14 @@ class MockGetPartnershipsUsecase extends Mock implements GetPartnershipsUsecase 
 class MockPartnershipRepository extends Mock implements PartnershipRepository {}
 class MockPartnershipLocalDatasource extends Mock implements PartnershipLocalDatasource {}
 class MockPartnershipRemoteDatasource extends Mock implements PartnershipRemoteDatasource {}
+class MockIncomeLocalDatasource extends Mock implements IncomeLocalDatasource {}
+class MockIncomeRemoteDatasource extends Mock implements IncomeRemoteDatasource {}
+class MockIncomeRepository extends Mock implements IncomeRepository {}
+class MockSavingsLocalDatasource extends Mock implements SavingsLocalDatasource {}
+class MockMonthlySavingRemoteDatasource extends Mock implements MonthlySavingRemoteDatasource {}
+class MockTransferLocalDatasource extends Mock implements TransferLocalDatasource {}
+class MockSavingsRepository extends Mock implements SavingsRepository {}
+class MockRefreshNotifier extends Mock implements RefreshNotifier {}
 
 /// Register fallback values for types used with `any()` matchers.
 void registerFallbacks() {
@@ -85,5 +108,72 @@ void registerFallbacks() {
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
     syncStatus: SyncStatus.synced,
+  ));
+  registerFallbackValue(IncomeEntity(
+    id: '',
+    userId: '',
+    accountId: '',
+    amount: 0,
+    source: IncomeSource.other,
+    description: '',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ));
+  registerFallbackValue(IncomeSource.other);
+  registerFallbackValue(MonthlySavingEntity(
+    id: '',
+    accountId: '',
+    year: 2026,
+    month: 1,
+    goalAmount: 0,
+    savedAmount: 0,
+    openingBalance: 0,
+    closingBalance: 0,
+    achievementPercent: 0,
+    userId: '',
+  ));
+  registerFallbackValue(TransferEntity(
+    id: '',
+    fromAccountId: '',
+    toAccountId: '',
+    fromUserId: '',
+    toUserId: '',
+    amount: 0,
+    description: '',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ));
+  registerFallbackValue(IncomeDto(
+    id: '',
+    userId: '',
+    accountId: '',
+    amount: 0,
+    source: IncomeSource.other,
+    description: '',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ));
+  registerFallbackValue(MonthlySavingDto(
+    id: '',
+    accountId: '',
+    year: 2026,
+    month: 1,
+    goalAmount: 0,
+    savedAmount: 0,
+    openingBalance: 0,
+    closingBalance: 0,
+    achievementPercent: 0,
+    userId: '',
+  ));
+  registerFallbackValue(TransferDto(
+    id: '',
+    fromAccountId: '',
+    toAccountId: '',
+    fromUserId: '',
+    toUserId: '',
+    amount: 0,
+    description: '',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
   ));
 }

@@ -7,26 +7,35 @@ class IncomeRepositoryImpl implements IncomeRepository {
   final IncomeRemoteDatasource _remoteDatasource;
   final AccountRepository _accountRepository;
   final AuthLocalDatasource _authLocalDatasource;
+  final RefreshNotifier _refreshNotifier;
 
   IncomeRepositoryImpl({
     required IncomeLocalDatasource localDatasource,
     required IncomeRemoteDatasource remoteDatasource,
     required AccountRepository accountRepository,
     required AuthLocalDatasource authLocalDatasource,
+    required RefreshNotifier refreshNotifier,
   }) : _localDatasource = localDatasource,
        _remoteDatasource = remoteDatasource,
        _accountRepository = accountRepository,
-       _authLocalDatasource = authLocalDatasource;
+       _authLocalDatasource = authLocalDatasource,
+       _refreshNotifier = refreshNotifier;
 
   @override
   Future<void> addIncome(IncomeEntity income) async {
-    final dto = income.copyWith(updatedAt: DateTime.now().toUtc(), syncStatus: SyncStatus.pending).toDto();
-    await _localDatasource.save(dto);
+    final dto = income.copyWith(
+      updatedAt: DateTime.now().toUtc(),
+      syncStatus: SyncStatus.synced,
+    ).toDto();
 
     try {
       await _remoteDatasource.createIncome(dto);
+      await _localDatasource.save(dto);
     } catch (e) {
-      AppLogger.warning('Income remote upload failed (will sync later)');
+      AppLogger.warning('Firebase sync failed — saved locally');
+      final pending = dto.copyWith(syncStatus: SyncStatus.pending);
+      await _localDatasource.save(pending);
+      _refreshNotifier.notifySyncError('Firebase sync failed — saved locally');
     }
 
     try {

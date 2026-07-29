@@ -88,27 +88,30 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (_) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Filter', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              _filterOption(label: 'All', value: _ActivityFilter.all, icon: Icons.all_inclusive_rounded),
-              _filterOption(label: 'Expenses only', value: _ActivityFilter.expenses, icon: Icons.shopping_bag_rounded),
-              _filterOption(label: 'Deposits only', value: _ActivityFilter.deposits, icon: Icons.account_balance_rounded),
-              _filterOption(label: 'Settlements only', value: _ActivityFilter.settlements, icon: Icons.swap_horiz_rounded),
-              const SizedBox(height: 8),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text('Expense Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              _expenseTypeOption(label: 'Both', value: _ExpenseTypeFilter.all, icon: Icons.all_inclusive_rounded),
-              _expenseTypeOption(label: 'Personal', value: _ExpenseTypeFilter.personal, icon: Icons.person_rounded),
-              _expenseTypeOption(label: 'Shared', value: _ExpenseTypeFilter.shared, icon: Icons.groups_rounded),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Filter', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                _filterOption(label: 'All', value: _ActivityFilter.all, icon: Icons.all_inclusive_rounded),
+                _filterOption(label: 'Expenses only', value: _ActivityFilter.expenses, icon: Icons.shopping_bag_rounded),
+                _filterOption(label: 'Deposits only', value: _ActivityFilter.deposits, icon: Icons.account_balance_rounded),
+                _filterOption(label: 'Settlements only', value: _ActivityFilter.settlements, icon: Icons.swap_horiz_rounded),
+                const SizedBox(height: 8),
+                const Divider(),
+                const SizedBox(height: 8),
+                const Text('Expense Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                _expenseTypeOption(label: 'Both', value: _ExpenseTypeFilter.all, icon: Icons.all_inclusive_rounded),
+                _expenseTypeOption(label: 'Personal', value: _ExpenseTypeFilter.personal, icon: Icons.person_rounded),
+                _expenseTypeOption(label: 'Shared', value: _ExpenseTypeFilter.shared, icon: Icons.groups_rounded),
+              ],
+            ),
           ),
         ),
       ),

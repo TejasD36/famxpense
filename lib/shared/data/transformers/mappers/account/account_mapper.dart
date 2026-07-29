@@ -11,6 +11,8 @@ extension AccountDtoMapper on AccountDto {
       createdAt: createdAt,
       updatedAt: updatedAt,
       isArchived: isArchived,
+      isSavings: isSavings,
+      monthlySavingsGoal: monthlySavingsGoal,
     );
   }
 }
@@ -26,6 +28,8 @@ extension AccountEntityMapper on AccountEntity {
       createdAt: createdAt,
       updatedAt: updatedAt,
       isArchived: isArchived,
+      isSavings: isSavings,
+      monthlySavingsGoal: monthlySavingsGoal,
     );
   }
 }

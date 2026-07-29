@@ -12,6 +12,10 @@ import 'package:famxpense/features/income/data/datasources/remote/income_remote_
 import 'package:famxpense/features/notification/data/datasources/notification_local_datasource.dart';
 import 'package:famxpense/features/notification/data/datasources/remote/notification_remote_datasource.dart';
 import 'package:famxpense/features/partners/data/datasources/remote/partnership_remote_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/savings_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/remote/monthly_saving_remote_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/transfer_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/remote/transfer_remote_datasource.dart';
 import 'package:famxpense/features/settlement/data/datasources/settlement_local_datasource.dart';
 import 'package:famxpense/features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
 import 'package:famxpense/shared/data/datasources/local/user_local_datasource.dart';
@@ -34,6 +38,10 @@ class MockIncomeLocal extends Mock implements IncomeLocalDatasource {}
 class MockIncomeRemote extends Mock implements IncomeRemoteDatasource {}
 class MockNotificationLocal extends Mock implements NotificationLocalDatasource {}
 class MockNotificationRemote extends Mock implements NotificationRemoteDatasource {}
+class MockTransferLocal extends Mock implements TransferLocalDatasource {}
+class MockTransferRemote extends Mock implements TransferRemoteDatasource {}
+class MockSavingsLocalDatasource extends Mock implements SavingsLocalDatasource {}
+class MockMonthlySavingRemoteDatasource extends Mock implements MonthlySavingRemoteDatasource {}
 
 void main() {
   setUpAll(() {
@@ -52,6 +60,8 @@ void main() {
   late SyncService syncService;
   late MockNotificationLocal notificationLocal;
   late MockNotificationRemote notificationRemote;
+  late MockTransferLocal transferLocal;
+  late MockTransferRemote transferRemote;
   late MockExpenseLocalDatasource expenseLocal;
   late MockExpenseRemoteDatasource expenseRemote;
   late MockAccountLocalDataSource accountLocal;
@@ -82,6 +92,8 @@ void main() {
     incomeRemote = MockIncomeRemote();
     notificationLocal = MockNotificationLocal();
     notificationRemote = MockNotificationRemote();
+    transferLocal = MockTransferLocal();
+    transferRemote = MockTransferRemote();
 
     syncService = SyncService(
       expenseLocal: expenseLocal,
@@ -99,6 +111,10 @@ void main() {
       incomeRemote: incomeRemote,
       notificationLocal: notificationLocal,
       notificationRemote: notificationRemote,
+      transferLocal: transferLocal,
+      transferRemote: transferRemote,
+      monthlySavingLocal: MockSavingsLocalDatasource(),
+      monthlySavingRemote: MockMonthlySavingRemoteDatasource(),
     );
   });
 

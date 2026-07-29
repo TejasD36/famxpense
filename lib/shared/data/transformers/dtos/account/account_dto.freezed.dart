@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AccountDto implements DiagnosticableTreeMixin {
 
-@HiveField(0) String get id;@HiveField(1) String get userId;@HiveField(2) String get accountName;@HiveField(3) AccountType get accountType;@HiveField(4) double get currentBalance;@HiveField(5) DateTime get createdAt;@HiveField(6) DateTime get updatedAt;@HiveField(7) bool get isArchived;
+@HiveField(0) String get id;@HiveField(1) String get userId;@HiveField(2) String get accountName;@HiveField(3) AccountType get accountType;@HiveField(4) double get currentBalance;@HiveField(5) DateTime get createdAt;@HiveField(6) DateTime get updatedAt;@HiveField(7) bool get isArchived;@HiveField(8) bool get isSavings;@HiveField(9) double get monthlySavingsGoal;
 /// Create a copy of AccountDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $AccountDtoCopyWith<AccountDto> get copyWith => _$AccountDtoCopyWithImpl<Account
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AccountDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived);
+int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AccountDto(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived)';
+  return 'AccountDto(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $AccountDtoCopyWith<$Res>  {
   factory $AccountDtoCopyWith(AccountDto value, $Res Function(AccountDto) _then) = _$AccountDtoCopyWithImpl;
 @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountName,@HiveField(3) AccountType accountType,@HiveField(4) double currentBalance,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime updatedAt,@HiveField(7) bool isArchived
+@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountName,@HiveField(3) AccountType accountType,@HiveField(4) double currentBalance,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime updatedAt,@HiveField(7) bool isArchived,@HiveField(8) bool isSavings,@HiveField(9) double monthlySavingsGoal
 });
 
 
@@ -71,7 +71,7 @@ class _$AccountDtoCopyWithImpl<$Res>
 
 /// Create a copy of AccountDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,9 @@ as AccountType,currentBalance: null == currentBalance ? _self.currentBalance : c
 as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isSavings: null == isSavings ? _self.isSavings : isSavings // ignore: cast_nullable_to_non_nullable
+as bool,monthlySavingsGoal: null == monthlySavingsGoal ? _self.monthlySavingsGoal : monthlySavingsGoal // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived, @HiveField(8)  bool isSavings, @HiveField(9)  double monthlySavingsGoal)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountDto() when $default != null:
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived);case _:
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived, @HiveField(8)  bool isSavings, @HiveField(9)  double monthlySavingsGoal)  $default,) {final _that = this;
 switch (_that) {
 case _AccountDto():
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived);}
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -201,10 +203,10 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountName, @HiveField(3)  AccountType accountType, @HiveField(4)  double currentBalance, @HiveField(5)  DateTime createdAt, @HiveField(6)  DateTime updatedAt, @HiveField(7)  bool isArchived, @HiveField(8)  bool isSavings, @HiveField(9)  double monthlySavingsGoal)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountDto() when $default != null:
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived);case _:
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);case _:
   return null;
 
 }
@@ -216,7 +218,7 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 @JsonSerializable()
 
 class _AccountDto with DiagnosticableTreeMixin implements AccountDto {
-  const _AccountDto({@HiveField(0) required this.id, @HiveField(1) required this.userId, @HiveField(2) required this.accountName, @HiveField(3) required this.accountType, @HiveField(4) required this.currentBalance, @HiveField(5) required this.createdAt, @HiveField(6) required this.updatedAt, @HiveField(7) this.isArchived = false});
+  const _AccountDto({@HiveField(0) required this.id, @HiveField(1) required this.userId, @HiveField(2) required this.accountName, @HiveField(3) required this.accountType, @HiveField(4) required this.currentBalance, @HiveField(5) required this.createdAt, @HiveField(6) required this.updatedAt, @HiveField(7) this.isArchived = false, @HiveField(8) this.isSavings = false, @HiveField(9) this.monthlySavingsGoal = 0.0});
   factory _AccountDto.fromJson(Map<String, dynamic> json) => _$AccountDtoFromJson(json);
 
 @override@HiveField(0) final  String id;
@@ -227,6 +229,8 @@ class _AccountDto with DiagnosticableTreeMixin implements AccountDto {
 @override@HiveField(5) final  DateTime createdAt;
 @override@HiveField(6) final  DateTime updatedAt;
 @override@JsonKey()@HiveField(7) final  bool isArchived;
+@override@JsonKey()@HiveField(8) final  bool isSavings;
+@override@JsonKey()@HiveField(9) final  double monthlySavingsGoal;
 
 /// Create a copy of AccountDto
 /// with the given fields replaced by the non-null parameter values.
@@ -242,21 +246,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AccountDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived);
+int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AccountDto(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived)';
+  return 'AccountDto(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal)';
 }
 
 
@@ -267,7 +271,7 @@ abstract mixin class _$AccountDtoCopyWith<$Res> implements $AccountDtoCopyWith<$
   factory _$AccountDtoCopyWith(_AccountDto value, $Res Function(_AccountDto) _then) = __$AccountDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountName,@HiveField(3) AccountType accountType,@HiveField(4) double currentBalance,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime updatedAt,@HiveField(7) bool isArchived
+@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountName,@HiveField(3) AccountType accountType,@HiveField(4) double currentBalance,@HiveField(5) DateTime createdAt,@HiveField(6) DateTime updatedAt,@HiveField(7) bool isArchived,@HiveField(8) bool isSavings,@HiveField(9) double monthlySavingsGoal
 });
 
 
@@ -284,7 +288,7 @@ class __$AccountDtoCopyWithImpl<$Res>
 
 /// Create a copy of AccountDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,}) {
   return _then(_AccountDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -294,7 +298,9 @@ as AccountType,currentBalance: null == currentBalance ? _self.currentBalance : c
 as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isSavings: null == isSavings ? _self.isSavings : isSavings // ignore: cast_nullable_to_non_nullable
+as bool,monthlySavingsGoal: null == monthlySavingsGoal ? _self.monthlySavingsGoal : monthlySavingsGoal // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

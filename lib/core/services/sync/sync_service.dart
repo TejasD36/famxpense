@@ -10,6 +10,10 @@ import '../../../features/income/data/datasources/remote/income_remote_datasourc
 import '../../../features/notification/data/datasources/notification_local_datasource.dart';
 import '../../../features/notification/data/datasources/remote/notification_remote_datasource.dart';
 import '../../../features/partners/data/datasources/remote/partnership_remote_datasource.dart';
+import '../../../features/savings/data/datasources/savings_local_datasource.dart';
+import '../../../features/savings/data/datasources/remote/monthly_saving_remote_datasource.dart';
+import '../../../features/savings/data/datasources/transfer_local_datasource.dart';
+import '../../../features/savings/data/datasources/remote/transfer_remote_datasource.dart';
 import '../../../features/settlement/data/datasources/settlement_local_datasource.dart';
 import '../../../features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
 import '../../../shared/data/datasources/local/user_local_datasource.dart';
@@ -41,6 +45,10 @@ class SyncService {
   final IncomeRemoteDatasource _incomeRemote;
   final NotificationLocalDatasource _notificationLocal;
   final NotificationRemoteDatasource _notificationRemote;
+  final TransferLocalDatasource _transferLocal;
+  final TransferRemoteDatasource _transferRemote;
+  final SavingsLocalDatasource _monthlySavingLocal;
+  final MonthlySavingRemoteDatasource _monthlySavingRemote;
 
   SyncService({
     required ExpenseLocalDatasource expenseLocal,
@@ -58,6 +66,10 @@ class SyncService {
     required IncomeRemoteDatasource incomeRemote,
     required NotificationLocalDatasource notificationLocal,
     required NotificationRemoteDatasource notificationRemote,
+    required TransferLocalDatasource transferLocal,
+    required TransferRemoteDatasource transferRemote,
+    required SavingsLocalDatasource monthlySavingLocal,
+    required MonthlySavingRemoteDatasource monthlySavingRemote,
   }) : _expenseLocal = expenseLocal,
        _expenseRemote = expenseRemote,
        _accountLocal = accountLocal,
@@ -72,7 +84,11 @@ class SyncService {
        _incomeLocal = incomeLocal,
        _incomeRemote = incomeRemote,
        _notificationLocal = notificationLocal,
-       _notificationRemote = notificationRemote;
+       _notificationRemote = notificationRemote,
+       _transferLocal = transferLocal,
+       _transferRemote = transferRemote,
+       _monthlySavingLocal = monthlySavingLocal,
+       _monthlySavingRemote = monthlySavingRemote;
 
   Future<bool> syncAll({required String userId}) async {
     if (_isSyncing) {
@@ -89,6 +105,8 @@ class SyncService {
       await syncSettlements(userId: userId);
       await syncUsers(userId: userId);
       await syncIncomes(userId: userId);
+      await syncTransfers(userId: userId);
+      await syncMonthlySavings(userId: userId);
       await syncNotifications(userId: userId);
 
       AppLogger.success('Full sync completed');
@@ -362,6 +380,78 @@ class SyncService {
       return true;
     } catch (e, stackTrace) {
       AppLogger.error('Income sync failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> syncTransfers({required String userId}) async {
+    AppLogger.sync('Transfer sync started');
+
+    try {
+      final localTransfers = await _transferLocal.fetchAll();
+
+      for (final transfer in localTransfers) {
+        if (transfer.syncStatus != SyncStatus.pending) continue;
+        try {
+          await _transferRemote.createTransfer(transfer);
+          final synced = transfer.copyWith(syncStatus: SyncStatus.synced);
+          await _transferLocal.save(synced);
+        } catch (e, stackTrace) {
+          AppLogger.warning('Failed uploading transfer: ${transfer.id}');
+          AppLogger.error('Transfer upload error', e, stackTrace);
+        }
+      }
+
+      final remoteTransfers = await _transferRemote.fetchTransfers(userId: userId);
+      final localAfterUpload = await _transferLocal.fetchAll();
+      final localIds = localAfterUpload.map((t) => t.id).toSet();
+
+      for (final remote in remoteTransfers) {
+        if (!localIds.contains(remote.id)) {
+          await _transferLocal.save(remote);
+        }
+      }
+
+      AppLogger.success('Transfer sync completed (${remoteTransfers.length} remote)');
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error('Transfer sync failed', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> syncMonthlySavings({required String userId}) async {
+    AppLogger.sync('Monthly savings sync started');
+
+    try {
+      final localSnapshots = await _monthlySavingLocal.getAllSnapshots();
+
+      for (final snap in localSnapshots) {
+        if (snap.syncStatus != SyncStatus.pending) continue;
+        try {
+          await _monthlySavingRemote.saveSnapshot(snap);
+          final synced = snap.copyWith(syncStatus: SyncStatus.synced);
+          await _monthlySavingLocal.saveSnapshot(synced);
+        } catch (e, stackTrace) {
+          AppLogger.warning('Failed uploading monthly snapshot: ${snap.id}');
+          AppLogger.error('Monthly snapshot upload error', e, stackTrace);
+        }
+      }
+
+      final remoteSnapshots = await _monthlySavingRemote.fetchSnapshots(userId: userId);
+      final localAfterUpload = await _monthlySavingLocal.getAllSnapshots();
+      final localIds = localAfterUpload.map((s) => s.id).toSet();
+
+      for (final remote in remoteSnapshots) {
+        if (!localIds.contains(remote.id)) {
+          await _monthlySavingLocal.saveSnapshot(remote);
+        }
+      }
+
+      AppLogger.success('Monthly savings sync completed (${remoteSnapshots.length} remote)');
+      return true;
+    } catch (e, stackTrace) {
+      AppLogger.error('Monthly savings sync failed', e, stackTrace);
       return false;
     }
   }

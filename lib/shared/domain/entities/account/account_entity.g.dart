@@ -16,6 +16,9 @@ _AccountEntity _$AccountEntityFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isArchived: json['isArchived'] as bool? ?? false,
+      isSavings: json['isSavings'] as bool? ?? false,
+      monthlySavingsGoal:
+          (json['monthlySavingsGoal'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
@@ -28,6 +31,8 @@ Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isArchived': instance.isArchived,
+      'isSavings': instance.isSavings,
+      'monthlySavingsGoal': instance.monthlySavingsGoal,
     };
 
 const _$AccountTypeEnumMap = {

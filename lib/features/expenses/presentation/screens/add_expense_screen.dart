@@ -327,20 +327,44 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void _showAccountPicker() {
     showModalBottomSheet(
       context: context,
-      builder: (_) => AccountPickerSheet(
+      builder: (ctx) => AccountPickerSheet(
         accounts: _accounts,
         selectedAccountId: _selectedAccount?.id,
         onSelected: (account) {
-          setState(() {
-            _selectedAccount = account;
-            _amountExceedsBalance = false;
-            _forceSubmit = false;
-          });
-          _checkBalance();
+          Navigator.of(ctx).pop();
+          if (account.isSavings) {
+            showDialog<bool>(
+              context: context,
+              builder: (c) => AlertDialog(
+                title: const Text('Savings Account'),
+                content: const Text('Spending from savings will reduce your monthly savings progress. Are you sure?'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                  FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+                ],
+              ),
+            ).then((confirmed) {
+              if (confirmed == true && context.mounted) {
+                setState(() {
+                  _selectedAccount = account;
+                  _amountExceedsBalance = false;
+                  _forceSubmit = false;
+                });
+                _checkBalance();
+              }
+            });
+          } else {
+            setState(() {
+              _selectedAccount = account;
+              _amountExceedsBalance = false;
+              _forceSubmit = false;
+            });
+            _checkBalance();
+          }
         },
-        onAddNew: () async {
-          Navigator.pop(context);
-          await context.pushNamed(AppRoute.addAccount.name);
+        onAddNew: () {
+          Navigator.of(ctx).pop();
+          context.pushNamed(AppRoute.addAccount.name);
           _loadData();
         },
       ),
@@ -493,7 +517,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.account_balance_wallet_rounded),
+                              Icon(_selectedAccount?.isSavings == true ? Icons.savings_rounded : Icons.account_balance_wallet_rounded,
+                                color: _selectedAccount?.isSavings == true ? Colors.amber.shade700 : null),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _selectedAccount == null

@@ -2,10 +2,13 @@ import '../../xcore.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   final AccountLocalDatasource _localDatasource;
+  final AccountRemoteDatasource _remoteDatasource;
 
   AccountRepositoryImpl({
     required AccountLocalDatasource localDatasource,
-  }) : _localDatasource = localDatasource;
+    required AccountRemoteDatasource remoteDatasource,
+  })  : _localDatasource = localDatasource,
+        _remoteDatasource = remoteDatasource;
 
   @override
   Future<List<AccountEntity>> getAccounts({required String userId}) async {
@@ -21,6 +24,9 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<void> deleteAccount(String accountId) async {
     await _localDatasource.deleteAccount(accountId);
+    try {
+      await _remoteDatasource.deleteAccount(accountId);
+    } catch (_) {}
   }
 
   @override

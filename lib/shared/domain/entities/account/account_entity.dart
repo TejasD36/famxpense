@@ -14,6 +14,8 @@ sealed class AccountEntity with _$AccountEntity {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isArchived,
+    @Default(false) bool isSavings,
+    @Default(0.0) double monthlySavingsGoal,
   }) = _AccountEntity;
 
   factory AccountEntity.fromJson(Map<String, dynamic> json) => _$AccountEntityFromJson(json);

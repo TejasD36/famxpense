@@ -25,7 +25,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     final nicknameQuery = await _firestore
         .collection(_usersCollection)
-        .where('nicknameLowercase', isEqualTo: nickname.trim().toLowerCase())
+        .where('nickname', isEqualTo: nickname.trim().toLowerCase())
         .limit(1)
         .get();
 
@@ -39,7 +39,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     final userDto = UserDto(
       id: firebaseUser.uid,
       name: name.trim(),
-      nickname: nickname.trim(),
+      nickname: nickname.trim().toLowerCase(),
       email: email.trim(),
       createdAt: now,
       updatedAt: now,
@@ -48,9 +48,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     /// STORE USER
 
     try {
-      final data = userDto.toJson();
-      data['nicknameLowercase'] = nickname.trim().toLowerCase();
-      await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(data);
+      await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(userDto.toJson());
     } catch (e) {
       /// CLEANUP: remove Firebase Auth user if Firestore write fails
       await firebaseUser.delete();

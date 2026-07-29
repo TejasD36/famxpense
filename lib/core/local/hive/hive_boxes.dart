@@ -20,4 +20,6 @@ abstract final class HiveBoxes {
   static const String manualDeposits = 'manual_deposits_box';
 
   static const String incomes = 'incomes_box';
+  static const String monthlySavings = 'monthly_savings_box';
+  static const String transfers = 'transfers_box';
 }

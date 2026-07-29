@@ -767,25 +767,36 @@ class _DebtSummaryCards extends StatelessWidget {
                               selectedAccountName = userAccounts.firstWhere((a) => a.id == v).accountName;
                             });
                           },
-                          child: Column(
-                            children: userAccounts
-                                .map(
-                                  (a) => ListTile(
-                                    leading: Radio<String>(value: a.id),
-                                    title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
-                                    subtitle: Text(formatIndianRupee(a.currentBalance), style: const TextStyle(fontSize: 12)),
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    onTap: () {
-                                      setDialogState(() {
-                                        selectedAccountId = a.id;
-                                        selectedAccountName = a.accountName;
-                                      });
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                          ),
+                              child: Column(
+                                children: userAccounts
+                                    .map(
+                                      (a) => ListTile(
+                                        leading: Radio<String>(value: a.id),
+                                        title: Row(
+                                          children: [
+                                            Flexible(child: Text(a.accountName, style: TextStyle(fontSize: 14))),
+                                            if (a.isSavings) ...[
+                                              const SizedBox(width: 6),
+                                              Icon(Icons.savings_rounded, size: 16, color: Colors.amber.shade700),
+                                            ],
+                                          ],
+                                        ),
+                                        subtitle: Text(
+                                          formatIndianRupee(a.currentBalance),
+                                          style: TextStyle(fontSize: 12, color: a.isSavings ? Colors.amber.shade700 : null),
+                                        ),
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedAccountId = a.id;
+                                            selectedAccountName = a.accountName;
+                                          });
+                                        },
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
                         ),
                     ],
                   ),
@@ -840,6 +851,25 @@ class _DebtSummaryCards extends StatelessWidget {
                                 );
                                 setDialogState(() => isSettling = false);
                                 return;
+                              }
+
+                              final selectedAccount = userAccounts.where((a) => a.id == selectedAccountId).firstOrNull;
+                              if (selectedAccount?.isSavings == true) {
+                                final confirmed = await showDialog<bool>(
+                                  context: ctx,
+                                  builder: (c) => AlertDialog(
+                                    title: const Text('Savings Account'),
+                                    content: const Text('Settling from savings will reduce your monthly savings progress. Are you sure?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                                      FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed != true) {
+                                  setDialogState(() => isSettling = false);
+                                  return;
+                                }
                               }
 
                               final settleError = await sl<SettleDebtUsecase>()(

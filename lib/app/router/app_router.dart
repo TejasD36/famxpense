@@ -15,6 +15,7 @@ import '../../features/expenses/presentation/screens/home_screen.dart';
 import '../../features/expenses/presentation/screens/search_activity_screen.dart';
 import '../../features/income/presentation/screens/income_list_screen.dart';
 import '../../features/notification/presentation/blocs/notification_bloc.dart';
+import '../../features/savings/presentation/screens/savings_list_screen.dart';
 import '../../features/notification/presentation/screens/notification_screen.dart';
 import '../../features/partners/presentation/blocs/partner_bloc.dart';
 import '../../features/settlement/presentation/screens/settlement_screen.dart';
@@ -157,6 +158,11 @@ class AppRouter {
           path: AppRoute.income.path,
           name: AppRoute.income.name,
           builder: (_, _) => const IncomeListScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.savings.path,
+          name: AppRoute.savings.name,
+          builder: (_, _) => const SavingsListScreen(),
         ),
       ],
     );

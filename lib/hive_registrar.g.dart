@@ -11,7 +11,9 @@ import 'package:famxpense/shared/data/transformers/dtos/expense/expense_particip
 import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/notification/notification_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/partnership/partnership_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/savings/monthly_saving_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/transfer/transfer_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/user/user_dto.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_category.dart';
@@ -35,6 +37,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(IncomeDtoAdapter());
     registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
+    registerAdapter(MonthlySavingDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
@@ -43,6 +46,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
     registerAdapter(SyncStatusAdapter());
+    registerAdapter(TransferDtoAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }
@@ -59,6 +63,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(IncomeDtoAdapter());
     registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
+    registerAdapter(MonthlySavingDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
@@ -67,6 +72,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
     registerAdapter(SyncStatusAdapter());
+    registerAdapter(TransferDtoAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }

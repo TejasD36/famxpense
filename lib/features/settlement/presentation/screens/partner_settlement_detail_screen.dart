@@ -109,14 +109,31 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
       if (userAccounts.length > 1) {
         selectedAccount = await showModalBottomSheet<AccountEntity>(
           context: context,
-          builder: (_) => AccountPickerSheet(
+          builder: (ctx) => AccountPickerSheet(
             accounts: userAccounts,
             selectedAccountId: selectedAccount?.id,
-            onSelected: (a) {},
+            onSelected: (a) {
+              Navigator.of(ctx).pop(a);
+            },
             onAddNew: () => Navigator.of(context).pop(),
           ),
         ) ?? selectedAccount;
       }
+    }
+
+    if (selectedAccount?.isSavings == true) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('Savings Account'),
+          content: const Text('Settling from savings will reduce your monthly savings progress. Are you sure?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
     }
 
     setState(() => _settling = true);

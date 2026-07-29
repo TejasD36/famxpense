@@ -18,6 +18,11 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
   }
 
   @override
+  Future<void> deleteAccount(String accountId) async {
+    await _firestore.collection(_collection).doc(accountId).delete();
+  }
+
+  @override
   Future<List<AccountEntity>> fetchAccounts({required String userId}) async {
     final snapshot = await _firestore.collection(_collection).where('userId', isEqualTo: userId).get();
     return snapshot.docs.map((doc) => _fromJson(doc.data())).toList();
@@ -33,6 +38,8 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       'createdAt': e.createdAt.toIso8601String(),
       'updatedAt': e.updatedAt.toIso8601String(),
       'isArchived': e.isArchived,
+      'isSavings': e.isSavings,
+      'monthlySavingsGoal': e.monthlySavingsGoal,
     };
   }
 
@@ -46,6 +53,8 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isArchived: json['isArchived'] as bool? ?? false,
+      isSavings: json['isSavings'] as bool? ?? false,
+      monthlySavingsGoal: (json['monthlySavingsGoal'] as num?)?.toDouble() ?? 0,
     );
   }
 }

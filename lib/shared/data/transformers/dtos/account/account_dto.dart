@@ -15,6 +15,8 @@ sealed class AccountDto with _$AccountDto {
     @HiveField(5) required DateTime createdAt,
     @HiveField(6) required DateTime updatedAt,
     @HiveField(7) @Default(false) bool isArchived,
+    @HiveField(8) @Default(false) bool isSavings,
+    @HiveField(9) @Default(0.0) double monthlySavingsGoal,
   }) = _AccountDto;
 
   factory AccountDto.fromJson(Map<String, dynamic> json) => _$AccountDtoFromJson(json);
