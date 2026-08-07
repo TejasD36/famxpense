@@ -11,7 +11,10 @@ class AppSettings {
     return box.get(_key(userId)) as String?;
   }
 
-  static Future<void> setDefaultAccountId({required String userId, String? accountId}) async {
+  static Future<void> setDefaultAccountId({
+    required String userId,
+    String? accountId,
+  }) async {
     final box = await _box;
     if (accountId == null) {
       await box.delete(_key(userId));

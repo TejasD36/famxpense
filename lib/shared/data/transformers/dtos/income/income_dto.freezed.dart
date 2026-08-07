@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$IncomeDto implements DiagnosticableTreeMixin {
 
-@HiveField(0) String get id;@HiveField(1) String get userId;@HiveField(2) String get accountId;@HiveField(3) double get amount;@HiveField(4) IncomeSource get source;@HiveField(5) String get description;@HiveField(6) DateTime get createdAt;@HiveField(7) DateTime get updatedAt;@HiveField(8) SyncStatus get syncStatus;
+@HiveField(0) String get id;@HiveField(1) String get userId;@HiveField(2) String get accountId;@HiveField(3) double get amount;@HiveField(4) IncomeSource get source;@HiveField(5) String get description;@HiveField(6) DateTime get createdAt;@HiveField(7) DateTime get updatedAt;@HiveField(8) SyncStatus get syncStatus;@HiveField(9) bool get isDeleted;
 /// Create a copy of IncomeDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $IncomeDtoCopyWith<IncomeDto> get copyWith => _$IncomeDtoCopyWithImpl<IncomeDto>
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'IncomeDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDeleted', isDeleted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IncomeDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IncomeDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus);
+int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus,isDeleted);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'IncomeDto(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus)';
+  return 'IncomeDto(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDeleted: $isDeleted)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $IncomeDtoCopyWith<$Res>  {
   factory $IncomeDtoCopyWith(IncomeDto value, $Res Function(IncomeDto) _then) = _$IncomeDtoCopyWithImpl;
 @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountId,@HiveField(3) double amount,@HiveField(4) IncomeSource source,@HiveField(5) String description,@HiveField(6) DateTime createdAt,@HiveField(7) DateTime updatedAt,@HiveField(8) SyncStatus syncStatus
+@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountId,@HiveField(3) double amount,@HiveField(4) IncomeSource source,@HiveField(5) String description,@HiveField(6) DateTime createdAt,@HiveField(7) DateTime updatedAt,@HiveField(8) SyncStatus syncStatus,@HiveField(9) bool isDeleted
 });
 
 
@@ -71,7 +71,7 @@ class _$IncomeDtoCopyWithImpl<$Res>
 
 /// Create a copy of IncomeDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -82,7 +82,8 @@ as IncomeSource,description: null == description ? _self.description : descripti
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
-as SyncStatus,
+as SyncStatus,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus, @HiveField(9)  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _IncomeDto() when $default != null:
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);case _:
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus, @HiveField(9)  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _IncomeDto():
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);}
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDeleted);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -202,10 +203,10 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@HiveField(0)  String id, @HiveField(1)  String userId, @HiveField(2)  String accountId, @HiveField(3)  double amount, @HiveField(4)  IncomeSource source, @HiveField(5)  String description, @HiveField(6)  DateTime createdAt, @HiveField(7)  DateTime updatedAt, @HiveField(8)  SyncStatus syncStatus, @HiveField(9)  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _IncomeDto() when $default != null:
-return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus);case _:
+return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,_that.description,_that.createdAt,_that.updatedAt,_that.syncStatus,_that.isDeleted);case _:
   return null;
 
 }
@@ -217,7 +218,7 @@ return $default(_that.id,_that.userId,_that.accountId,_that.amount,_that.source,
 @JsonSerializable()
 
 class _IncomeDto with DiagnosticableTreeMixin implements IncomeDto {
-  const _IncomeDto({@HiveField(0) required this.id, @HiveField(1) required this.userId, @HiveField(2) required this.accountId, @HiveField(3) required this.amount, @HiveField(4) required this.source, @HiveField(5) required this.description, @HiveField(6) required this.createdAt, @HiveField(7) required this.updatedAt, @HiveField(8) this.syncStatus = SyncStatus.pending});
+  const _IncomeDto({@HiveField(0) required this.id, @HiveField(1) required this.userId, @HiveField(2) required this.accountId, @HiveField(3) required this.amount, @HiveField(4) required this.source, @HiveField(5) required this.description, @HiveField(6) required this.createdAt, @HiveField(7) required this.updatedAt, @HiveField(8) this.syncStatus = SyncStatus.pending, @HiveField(9) this.isDeleted = false});
   factory _IncomeDto.fromJson(Map<String, dynamic> json) => _$IncomeDtoFromJson(json);
 
 @override@HiveField(0) final  String id;
@@ -229,6 +230,7 @@ class _IncomeDto with DiagnosticableTreeMixin implements IncomeDto {
 @override@HiveField(6) final  DateTime createdAt;
 @override@HiveField(7) final  DateTime updatedAt;
 @override@JsonKey()@HiveField(8) final  SyncStatus syncStatus;
+@override@JsonKey()@HiveField(9) final  bool isDeleted;
 
 /// Create a copy of IncomeDto
 /// with the given fields replaced by the non-null parameter values.
@@ -244,21 +246,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'IncomeDto'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('source', source))..add(DiagnosticsProperty('description', description))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('syncStatus', syncStatus))..add(DiagnosticsProperty('isDeleted', isDeleted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IncomeDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IncomeDto&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.source, source) || other.source == source)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.syncStatus, syncStatus) || other.syncStatus == syncStatus)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus);
+int get hashCode => Object.hash(runtimeType,id,userId,accountId,amount,source,description,createdAt,updatedAt,syncStatus,isDeleted);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'IncomeDto(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus)';
+  return 'IncomeDto(id: $id, userId: $userId, accountId: $accountId, amount: $amount, source: $source, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, syncStatus: $syncStatus, isDeleted: $isDeleted)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$IncomeDtoCopyWith<$Res> implements $IncomeDtoCopyWith<$Re
   factory _$IncomeDtoCopyWith(_IncomeDto value, $Res Function(_IncomeDto) _then) = __$IncomeDtoCopyWithImpl;
 @override @useResult
 $Res call({
-@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountId,@HiveField(3) double amount,@HiveField(4) IncomeSource source,@HiveField(5) String description,@HiveField(6) DateTime createdAt,@HiveField(7) DateTime updatedAt,@HiveField(8) SyncStatus syncStatus
+@HiveField(0) String id,@HiveField(1) String userId,@HiveField(2) String accountId,@HiveField(3) double amount,@HiveField(4) IncomeSource source,@HiveField(5) String description,@HiveField(6) DateTime createdAt,@HiveField(7) DateTime updatedAt,@HiveField(8) SyncStatus syncStatus,@HiveField(9) bool isDeleted
 });
 
 
@@ -286,7 +288,7 @@ class __$IncomeDtoCopyWithImpl<$Res>
 
 /// Create a copy of IncomeDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountId = null,Object? amount = null,Object? source = null,Object? description = null,Object? createdAt = null,Object? updatedAt = null,Object? syncStatus = null,Object? isDeleted = null,}) {
   return _then(_IncomeDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -297,7 +299,8 @@ as IncomeSource,description: null == description ? _self.description : descripti
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,syncStatus: null == syncStatus ? _self.syncStatus : syncStatus // ignore: cast_nullable_to_non_nullable
-as SyncStatus,
+as SyncStatus,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

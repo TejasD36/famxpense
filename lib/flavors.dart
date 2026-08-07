@@ -3,10 +3,7 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'firebase_options.dart' as prod;
 import 'firebase_options_dev.dart' as dev;
 
-enum Flavor {
-  prod,
-  dev,
-}
+enum Flavor { prod, dev }
 
 class F {
   static late final Flavor appFlavor;

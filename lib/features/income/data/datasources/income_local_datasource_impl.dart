@@ -1,6 +1,7 @@
 import '../../xcore.dart';
 
-class IncomeLocalDatasourceImpl extends BaseHiveService<IncomeDto> implements IncomeLocalDatasource {
+class IncomeLocalDatasourceImpl extends BaseHiveService<IncomeDto>
+    implements IncomeLocalDatasource {
   IncomeLocalDatasourceImpl() : super(Hive.box<IncomeDto>(HiveBoxes.incomes));
 
   @override

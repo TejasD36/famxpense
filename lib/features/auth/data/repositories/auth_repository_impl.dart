@@ -6,32 +6,55 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthLocalDatasource _localDatasource;
 
   final UserLocalDatasource _userLocalDatasource;
+  final SyncService _syncService;
 
   AuthRepositoryImpl({
     required AuthRemoteDatasource remoteDatasource,
     required AuthLocalDatasource localDatasource,
     required UserLocalDatasource userLocalDatasource,
+    required SyncService syncService,
   }) : _remoteDatasource = remoteDatasource,
        _localDatasource = localDatasource,
-       _userLocalDatasource = userLocalDatasource;
+       _userLocalDatasource = userLocalDatasource,
+       _syncService = syncService;
 
   @override
-  Future<UserEntity> register({required String name, required String nickname, required String email, required String password}) async {
-    final userDto = await _remoteDatasource.register(name: name, nickname: nickname, email: email, password: password);
+  Future<UserEntity> register({
+    required String name,
+    required String nickname,
+    required String email,
+    required String password,
+  }) async {
+    final userDto = await _remoteDatasource.register(
+      name: name,
+      nickname: nickname,
+      email: email,
+      password: password,
+    );
 
     try {
       await _localDatasource.saveUserId(userDto.id);
       await _userLocalDatasource.saveUser(userDto);
     } catch (e, stackTrace) {
-      AppLogger.error('Failed to save user data locally after registration', e, stackTrace);
+      AppLogger.error(
+        'Failed to save user data locally after registration',
+        e,
+        stackTrace,
+      );
     }
 
     return userDto.toEntity();
   }
 
   @override
-  Future<UserEntity> login({required String email, required String password}) async {
-    final userDto = await _remoteDatasource.login(email: email, password: password);
+  Future<UserEntity> login({
+    required String email,
+    required String password,
+  }) async {
+    final userDto = await _remoteDatasource.login(
+      email: email,
+      password: password,
+    );
 
     await _localDatasource.saveUserId(userDto.id);
     await _userLocalDatasource.saveUser(userDto);
@@ -46,6 +69,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    final userId = _localDatasource.getUserId();
+    if (userId != null) {
+      final synced = await _syncService.syncAll(userId: userId);
+      if (!synced) {
+        throw StateError(
+          'Some local changes could not be backed up. Reconnect and try logging out again.',
+        );
+      }
+    }
+
     await _remoteDatasource.logout();
 
     await _localDatasource.clearAllLocalData();

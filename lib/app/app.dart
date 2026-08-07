@@ -41,7 +41,13 @@ class _AppState extends State<App> {
     authBloc.add(const AuthEvent.checkAuthStatus());
 
     await authBloc.stream
-        .firstWhere((state) => state.maybeWhen(authenticated: (_) => true, unauthenticated: () => true, orElse: () => false))
+        .firstWhere(
+          (state) => state.maybeWhen(
+            authenticated: (_) => true,
+            unauthenticated: () => true,
+            orElse: () => false,
+          ),
+        )
         .timeout(
           const Duration(seconds: 10),
           onTimeout: () {
@@ -94,7 +100,8 @@ class _AppState extends State<App> {
               if (kDebugMode) {
                 return Banner(
                   location: BannerLocation.topStart,
-                  message: '${F.name}${F.appFlavor == Flavor.dev ? ' DEV' : ''}',
+                  message:
+                      '${F.name}${F.appFlavor == Flavor.dev ? ' DEV' : ''}',
                   color: F.appFlavor == Flavor.dev
                       ? Colors.deepOrange.withAlpha(150)
                       : Colors.green.withAlpha(150),

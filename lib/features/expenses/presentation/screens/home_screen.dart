@@ -19,12 +19,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-    context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+    context.read<NotificationBloc>().add(
+      const NotificationEvent.loadNotifications(),
+    );
 
     final notifier = sl<RefreshNotifier>();
     if (notifier.hasData) {
       context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-      context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+      context.read<NotificationBloc>().add(
+        const NotificationEvent.loadNotifications(),
+      );
     }
     notifier.addListener(_onDataChanged);
   }
@@ -38,7 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onDataChanged() {
     if (mounted) {
       context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-      context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+      context.read<NotificationBloc>().add(
+        const NotificationEvent.loadNotifications(),
+      );
     }
   }
 
@@ -46,18 +52,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('FamXpense')),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13.0),
+          child: const Text('FamXpense'),
+        ),
         actions: [
           BlocBuilder<NotificationBloc, NotificationState>(
             builder: (context, state) {
-              final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
+              final unread =
+                  state.whenOrNull(
+                    loaded: (n) => n.where((n) => !n.isRead).length,
+                  ) ??
+                  0;
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
                     tooltip: 'Notifications',
-                    onPressed: () => context.pushNamed(AppRoute.notifications.name),
+                    onPressed: () =>
+                        context.pushNamed(AppRoute.notifications.name),
                   ),
                   if (unread > 0)
                     Positioned(
@@ -65,11 +79,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       top: 6,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.error, shape: BoxShape.circle),
-                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
                         child: Text(
                           unread > 99 ? '99+' : unread.toString(),
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -90,16 +114,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 return RefreshIndicator(
                   onRefresh: () async {
                     final authState = context.read<AuthBloc>().state;
-                    await authState.whenOrNull(authenticated: (user) async {
-                      await sl<SyncService>().syncAll(userId: user.id);
-                      if (context.mounted) context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-                    });
+                    await authState.whenOrNull(
+                      authenticated: (user) async {
+                        await sl<SyncService>().syncAll(userId: user.id);
+                        if (context.mounted) {
+                          context.read<HomeBloc>().add(
+                            const HomeEvent.loadDashboard(),
+                          );
+                        }
+                      },
+                    );
                   },
                   child: LayoutBuilder(
                     builder: (context, constraints) => SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: SizedBox(
-                        height: constraints.maxHeight > 400 ? constraints.maxHeight * 0.7 : 400,
+                        height: constraints.maxHeight > 400
+                            ? constraints.maxHeight * 0.7
+                            : 400,
                         child: _EmptyView(),
                       ),
                     ),
@@ -110,12 +142,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 return RefreshIndicator(
                   onRefresh: () async {
                     final authState = context.read<AuthBloc>().state;
-                    await authState.whenOrNull(authenticated: (user) async {
-                      await sl<SyncService>().syncAll(userId: user.id);
-                      if (context.mounted) context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
-                    });
+                    await authState.whenOrNull(
+                      authenticated: (user) async {
+                        await sl<SyncService>().syncAll(userId: user.id);
+                        if (context.mounted) {
+                          context.read<HomeBloc>().add(
+                            const HomeEvent.loadDashboard(),
+                          );
+                        }
+                      },
+                    );
                   },
-                  child: SingleChildScrollView(physics: const AlwaysScrollableScrollPhysics(), child: SizedBox(height: 300, child: Center(child: Text(message)))),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: 300,
+                      child: Center(child: Text(message)),
+                    ),
+                  ),
                 );
               },
               loaded:
@@ -130,12 +174,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     incomingPendingSettlements,
                     outgoingPendingSettlements,
                   ) {
-                          final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-                          final userName = context.read<AuthBloc>().state.maybeWhen(
-                            authenticated: (user) => user.nickname,
-                            orElse: () => '',
-                          );
-                          String inr(double v) => formatIndianRupee(v);
+                    final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+                    final userName = context.read<AuthBloc>().state.maybeWhen(
+                      authenticated: (user) => user.nickname,
+                      orElse: () => '',
+                    );
+                    String inr(double v) => formatIndianRupee(v);
                     return RefreshIndicator(
                       onRefresh: () async {
                         final authState = context.read<AuthBloc>().state;
@@ -143,20 +187,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         await authState.whenOrNull(
                           authenticated: (user) async {
                             /// SYNC ALL
-                            final syncResult = await sl<SyncService>().syncAll(userId: user.id);
+                            final syncResult = await sl<SyncService>().syncAll(
+                              userId: user.id,
+                            );
 
                             /// RELOAD DASHBOARD
                             if (context.mounted) {
                               if (!syncResult) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: const Text('Sync failed. Check your connection.'),
+                                    content: const Text(
+                                      'Sync failed. Check your connection.',
+                                    ),
                                     behavior: SnackBarBehavior.floating,
-                                    margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+                                    margin: EdgeInsets.only(
+                                      bottom:
+                                          MediaQuery.of(context).size.height *
+                                          0.1,
+                                    ),
                                   ),
                                 );
                               }
-                              context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
+                              context.read<HomeBloc>().add(
+                                const HomeEvent.loadDashboard(),
+                              );
                             }
                           },
                         );
@@ -166,25 +220,49 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(20),
                         children: [
                           /// Header
-                          Text('Welcome, $userName 👋', style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          Text(
+                            'Welcome, $userName 👋',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          const Text('FamXpense', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'FamXpense',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             DateFormat('MMMM yyyy').format(DateTime.now()),
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                           const SizedBox(height: 28),
 
                           /// Pending Confirmations (incoming)
                           if (incomingPendingSettlements.isNotEmpty) ...[
-                            _PendingConfirmations(incoming: incomingPendingSettlements, userId: userId),
+                            _PendingConfirmations(
+                              incoming: incomingPendingSettlements,
+                              userId: userId,
+                            ),
                             const SizedBox(height: 20),
                           ],
 
                           /// Pending Settlements (outgoing)
                           if (outgoingPendingSettlements.isNotEmpty) ...[
-                            _PendingSettlements(outgoing: outgoingPendingSettlements, userId: userId),
+                            _PendingSettlements(
+                              outgoing: outgoingPendingSettlements,
+                              userId: userId,
+                            ),
                             const SizedBox(height: 20),
                           ],
 
@@ -192,7 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           _DebtSummaryCards(
                             debts: debts,
                             userId: sl<AuthLocalDatasource>().getUserId() ?? '',
-                            outgoingPendingSettlements: outgoingPendingSettlements,
+                            outgoingPendingSettlements:
+                                outgoingPendingSettlements,
                           ),
                           const SizedBox(height: 20),
 
@@ -216,20 +295,38 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: _MiniCard(title: 'Shared', value: inr(sharedSpend), icon: Icons.groups_rounded),
+                                child: _MiniCard(
+                                  title: 'Shared',
+                                  value: inr(sharedSpend),
+                                  icon: Icons.groups_rounded,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          _MiniCard(title: 'Pending Sync', value: pendingSyncCount.toString(), icon: Icons.sync_problem_rounded),
+                          _MiniCard(
+                            title: 'Pending Sync',
+                            value: pendingSyncCount.toString(),
+                            icon: Icons.sync_problem_rounded,
+                          ),
                           const SizedBox(height: 32),
 
                           /// Recent Expenses
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Recent Expenses', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                              TextButton(onPressed: () => context.push(AppRoute.activity.path), child: const Text('View All')),
+                              const Text(
+                                'Recent Expenses',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    context.goNamed(AppRoute.activity.name),
+                                child: const Text('View All'),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -237,7 +334,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
 
-                              child: _ExpenseTile(expense: expense, accountName: accountNames[expense.accountId], userId: userId),
+                              child: _ExpenseTile(
+                                expense: expense,
+                                accountName: accountNames[expense.accountId],
+                                userId: userId,
+                              ),
                             );
                           }),
                         ],
@@ -256,7 +357,11 @@ class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  const _SummaryCard({required this.title, required this.value, required this.icon});
+  const _SummaryCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -270,7 +375,9 @@ class _SummaryCard extends StatelessWidget {
               width: 56,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.12),
               ),
               child: Icon(icon),
             ),
@@ -278,9 +385,20 @@ class _SummaryCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ],
@@ -294,7 +412,11 @@ class _MiniCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  const _MiniCard({required this.title, required this.value, required this.icon});
+  const _MiniCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -307,9 +429,17 @@ class _MiniCard extends StatelessWidget {
           children: [
             Icon(icon),
             const SizedBox(height: 16),
-            Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -337,17 +467,27 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
       children: [
         Row(
           children: [
-            Icon(Icons.hourglass_bottom_rounded, color: Colors.orange.shade700, size: 20),
+            Icon(
+              Icons.hourglass_bottom_rounded,
+              color: Colors.orange.shade700,
+              size: 20,
+            ),
             const SizedBox(width: 6),
             Text(
               'Pending Confirmations',
-              style: TextStyle(color: Colors.orange.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.orange.shade700,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 8),
         ...widget.incoming.map((s) {
-          final otherId = s.fromUserId == widget.userId ? s.toUserId : s.fromUserId;
+          final otherId = s.fromUserId == widget.userId
+              ? s.toUserId
+              : s.fromUserId;
           final other = sl<UserLocalDatasource>().getUser(otherId);
           final name = other?.nickname ?? 'Unknown';
           final isConfirming = _confirmingIds.contains(s.id);
@@ -364,37 +504,65 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: Colors.orange.withValues(alpha: 0.15),
-                      child: Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: TextStyle(color: Colors.orange.shade700, fontWeight: FontWeight.bold),
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        color: Colors.orange.shade700,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('@$name wants to settle', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text(
+                          '@$name wants to settle',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
                         Text(
                           formatIndianRupee(s.amount),
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orange.shade700),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.orange.shade700,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     icon: isConfirming
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.check_circle_rounded, color: Colors.green),
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.green,
+                          ),
                     tooltip: 'Confirm',
-                    onPressed: isProcessing ? null : () => _handleConfirm(context, s),
+                    onPressed: isProcessing
+                        ? null
+                        : () => _handleConfirm(context, s),
                   ),
                   IconButton(
                     icon: isRejecting
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.cancel_rounded, color: Colors.red),
                     tooltip: 'Reject',
-                    onPressed: isProcessing ? null : () => _handleReject(context, s),
+                    onPressed: isProcessing
+                        ? null
+                        : () => _handleReject(context, s),
                   ),
                 ],
               ),
@@ -405,14 +573,23 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
     );
   }
 
-  Future<void> _handleConfirm(BuildContext context, SettlementEntity settlement) async {
+  Future<void> _handleConfirm(
+    BuildContext context,
+    SettlementEntity settlement,
+  ) async {
     setState(() => _confirmingIds.add(settlement.id));
     try {
-      await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Settlement confirmed'), behavior: SnackBarBehavior.floating));
+      await sl<ProcessSettlementUsecase>().confirm(
+        settlementId: settlement.id,
+        toAccountId: null,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Settlement confirmed'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
       }
     } finally {
@@ -420,12 +597,20 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
     }
   }
 
-  Future<void> _handleReject(BuildContext context, SettlementEntity settlement) async {
+  Future<void> _handleReject(
+    BuildContext context,
+    SettlementEntity settlement,
+  ) async {
     setState(() => _rejectingIds.add(settlement.id));
     try {
       await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settlement rejected'), behavior: SnackBarBehavior.floating));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Settlement rejected'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         context.read<HomeBloc>().add(const HomeEvent.loadDashboard());
       }
     } finally {
@@ -446,11 +631,19 @@ class _PendingSettlements extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.access_time_rounded, color: Colors.blue.shade700, size: 20),
+            Icon(
+              Icons.access_time_rounded,
+              color: Colors.blue.shade700,
+              size: 20,
+            ),
             const SizedBox(width: 6),
             Text(
               'Pending Settlements',
-              style: TextStyle(color: Colors.blue.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.blue.shade700,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -470,22 +663,43 @@ class _PendingSettlements extends StatelessWidget {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: Colors.blue.withValues(alpha: 0.15),
-                    child: Icon(Icons.access_time_rounded, size: 20, color: Colors.blue.shade700),
+                    child: Icon(
+                      Icons.access_time_rounded,
+                      size: 20,
+                      color: Colors.blue.shade700,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('To @$name', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text(
+                          'To @$name',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
                         Text(
                           formatIndianRupee(s.amount),
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue.shade700),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.blue.shade700,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Text('Awaiting\nconfirmation', style: TextStyle(fontSize: 11, color: Colors.blue.shade300, height: 1.3)),
+                  Text(
+                    'Awaiting\nconfirmation',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.blue.shade300,
+                      height: 1.3,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -500,7 +714,11 @@ class _ExpenseTile extends StatelessWidget {
   final ExpenseEntity expense;
   final String? accountName;
   final String userId;
-  const _ExpenseTile({required this.expense, this.accountName, required this.userId});
+  const _ExpenseTile({
+    required this.expense,
+    this.accountName,
+    required this.userId,
+  });
 
   double get _userShare {
     if (expense.expenseType == ExpenseType.personal) return expense.amount;
@@ -514,24 +732,50 @@ class _ExpenseTile extends StatelessWidget {
     return Card(
       elevation: 0,
       child: ListTile(
-        leading: CircleAvatar(child: Icon(expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded)),
+        leading: CircleAvatar(
+          child: Icon(
+            expense.expenseType == ExpenseType.shared
+                ? Icons.groups_rounded
+                : Icons.person_rounded,
+          ),
+        ),
         title: Text(expense.title),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text([DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate), ?accountName].join(' • ')),
+            Text(
+              [
+                DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate),
+                ?accountName,
+              ].join(' • '),
+            ),
             if (cat != null && cat != ExpenseCategory.other.name) ...[
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(4)),
-                child: Text(ExpenseCategory.values.where((e) => e.name == cat).firstOrNull?.label ?? cat,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  ExpenseCategory.values
+                          .where((e) => e.name == cat)
+                          .firstOrNull
+                          ?.label ??
+                      cat,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ],
         ),
-        trailing: Text(formatIndianRupee(_userShare), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        trailing: Text(
+          formatIndianRupee(_userShare),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -548,12 +792,17 @@ class _EmptyView extends StatelessWidget {
           children: [
             const Icon(Icons.receipt_long_rounded, size: 80),
             const SizedBox(height: 24),
-            const Text('No expenses yet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text(
+              'No expenses yet',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Text(
               'Tap the + button below to add your first expense.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -567,13 +816,19 @@ class _DebtSummaryCards extends StatelessWidget {
   final String userId;
   final List<SettlementEntity> outgoingPendingSettlements;
 
-  const _DebtSummaryCards({required this.debts, required this.userId, this.outgoingPendingSettlements = const []});
+  const _DebtSummaryCards({
+    required this.debts,
+    required this.userId,
+    this.outgoingPendingSettlements = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
     if (debts.isEmpty) return const SizedBox();
 
-    final pendingFromUserIds = outgoingPendingSettlements.map((s) => s.toUserId).toSet();
+    final pendingFromUserIds = outgoingPendingSettlements
+        .map((s) => s.toUserId)
+        .toSet();
 
     final youAreOwed = <MapEntry<String, double>>[];
     final youOwe = <MapEntry<String, double>>[];
@@ -602,30 +857,65 @@ class _DebtSummaryCards extends StatelessWidget {
     return Column(
       children: [
         if (youAreOwed.isNotEmpty) ...[
-          _sectionHeader(context, Icons.arrow_downward_rounded, Colors.green, 'You are owed'),
+          _sectionHeader(
+            context,
+            Icons.arrow_downward_rounded,
+            Colors.green,
+            'You are owed',
+          ),
           const SizedBox(height: 8),
           ...youAreOwed.map(
-            (e) => _debtCard(context, e, Colors.green, settle: false, userId: userId, pendingFromUserIds: pendingFromUserIds),
+            (e) => _debtCard(
+              context,
+              e,
+              Colors.green,
+              settle: false,
+              userId: userId,
+              pendingFromUserIds: pendingFromUserIds,
+            ),
           ),
           const SizedBox(height: 16),
         ],
         if (youOwe.isNotEmpty) ...[
-          _sectionHeader(context, Icons.arrow_upward_rounded, Colors.red, 'You owe'),
+          _sectionHeader(
+            context,
+            Icons.arrow_upward_rounded,
+            Colors.red,
+            'You owe',
+          ),
           const SizedBox(height: 8),
-          ...youOwe.map((e) => _debtCard(context, e, Colors.red, settle: true, userId: userId, pendingFromUserIds: pendingFromUserIds)),
+          ...youOwe.map(
+            (e) => _debtCard(
+              context,
+              e,
+              Colors.red,
+              settle: true,
+              userId: userId,
+              pendingFromUserIds: pendingFromUserIds,
+            ),
+          ),
         ],
       ],
     );
   }
 
-  Widget _sectionHeader(BuildContext context, IconData icon, MaterialColor color, String title) {
+  Widget _sectionHeader(
+    BuildContext context,
+    IconData icon,
+    MaterialColor color,
+    String title,
+  ) {
     return Row(
       children: [
         Icon(icon, color: color.shade700, size: 20),
         const SizedBox(width: 6),
         Text(
           title,
-          style: TextStyle(color: color.shade700, fontSize: 15, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: color.shade700,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -657,7 +947,10 @@ class _DebtSummaryCards extends StatelessWidget {
               backgroundColor: color.withValues(alpha: 0.15),
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : '?',
-                style: TextStyle(color: color.shade700, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: color.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -665,10 +958,20 @@ class _DebtSummaryCards extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('@$name', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  Text(
+                    '@$name',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                   Text(
                     formatIndianRupee(amount),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color.shade700),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: color.shade700,
+                    ),
                   ),
                 ],
               ),
@@ -678,12 +981,22 @@ class _DebtSummaryCards extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Text(
                   'Pending',
-                  style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               )
             else if (settle)
               TextButton(
-                onPressed: () => _showSettleDialog(context, userId: userId, fromUserId: userId, toUserId: entry.key, amount: amount),
+                onPressed: () => _showSettleDialog(
+                  context,
+                  userId: userId,
+                  fromUserId: userId,
+                  toUserId: entry.key,
+                  amount: amount,
+                ),
                 child: const Text('Settle', style: TextStyle(fontSize: 13)),
               ),
           ],
@@ -711,7 +1024,9 @@ class _DebtSummaryCards extends StatelessWidget {
         return FutureBuilder<List<AccountDto>>(
           future: sl<AccountLocalDatasource>().getAccounts(),
           builder: (context, snapshot) {
-            final userAccounts = (snapshot.data ?? []).where((a) => a.userId == fromUserId).toList();
+            final userAccounts = (snapshot.data ?? [])
+                .where((a) => a.userId == fromUserId)
+                .toList();
             String? selectedAccountId;
             String? selectedAccountName;
 
@@ -722,7 +1037,11 @@ class _DebtSummaryCards extends StatelessWidget {
                   selectedAccountName = userAccounts.first.accountName;
                 }
                 final selectedAccountBalance = selectedAccountId != null
-                    ? userAccounts.where((a) => a.id == selectedAccountId).firstOrNull?.currentBalance ?? 0
+                    ? userAccounts
+                              .where((a) => a.id == selectedAccountId)
+                              .firstOrNull
+                              ?.currentBalance ??
+                          0
                     : 0.0;
 
                 return AlertDialog(
@@ -738,7 +1057,9 @@ class _DebtSummaryCards extends StatelessWidget {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText: 'Amount (₹)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onChanged: (_) => setDialogState(() {}),
                       ),
@@ -746,57 +1067,95 @@ class _DebtSummaryCards extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           'Balance: ${formatIndianRupee(selectedAccountBalance)}',
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 16),
-                      const Text('Pay from account:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Pay from account:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       if (snapshot.connectionState != ConnectionState.done)
                         const Center(
-                          child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)),
+                          child: Padding(
+                            padding: EdgeInsets.all(8),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         )
                       else if (userAccounts.isEmpty)
-                        Text('No accounts available', style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant))
+                        Text(
+                          'No accounts available',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        )
                       else
                         RadioGroup<String>(
                           groupValue: selectedAccountId,
                           onChanged: (v) {
                             setDialogState(() {
                               selectedAccountId = v;
-                              selectedAccountName = userAccounts.firstWhere((a) => a.id == v).accountName;
+                              selectedAccountName = userAccounts
+                                  .firstWhere((a) => a.id == v)
+                                  .accountName;
                             });
                           },
-                              child: Column(
-                                children: userAccounts
-                                    .map(
-                                      (a) => ListTile(
-                                        leading: Radio<String>(value: a.id),
-                                        title: Row(
-                                          children: [
-                                            Flexible(child: Text(a.accountName, style: TextStyle(fontSize: 14))),
-                                            if (a.isSavings) ...[
-                                              const SizedBox(width: 6),
-                                              Icon(Icons.savings_rounded, size: 16, color: Colors.amber.shade700),
-                                            ],
-                                          ],
+                          child: Column(
+                            children: userAccounts
+                                .map(
+                                  (a) => ListTile(
+                                    leading: Radio<String>(value: a.id),
+                                    title: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            a.accountName,
+                                            style: TextStyle(fontSize: 14),
+                                          ),
                                         ),
-                                        subtitle: Text(
-                                          formatIndianRupee(a.currentBalance),
-                                          style: TextStyle(fontSize: 12, color: a.isSavings ? Colors.amber.shade700 : null),
-                                        ),
-                                        dense: true,
-                                        contentPadding: EdgeInsets.zero,
-                                        onTap: () {
-                                          setDialogState(() {
-                                            selectedAccountId = a.id;
-                                            selectedAccountName = a.accountName;
-                                          });
-                                        },
+                                        if (a.isSavings) ...[
+                                          const SizedBox(width: 6),
+                                          Icon(
+                                            Icons.savings_rounded,
+                                            size: 16,
+                                            color: Colors.amber.shade700,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    subtitle: Text(
+                                      formatIndianRupee(a.currentBalance),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: a.isSavings
+                                            ? Colors.amber.shade700
+                                            : null,
                                       ),
-                                    )
-                                    .toList(),
-                              ),
+                                    ),
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    onTap: () {
+                                      setDialogState(() {
+                                        selectedAccountId = a.id;
+                                        selectedAccountName = a.accountName;
+                                      });
+                                    },
+                                  ),
+                                )
+                                .toList(),
+                          ),
                         ),
                     ],
                   ),
@@ -810,17 +1169,26 @@ class _DebtSummaryCards extends StatelessWidget {
                           ? null
                           : () async {
                               setDialogState(() => isSettling = true);
-                              final settleAmount = double.tryParse(controller.text.trim()) ?? 0;
+                              final settleAmount =
+                                  double.tryParse(controller.text.trim()) ?? 0;
                               if (settleAmount <= 0) {
                                 messenger.showSnackBar(
-                                  SnackBar(content: const Text('Enter a valid amount greater than 0'), behavior: SnackBarBehavior.floating),
+                                  SnackBar(
+                                    content: const Text(
+                                      'Enter a valid amount greater than 0',
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
                                 );
                                 setDialogState(() => isSettling = false);
                                 return;
                               }
                               if (settleAmount > 999999999) {
                                 messenger.showSnackBar(
-                                  SnackBar(content: const Text('Amount too large'), behavior: SnackBarBehavior.floating),
+                                  SnackBar(
+                                    content: const Text('Amount too large'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
                                 );
                                 setDialogState(() => isSettling = false);
                                 return;
@@ -828,7 +1196,9 @@ class _DebtSummaryCards extends StatelessWidget {
                               if (settleAmount > amount) {
                                 messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text('Amount cannot exceed ${formatIndianRupee(amount)}'),
+                                    content: Text(
+                                      'Amount cannot exceed ${formatIndianRupee(amount)}',
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -837,7 +1207,12 @@ class _DebtSummaryCards extends StatelessWidget {
                               }
                               if (selectedAccountId == null) {
                                 messenger.showSnackBar(
-                                  SnackBar(content: const Text('Select an account to pay from'), behavior: SnackBarBehavior.floating),
+                                  SnackBar(
+                                    content: const Text(
+                                      'Select an account to pay from',
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
                                 );
                                 setDialogState(() => isSettling = false);
                                 return;
@@ -845,7 +1220,9 @@ class _DebtSummaryCards extends StatelessWidget {
                               if (settleAmount > selectedAccountBalance) {
                                 messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text('Insufficient balance in $selectedAccountName (${formatIndianRupee(selectedAccountBalance)})'),
+                                    content: Text(
+                                      'Insufficient balance in $selectedAccountName (${formatIndianRupee(selectedAccountBalance)})',
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -853,16 +1230,27 @@ class _DebtSummaryCards extends StatelessWidget {
                                 return;
                               }
 
-                              final selectedAccount = userAccounts.where((a) => a.id == selectedAccountId).firstOrNull;
+                              final selectedAccount = userAccounts
+                                  .where((a) => a.id == selectedAccountId)
+                                  .firstOrNull;
                               if (selectedAccount?.isSavings == true) {
                                 final confirmed = await showDialog<bool>(
                                   context: ctx,
                                   builder: (c) => AlertDialog(
                                     title: const Text('Savings Account'),
-                                    content: const Text('Settling from savings will reduce your monthly savings progress. Are you sure?'),
+                                    content: const Text(
+                                      'Settling from savings will reduce your monthly savings progress. Are you sure?',
+                                    ),
                                     actions: [
-                                      TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                                      FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(c, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => Navigator.pop(c, true),
+                                        child: const Text('Use anyway'),
+                                      ),
                                     ],
                                   ),
                                 );
@@ -883,7 +1271,10 @@ class _DebtSummaryCards extends StatelessWidget {
                               Navigator.pop(ctx);
                               messenger.showSnackBar(
                                 SnackBar(
-                                  content: Text(settleError ?? 'Settled successfully from $selectedAccountName'),
+                                  content: Text(
+                                    settleError ??
+                                        'Settled successfully from $selectedAccountName',
+                                  ),
                                   behavior: SnackBarBehavior.floating,
                                   margin: EdgeInsets.only(bottom: bottomInset),
                                 ),
@@ -891,7 +1282,11 @@ class _DebtSummaryCards extends StatelessWidget {
                               homeBloc.add(const HomeEvent.loadDashboard());
                             },
                       child: isSettling
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Text('Settle'),
                     ),
                   ],

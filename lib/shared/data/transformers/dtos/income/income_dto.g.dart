@@ -28,13 +28,14 @@ class IncomeDtoAdapter extends TypeAdapter<IncomeDto> {
       syncStatus: fields[8] == null
           ? SyncStatus.pending
           : fields[8] as SyncStatus,
+      isDeleted: fields[9] == null ? false : fields[9] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, IncomeDto obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -52,7 +53,9 @@ class IncomeDtoAdapter extends TypeAdapter<IncomeDto> {
       ..writeByte(7)
       ..write(obj.updatedAt)
       ..writeByte(8)
-      ..write(obj.syncStatus);
+      ..write(obj.syncStatus)
+      ..writeByte(9)
+      ..write(obj.isDeleted);
   }
 
   @override
@@ -82,6 +85,7 @@ _IncomeDto _$IncomeDtoFromJson(Map<String, dynamic> json) => _IncomeDto(
   syncStatus:
       $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
       SyncStatus.pending,
+  isDeleted: json['isDeleted'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$IncomeDtoToJson(_IncomeDto instance) =>
@@ -95,6 +99,7 @@ Map<String, dynamic> _$IncomeDtoToJson(_IncomeDto instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
+      'isDeleted': instance.isDeleted,
     };
 
 const _$IncomeSourceEnumMap = {

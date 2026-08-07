@@ -35,10 +35,26 @@ class AppRouter {
 
       routes: [
         /// AUTH
-        GoRoute(path: AppRoute.splash.path, name: AppRoute.splash.name, builder: (_, _) => const SplashScreen()),
-        GoRoute(path: AppRoute.login.path, name: AppRoute.login.name, builder: (_, _) => const LoginScreen()),
-        GoRoute(path: AppRoute.register.path, name: AppRoute.register.name, builder: (_, _) => const RegisterScreen()),
-        GoRoute(path: AppRoute.forgotPassword.path, name: AppRoute.forgotPassword.name, builder: (_, _) => const ForgotPasswordScreen()),
+        GoRoute(
+          path: AppRoute.splash.path,
+          name: AppRoute.splash.name,
+          builder: (_, _) => const SplashScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.login.path,
+          name: AppRoute.login.name,
+          builder: (_, _) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.register.path,
+          name: AppRoute.register.name,
+          builder: (_, _) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.forgotPassword.path,
+          name: AppRoute.forgotPassword.name,
+          builder: (_, _) => const ForgotPasswordScreen(),
+        ),
 
         /// MAIN SHELL
         StatefulShellRoute.indexedStack(
@@ -56,7 +72,29 @@ class AppRouter {
                   path: AppRoute.home.path,
                   name: AppRoute.home.name,
                   builder: (_, _) {
-                    return BlocProvider(create: (_) => sl<HomeBloc>(), child: const HomeScreen());
+                    return BlocProvider(
+                      create: (_) => sl<HomeBloc>(),
+                      child: const HomeScreen(),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            /// ACTIVITY
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoute.activity.path,
+                  name: AppRoute.activity.name,
+                  builder: (_, _) {
+                    return MultiBlocProvider(
+                      providers: [
+                        BlocProvider(create: (_) => sl<ActivityBloc>()),
+                        BlocProvider(create: (_) => sl<StatisticsBloc>()),
+                      ],
+                      child: const ActivityScreen(),
+                    );
                   },
                 ),
               ],
@@ -69,30 +107,23 @@ class AppRouter {
                   path: AppRoute.partners.path,
                   name: AppRoute.partners.name,
                   builder: (_, _) {
-                    return BlocProvider(create: (_) => sl<PartnerBloc>(), child: const PartnersScreen());
+                    return BlocProvider(
+                      create: (_) => sl<PartnerBloc>(),
+                      child: const PartnersScreen(),
+                    );
                   },
                   routes: [
                     GoRoute(
                       path: 'add',
                       name: AppRoute.addPartner.name,
                       builder: (_, _) {
-                        return BlocProvider(create: (_) => sl<PartnerBloc>(), child: const AddPartnerScreen());
+                        return BlocProvider(
+                          create: (_) => sl<PartnerBloc>(),
+                          child: const AddPartnerScreen(),
+                        );
                       },
                     ),
                   ],
-                ),
-              ],
-            ),
-
-            /// STATISTICS
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
-                  path: AppRoute.statistics.path,
-                  name: AppRoute.statistics.name,
-                  builder: (_, _) {
-                    return BlocProvider(create: (_) => sl<StatisticsBloc>(), child: const StatisticsScreen());
-                  },
                 ),
               ],
             ),
@@ -115,28 +146,38 @@ class AppRouter {
           path: AppRoute.addExpense.path,
           name: AppRoute.addExpense.name,
           builder: (_, _) {
-            return BlocProvider(create: (_) => sl<AddExpenseBloc>(), child: const AddExpenseScreen());
+            return BlocProvider(
+              create: (_) => sl<AddExpenseBloc>(),
+              child: const AddExpenseScreen(),
+            );
           },
         ),
         GoRoute(
-          path: AppRoute.activity.path,
-          name: AppRoute.activity.name,
-          builder: (_, _) {
-            return BlocProvider(create: (_) => sl<ActivityBloc>(), child: const ActivityScreen());
-          },
+          path: AppRoute.statistics.path,
+          name: AppRoute.statistics.name,
+          builder: (_, _) => BlocProvider(
+            create: (_) => sl<StatisticsBloc>(),
+            child: const StatisticsScreen(),
+          ),
         ),
         GoRoute(
           path: AppRoute.addAccount.path,
           name: AppRoute.addAccount.name,
           builder: (_, _) {
-            return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AddAccountScreen());
+            return BlocProvider(
+              create: (_) => sl<AccountBloc>(),
+              child: const AddAccountScreen(),
+            );
           },
         ),
         GoRoute(
           path: AppRoute.accountDetail.path,
           name: AppRoute.accountDetail.name,
           builder: (_, _) {
-            return BlocProvider(create: (_) => sl<AccountBloc>(), child: const AccountDetailScreen());
+            return BlocProvider(
+              create: (_) => sl<AccountBloc>(),
+              child: const AccountDetailScreen(),
+            );
           },
         ),
         GoRoute(
@@ -147,7 +188,10 @@ class AppRouter {
         GoRoute(
           path: AppRoute.notifications.path,
           name: AppRoute.notifications.name,
-          builder: (_, _) => BlocProvider(create: (_) => sl<NotificationBloc>(), child: const NotificationScreen()),
+          builder: (_, _) => BlocProvider(
+            create: (_) => sl<NotificationBloc>(),
+            child: const NotificationScreen(),
+          ),
         ),
         GoRoute(
           path: AppRoute.settlements.path,

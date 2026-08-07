@@ -13,8 +13,12 @@ class RealtimeNotificationService {
 
   void startListening(String userId) {
     _subscription?.cancel();
-    _subscription = _remote.streamNotifications(userId: userId).listen((notifications) async {
-      final localIds = (await _local.getNotifications()).map((n) => n.id).toSet();
+    _subscription = _remote.streamNotifications(userId: userId).listen((
+      notifications,
+    ) async {
+      final localIds = (await _local.getNotifications())
+          .map((n) => n.id)
+          .toSet();
       var hasNew = false;
       for (final n in notifications) {
         if (!localIds.contains(n.id)) {

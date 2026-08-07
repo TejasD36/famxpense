@@ -1,7 +1,9 @@
 import '../../xcore.dart';
 
-class DebtLedgerLocalDatasourceImpl extends BaseHiveService<DebtLedgerDto> implements DebtLedgerLocalDatasource {
-  DebtLedgerLocalDatasourceImpl() : super(Hive.box<DebtLedgerDto>(HiveBoxes.debtLedger));
+class DebtLedgerLocalDatasourceImpl extends BaseHiveService<DebtLedgerDto>
+    implements DebtLedgerLocalDatasource {
+  DebtLedgerLocalDatasourceImpl()
+    : super(Hive.box<DebtLedgerDto>(HiveBoxes.debtLedger));
 
   @override
   Future<void> saveLedger(DebtLedgerDto ledger) async {

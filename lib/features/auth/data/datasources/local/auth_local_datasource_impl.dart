@@ -32,6 +32,10 @@ class AuthLocalDatasourceImpl implements AuthLocalDatasource {
       HiveBoxes.partnerships,
       HiveBoxes.debtLedger,
       HiveBoxes.notifications,
+      HiveBoxes.manualDeposits,
+      HiveBoxes.incomes,
+      HiveBoxes.monthlySavings,
+      HiveBoxes.transfers,
     ];
 
     for (final boxName in userBoxes) {

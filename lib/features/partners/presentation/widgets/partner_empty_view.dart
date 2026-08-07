@@ -5,7 +5,11 @@ class PartnerEmptyView extends StatelessWidget {
 
   final String subtitle;
 
-  const PartnerEmptyView({super.key, required this.title, required this.subtitle});
+  const PartnerEmptyView({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,11 @@ class PartnerEmptyView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
 
           children: [
-            Icon(Icons.people_outline_rounded, size: 72, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.people_outline_rounded,
+              size: 72,
+              color: Theme.of(context).colorScheme.primary,
+            ),
 
             const SizedBox(height: 20),
 
@@ -36,7 +44,9 @@ class PartnerEmptyView extends StatelessWidget {
 
               textAlign: TextAlign.center,
 
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

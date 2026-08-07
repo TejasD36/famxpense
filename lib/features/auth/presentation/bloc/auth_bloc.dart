@@ -38,7 +38,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutEvent>(_onLogout);
   }
 
-  Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatusEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
@@ -58,7 +61,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      final user = await _loginUsecase(email: event.email, password: event.password);
+      final user = await _loginUsecase(
+        email: event.email,
+        password: event.password,
+      );
 
       emit(AuthAuthenticated(user));
     } catch (e) {
@@ -70,7 +76,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      final user = await _registerUsecase(name: event.name, nickname: event.nickname, email: event.email, password: event.password);
+      final user = await _registerUsecase(
+        name: event.name,
+        nickname: event.nickname,
+        email: event.email,
+        password: event.password,
+      );
 
       emit(AuthAuthenticated(user));
     } catch (e) {
@@ -78,7 +89,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onForgotPassword(ForgotPasswordEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onForgotPassword(
+    ForgotPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {

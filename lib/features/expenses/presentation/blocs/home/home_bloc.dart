@@ -24,24 +24,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<LoadDashboardEvent>(_onLoadDashboard);
   }
 
-  Future<void> _onLoadDashboard(LoadDashboardEvent event, Emitter<HomeState> emit) async {
+  Future<void> _onLoadDashboard(
+    LoadDashboardEvent event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(const HomeState.loading());
 
     try {
       final expenses = await _getExpensesUsecase();
       final userId = sl<AuthLocalDatasource>().getUserId();
-      final debts = userId != null ? await _getDebtsUsecase(userId: userId) : <DebtLedgerEntity>[];
+      final debts = userId != null
+          ? await _getDebtsUsecase(userId: userId)
+          : <DebtLedgerEntity>[];
       final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
       final accountNames = {for (final a in accountDtos) a.id: a.accountName};
 
       /// Load pending settlements
       final allSettlements = await _settlementLocal.getSettlements();
       final incomingPending = allSettlements
-          .where((s) => s.toUserId == userId && s.status == SettlementStatus.pending)
+          .where(
+            (s) => s.toUserId == userId && s.status == SettlementStatus.pending,
+          )
           .map((d) => d.toEntity())
           .toList();
       final outgoingPending = allSettlements
-          .where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending)
+          .where(
+            (s) =>
+                s.fromUserId == userId && s.status == SettlementStatus.pending,
+          )
           .map((d) => d.toEntity())
           .toList();
 
@@ -49,17 +59,26 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       double userShare(ExpenseEntity expense) {
         if (expense.expenseType == ExpenseType.personal) return expense.amount;
-        final p = expense.participants.where((p) => p.userId == userId).firstOrNull;
+        final p = expense.participants
+            .where((p) => p.userId == userId)
+            .firstOrNull;
         return p?.amount ?? 0;
       }
 
-      double sumShare(Iterable<ExpenseEntity> exps) => exps.fold<double>(0, (s, e) => s + userShare(e));
+      double sumShare(Iterable<ExpenseEntity> exps) =>
+          exps.fold<double>(0, (s, e) => s + userShare(e));
 
       final totalSpend = sumShare(expenses);
-      final personalSpend = sumShare(expenses.where((e) => e.expenseType == ExpenseType.personal));
-      final sharedSpend = sumShare(expenses.where((e) => e.expenseType == ExpenseType.shared));
+      final personalSpend = sumShare(
+        expenses.where((e) => e.expenseType == ExpenseType.personal),
+      );
+      final sharedSpend = sumShare(
+        expenses.where((e) => e.expenseType == ExpenseType.shared),
+      );
 
-      final pendingSyncCount = expenses.where((e) => e.syncStatus == SyncStatus.pending).length;
+      final pendingSyncCount = expenses
+          .where((e) => e.syncStatus == SyncStatus.pending)
+          .length;
 
       emit(
         HomeState.loaded(

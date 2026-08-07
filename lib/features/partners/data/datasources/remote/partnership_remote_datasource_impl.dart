@@ -3,7 +3,8 @@ import '../../../xcore.dart';
 class PartnershipRemoteDatasourceImpl implements PartnershipRemoteDatasource {
   final FirebaseFirestore _firestore;
 
-  PartnershipRemoteDatasourceImpl({required FirebaseFirestore firestore}) : _firestore = firestore;
+  PartnershipRemoteDatasourceImpl({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   static const _collection = 'partnerships';
 
@@ -11,14 +12,20 @@ class PartnershipRemoteDatasourceImpl implements PartnershipRemoteDatasource {
   Future<void> sendRequest(PartnershipRemoteDto partnership) async {
     AppLogger.firebase('Sending partnership request');
 
-    await _firestore.collection(_collection).doc(partnership.id).set(partnership.toJson());
+    await _firestore
+        .collection(_collection)
+        .doc(partnership.id)
+        .set(partnership.toJson());
   }
 
   @override
   Future<void> updateRequest(PartnershipRemoteDto partnership) async {
     AppLogger.firebase('Updating partnership');
 
-    await _firestore.collection(_collection).doc(partnership.id).update(partnership.toJson());
+    await _firestore
+        .collection(_collection)
+        .doc(partnership.id)
+        .update(partnership.toJson());
   }
 
   @override
@@ -27,12 +34,16 @@ class PartnershipRemoteDatasourceImpl implements PartnershipRemoteDatasource {
   }
 
   @override
-  Future<List<PartnershipRemoteDto>> getPartnerships({required String userId}) async {
+  Future<List<PartnershipRemoteDto>> getPartnerships({
+    required String userId,
+  }) async {
     final snapshot = await _firestore
         .collection(_collection)
         .where('participantIds', arrayContains: userId)
         .get();
 
-    return snapshot.docs.map((doc) => PartnershipRemoteDto.fromJson(doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => PartnershipRemoteDto.fromJson(doc.data()))
+        .toList();
   }
 }

@@ -15,6 +15,7 @@ extension MonthlySavingDtoMapper on MonthlySavingDto {
       isCompleted: isCompleted,
       userId: userId,
       syncStatus: syncStatus,
+      updatedAt: updatedAt,
     );
   }
 }
@@ -34,6 +35,7 @@ extension MonthlySavingEntityMapper on MonthlySavingEntity {
       isCompleted: isCompleted,
       userId: userId,
       syncStatus: syncStatus,
+      updatedAt: updatedAt,
     );
   }
 }

@@ -12,6 +12,7 @@ extension IncomeDtoMapper on IncomeDto {
       createdAt: createdAt,
       updatedAt: updatedAt,
       syncStatus: syncStatus,
+      isDeleted: isDeleted,
     );
   }
 }
@@ -28,6 +29,7 @@ extension IncomeEntityMapper on IncomeEntity {
       createdAt: createdAt,
       updatedAt: updatedAt,
       syncStatus: syncStatus,
+      isDeleted: isDeleted,
     );
   }
 }

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AccountEntity implements DiagnosticableTreeMixin {
 
- String get id; String get userId; String get accountName; AccountType get accountType; double get currentBalance; DateTime get createdAt; DateTime get updatedAt; bool get isArchived; bool get isSavings; double get monthlySavingsGoal;
+ String get id; String get userId; String get accountName; AccountType get accountType; double get currentBalance; DateTime get createdAt; DateTime get updatedAt; bool get isArchived; bool get isSavings; double get monthlySavingsGoal; Map<String, double> get pendingBalanceMutations; List<String> get appliedBalanceMutationIds; bool get hasPendingMetadataChanges; bool get isDeleted;
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $AccountEntityCopyWith<AccountEntity> get copyWith => _$AccountEntityCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AccountEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal))..add(DiagnosticsProperty('pendingBalanceMutations', pendingBalanceMutations))..add(DiagnosticsProperty('appliedBalanceMutationIds', appliedBalanceMutationIds))..add(DiagnosticsProperty('hasPendingMetadataChanges', hasPendingMetadataChanges))..add(DiagnosticsProperty('isDeleted', isDeleted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal)&&const DeepCollectionEquality().equals(other.pendingBalanceMutations, pendingBalanceMutations)&&const DeepCollectionEquality().equals(other.appliedBalanceMutationIds, appliedBalanceMutationIds)&&(identical(other.hasPendingMetadataChanges, hasPendingMetadataChanges) || other.hasPendingMetadataChanges == hasPendingMetadataChanges)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal);
+int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal,const DeepCollectionEquality().hash(pendingBalanceMutations),const DeepCollectionEquality().hash(appliedBalanceMutationIds),hasPendingMetadataChanges,isDeleted);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AccountEntity(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal)';
+  return 'AccountEntity(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal, pendingBalanceMutations: $pendingBalanceMutations, appliedBalanceMutationIds: $appliedBalanceMutationIds, hasPendingMetadataChanges: $hasPendingMetadataChanges, isDeleted: $isDeleted)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $AccountEntityCopyWith<$Res>  {
   factory $AccountEntityCopyWith(AccountEntity value, $Res Function(AccountEntity) _then) = _$AccountEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String userId, String accountName, AccountType accountType, double currentBalance, DateTime createdAt, DateTime updatedAt, bool isArchived, bool isSavings, double monthlySavingsGoal
+ String id, String userId, String accountName, AccountType accountType, double currentBalance, DateTime createdAt, DateTime updatedAt, bool isArchived, bool isSavings, double monthlySavingsGoal, Map<String, double> pendingBalanceMutations, List<String> appliedBalanceMutationIds, bool hasPendingMetadataChanges, bool isDeleted
 });
 
 
@@ -71,7 +71,7 @@ class _$AccountEntityCopyWithImpl<$Res>
 
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,Object? pendingBalanceMutations = null,Object? appliedBalanceMutationIds = null,Object? hasPendingMetadataChanges = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -83,7 +83,11 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,isSavings: null == isSavings ? _self.isSavings : isSavings // ignore: cast_nullable_to_non_nullable
 as bool,monthlySavingsGoal: null == monthlySavingsGoal ? _self.monthlySavingsGoal : monthlySavingsGoal // ignore: cast_nullable_to_non_nullable
-as double,
+as double,pendingBalanceMutations: null == pendingBalanceMutations ? _self.pendingBalanceMutations : pendingBalanceMutations // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,appliedBalanceMutationIds: null == appliedBalanceMutationIds ? _self.appliedBalanceMutationIds : appliedBalanceMutationIds // ignore: cast_nullable_to_non_nullable
+as List<String>,hasPendingMetadataChanges: null == hasPendingMetadataChanges ? _self.hasPendingMetadataChanges : hasPendingMetadataChanges // ignore: cast_nullable_to_non_nullable
+as bool,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -165,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal,  Map<String, double> pendingBalanceMutations,  List<String> appliedBalanceMutationIds,  bool hasPendingMetadataChanges,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountEntity() when $default != null:
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);case _:
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal,_that.pendingBalanceMutations,_that.appliedBalanceMutationIds,_that.hasPendingMetadataChanges,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -186,10 +190,10 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal,  Map<String, double> pendingBalanceMutations,  List<String> appliedBalanceMutationIds,  bool hasPendingMetadataChanges,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _AccountEntity():
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);}
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal,_that.pendingBalanceMutations,_that.appliedBalanceMutationIds,_that.hasPendingMetadataChanges,_that.isDeleted);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +207,10 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String accountName,  AccountType accountType,  double currentBalance,  DateTime createdAt,  DateTime updatedAt,  bool isArchived,  bool isSavings,  double monthlySavingsGoal,  Map<String, double> pendingBalanceMutations,  List<String> appliedBalanceMutationIds,  bool hasPendingMetadataChanges,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountEntity() when $default != null:
-return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal);case _:
+return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.currentBalance,_that.createdAt,_that.updatedAt,_that.isArchived,_that.isSavings,_that.monthlySavingsGoal,_that.pendingBalanceMutations,_that.appliedBalanceMutationIds,_that.hasPendingMetadataChanges,_that.isDeleted);case _:
   return null;
 
 }
@@ -218,7 +222,7 @@ return $default(_that.id,_that.userId,_that.accountName,_that.accountType,_that.
 @JsonSerializable()
 
 class _AccountEntity with DiagnosticableTreeMixin implements AccountEntity {
-  const _AccountEntity({required this.id, required this.userId, required this.accountName, required this.accountType, required this.currentBalance, required this.createdAt, required this.updatedAt, this.isArchived = false, this.isSavings = false, this.monthlySavingsGoal = 0.0});
+  const _AccountEntity({required this.id, required this.userId, required this.accountName, required this.accountType, required this.currentBalance, required this.createdAt, required this.updatedAt, this.isArchived = false, this.isSavings = false, this.monthlySavingsGoal = 0.0, final  Map<String, double> pendingBalanceMutations = const {}, final  List<String> appliedBalanceMutationIds = const [], this.hasPendingMetadataChanges = false, this.isDeleted = false}): _pendingBalanceMutations = pendingBalanceMutations,_appliedBalanceMutationIds = appliedBalanceMutationIds;
   factory _AccountEntity.fromJson(Map<String, dynamic> json) => _$AccountEntityFromJson(json);
 
 @override final  String id;
@@ -231,6 +235,22 @@ class _AccountEntity with DiagnosticableTreeMixin implements AccountEntity {
 @override@JsonKey() final  bool isArchived;
 @override@JsonKey() final  bool isSavings;
 @override@JsonKey() final  double monthlySavingsGoal;
+ final  Map<String, double> _pendingBalanceMutations;
+@override@JsonKey() Map<String, double> get pendingBalanceMutations {
+  if (_pendingBalanceMutations is EqualUnmodifiableMapView) return _pendingBalanceMutations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_pendingBalanceMutations);
+}
+
+ final  List<String> _appliedBalanceMutationIds;
+@override@JsonKey() List<String> get appliedBalanceMutationIds {
+  if (_appliedBalanceMutationIds is EqualUnmodifiableListView) return _appliedBalanceMutationIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_appliedBalanceMutationIds);
+}
+
+@override@JsonKey() final  bool hasPendingMetadataChanges;
+@override@JsonKey() final  bool isDeleted;
 
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -246,21 +266,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AccountEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('userId', userId))..add(DiagnosticsProperty('accountName', accountName))..add(DiagnosticsProperty('accountType', accountType))..add(DiagnosticsProperty('currentBalance', currentBalance))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('isArchived', isArchived))..add(DiagnosticsProperty('isSavings', isSavings))..add(DiagnosticsProperty('monthlySavingsGoal', monthlySavingsGoal))..add(DiagnosticsProperty('pendingBalanceMutations', pendingBalanceMutations))..add(DiagnosticsProperty('appliedBalanceMutationIds', appliedBalanceMutationIds))..add(DiagnosticsProperty('hasPendingMetadataChanges', hasPendingMetadataChanges))..add(DiagnosticsProperty('isDeleted', isDeleted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.accountName, accountName) || other.accountName == accountName)&&(identical(other.accountType, accountType) || other.accountType == accountType)&&(identical(other.currentBalance, currentBalance) || other.currentBalance == currentBalance)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isArchived, isArchived) || other.isArchived == isArchived)&&(identical(other.isSavings, isSavings) || other.isSavings == isSavings)&&(identical(other.monthlySavingsGoal, monthlySavingsGoal) || other.monthlySavingsGoal == monthlySavingsGoal)&&const DeepCollectionEquality().equals(other._pendingBalanceMutations, _pendingBalanceMutations)&&const DeepCollectionEquality().equals(other._appliedBalanceMutationIds, _appliedBalanceMutationIds)&&(identical(other.hasPendingMetadataChanges, hasPendingMetadataChanges) || other.hasPendingMetadataChanges == hasPendingMetadataChanges)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal);
+int get hashCode => Object.hash(runtimeType,id,userId,accountName,accountType,currentBalance,createdAt,updatedAt,isArchived,isSavings,monthlySavingsGoal,const DeepCollectionEquality().hash(_pendingBalanceMutations),const DeepCollectionEquality().hash(_appliedBalanceMutationIds),hasPendingMetadataChanges,isDeleted);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AccountEntity(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal)';
+  return 'AccountEntity(id: $id, userId: $userId, accountName: $accountName, accountType: $accountType, currentBalance: $currentBalance, createdAt: $createdAt, updatedAt: $updatedAt, isArchived: $isArchived, isSavings: $isSavings, monthlySavingsGoal: $monthlySavingsGoal, pendingBalanceMutations: $pendingBalanceMutations, appliedBalanceMutationIds: $appliedBalanceMutationIds, hasPendingMetadataChanges: $hasPendingMetadataChanges, isDeleted: $isDeleted)';
 }
 
 
@@ -271,7 +291,7 @@ abstract mixin class _$AccountEntityCopyWith<$Res> implements $AccountEntityCopy
   factory _$AccountEntityCopyWith(_AccountEntity value, $Res Function(_AccountEntity) _then) = __$AccountEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userId, String accountName, AccountType accountType, double currentBalance, DateTime createdAt, DateTime updatedAt, bool isArchived, bool isSavings, double monthlySavingsGoal
+ String id, String userId, String accountName, AccountType accountType, double currentBalance, DateTime createdAt, DateTime updatedAt, bool isArchived, bool isSavings, double monthlySavingsGoal, Map<String, double> pendingBalanceMutations, List<String> appliedBalanceMutationIds, bool hasPendingMetadataChanges, bool isDeleted
 });
 
 
@@ -288,7 +308,7 @@ class __$AccountEntityCopyWithImpl<$Res>
 
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? accountName = null,Object? accountType = null,Object? currentBalance = null,Object? createdAt = null,Object? updatedAt = null,Object? isArchived = null,Object? isSavings = null,Object? monthlySavingsGoal = null,Object? pendingBalanceMutations = null,Object? appliedBalanceMutationIds = null,Object? hasPendingMetadataChanges = null,Object? isDeleted = null,}) {
   return _then(_AccountEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -300,7 +320,11 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,isArchived: null == isArchived ? _self.isArchived : isArchived // ignore: cast_nullable_to_non_nullable
 as bool,isSavings: null == isSavings ? _self.isSavings : isSavings // ignore: cast_nullable_to_non_nullable
 as bool,monthlySavingsGoal: null == monthlySavingsGoal ? _self.monthlySavingsGoal : monthlySavingsGoal // ignore: cast_nullable_to_non_nullable
-as double,
+as double,pendingBalanceMutations: null == pendingBalanceMutations ? _self._pendingBalanceMutations : pendingBalanceMutations // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,appliedBalanceMutationIds: null == appliedBalanceMutationIds ? _self._appliedBalanceMutationIds : appliedBalanceMutationIds // ignore: cast_nullable_to_non_nullable
+as List<String>,hasPendingMetadataChanges: null == hasPendingMetadataChanges ? _self.hasPendingMetadataChanges : hasPendingMetadataChanges // ignore: cast_nullable_to_non_nullable
+as bool,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

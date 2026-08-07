@@ -18,22 +18,34 @@ class ProfileDrawer extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Choose Theme', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Choose Theme',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.phone_android_rounded),
                 title: const Text('System'),
-                onTap: () { context.read<ThemeCubit>().setTheme(ThemeMode.system); context.pop(); },
+                onTap: () {
+                  context.read<ThemeCubit>().setTheme(ThemeMode.system);
+                  context.pop();
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.light_mode_rounded),
                 title: const Text('Light'),
-                onTap: () { context.read<ThemeCubit>().setTheme(ThemeMode.light); context.pop(); },
+                onTap: () {
+                  context.read<ThemeCubit>().setTheme(ThemeMode.light);
+                  context.pop();
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.dark_mode_rounded),
                 title: const Text('Dark'),
-                onTap: () { context.read<ThemeCubit>().setTheme(ThemeMode.dark); context.pop(); },
+                onTap: () {
+                  context.read<ThemeCubit>().setTheme(ThemeMode.dark);
+                  context.pop();
+                },
               ),
             ],
           ),
@@ -49,13 +61,16 @@ class ProfileDrawer extends StatelessWidget {
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: () {
-                context.pop(); // Close dialog
-                context.pop(); // Close drawer
-                context.read<AuthBloc>().add(const AuthEvent.logout());
-              },
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.pop(); // Close dialog
+              context.pop(); // Close drawer
+              context.read<AuthBloc>().add(const AuthEvent.logout());
+            },
             child: const Text('Logout'),
           ),
         ],
@@ -65,7 +80,9 @@ class ProfileDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = sl<AuthLocalDatasource>().getUserId() != null ? sl<UserLocalDatasource>().getCurrentUser() : null;
+    final user = sl<AuthLocalDatasource>().getUserId() != null
+        ? sl<UserLocalDatasource>().getCurrentUser()
+        : null;
 
     return Drawer(
       child: SafeArea(
@@ -74,14 +91,31 @@ class ProfileDrawer extends StatelessWidget {
           children: [
             /// User Header
             UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer),
-              accountName: Text(user?.name ?? 'User', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-              accountEmail: Text(user?.email ?? '', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              accountName: Text(
+                user?.name ?? 'User',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              accountEmail: Text(
+                user?.email ?? '',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 child: Text(
                   (user?.name ?? 'U')[0].toUpperCase(),
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onPrimary),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               ),
             ),
@@ -91,12 +125,20 @@ class ProfileDrawer extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
-                  Text('Accounts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Accounts',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.add_rounded, size: 20),
                     tooltip: 'Add Account',
-                    onPressed: () => context.pushNamed(AppRoute.addAccount.name),
+                    onPressed: () =>
+                        context.pushNamed(AppRoute.addAccount.name),
                   ),
                 ],
               ),
@@ -107,20 +149,31 @@ class ProfileDrawer extends StatelessWidget {
             /// Notifications
             BlocBuilder<NotificationBloc, NotificationState>(
               builder: (context, state) {
-                final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
+                final unread =
+                    state.whenOrNull(
+                      loaded: (n) => n.where((n) => !n.isRead).length,
+                    ) ??
+                    0;
                 return ListTile(
                   leading: const Icon(Icons.notifications_outlined),
                   title: const Text('Notifications'),
                   trailing: unread > 0
                       ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.error,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             unread > 99 ? '99+' : unread.toString(),
-                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         )
                       : null,
@@ -148,7 +201,14 @@ class ProfileDrawer extends StatelessWidget {
             /// Settings
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text('Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              child: Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
 
             /// Default Account
@@ -169,8 +229,12 @@ class ProfileDrawer extends StatelessWidget {
               subtitle: const Text('Send password reset email'),
               onTap: () {
                 if (user != null) {
-                  context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: user.email));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reset email sent')));
+                  context.read<AuthBloc>().add(
+                    AuthEvent.forgotPassword(email: user.email),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reset email sent')),
+                  );
                 }
               },
             ),
@@ -179,8 +243,14 @@ class ProfileDrawer extends StatelessWidget {
 
             /// Logout
             ListTile(
-              leading: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.error),
-              title: Text('Logout', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              leading: Icon(
+                Icons.logout_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                'Logout',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
               onTap: () => _showLogoutDialog(context),
             ),
 
@@ -189,9 +259,21 @@ class ProfileDrawer extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Text('FamXpense', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                  Text(
+                    'FamXpense',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text('Version 1.0.0', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+                  Text(
+                    'Version 1.0.0',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -204,7 +286,8 @@ class ProfileDrawer extends StatelessWidget {
 
 class _DefaultAccountDrawerTile extends StatefulWidget {
   @override
-  State<_DefaultAccountDrawerTile> createState() => _DefaultAccountDrawerTileState();
+  State<_DefaultAccountDrawerTile> createState() =>
+      _DefaultAccountDrawerTileState();
 }
 
 class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
@@ -227,29 +310,40 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
   Future<void> _load() async {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
-    String? id = await AppSettings.getDefaultAccountId(userId: userId);
-    if (id == null) {
-      final dtos = await sl<AccountLocalDatasource>().getAccounts();
-      final first = dtos.where((d) => d.userId == userId && !d.isSavings).firstOrNull;
-      if (first != null) {
-        id = first.id;
-        await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
-      }
-    }
-    final name = id != null ? await _accountName(id) : null;
-    if (mounted) setState(() { _defaultAccountId = id; _defaultAccountName = name; });
-  }
-
-  Future<String?> _accountName(String id) async {
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    return dtos.where((a) => a.id == id).firstOrNull?.accountName;
+    final accounts = dtos
+        .where(
+          (account) =>
+              account.userId == userId &&
+              !account.isSavings &&
+              !account.isArchived,
+        )
+        .toList();
+    String? id = await AppSettings.getDefaultAccountId(userId: userId);
+    if (!accounts.any((account) => account.id == id)) {
+      id = accounts.firstOrNull?.id;
+      await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
+    }
+    final name = accounts
+        .where((account) => account.id == id)
+        .firstOrNull
+        ?.accountName;
+    if (mounted) {
+      setState(() {
+        _defaultAccountId = id;
+        _defaultAccountName = name;
+      });
+    }
   }
 
   Future<void> _pickAccount() async {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos.where((d) => d.userId == userId && !d.isSavings).map((d) => d.toEntity()).toList();
+    final accounts = dtos
+        .where((d) => d.userId == userId && !d.isSavings && !d.isArchived)
+        .map((d) => d.toEntity())
+        .toList();
 
     if (!mounted) return;
 
@@ -262,35 +356,58 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Default Account', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Default Account',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               const Text('Settlement amounts will be deposited here'),
               const SizedBox(height: 16),
               if (accounts.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: Text('No accounts yet. Create one first.')),
+                  child: Center(
+                    child: Text('No accounts yet. Create one first.'),
+                  ),
                 )
               else
-                ...accounts.map((a) => ListTile(
-                  leading: CircleAvatar(child: Icon(a.accountType == AccountType.cash ? Icons.money_rounded : Icons.account_balance_rounded)),
-                  title: Text(a.accountName),
-                  subtitle: Text(formatIndianRupee(a.currentBalance)),
-                  trailing: _defaultAccountId == a.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
-                  onTap: () async {
-                    await AppSettings.setDefaultAccountId(userId: userId, accountId: a.id);
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                    _load();
-                  },
-                )),
+                ...accounts.map(
+                  (a) => ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(
+                        a.accountType == AccountType.cash
+                            ? Icons.money_rounded
+                            : Icons.account_balance_rounded,
+                      ),
+                    ),
+                    title: Text(a.accountName),
+                    subtitle: Text(formatIndianRupee(a.currentBalance)),
+                    trailing: _defaultAccountId == a.id
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : null,
+                    onTap: () async {
+                      await AppSettings.setDefaultAccountId(
+                        userId: userId,
+                        accountId: a.id,
+                      );
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      _load();
+                    },
+                  ),
+                ),
               const Divider(),
               if (_defaultAccountId != null)
                 ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.remove_circle_outline_rounded)),
+                  leading: const CircleAvatar(
+                    child: Icon(Icons.remove_circle_outline_rounded),
+                  ),
                   title: const Text('None'),
                   onTap: () async {
-                    await AppSettings.setDefaultAccountId(userId: userId, accountId: null);
+                    await AppSettings.setDefaultAccountId(
+                      userId: userId,
+                      accountId: null,
+                    );
                     if (!mounted) return;
                     Navigator.pop(context);
                     _load();
@@ -314,34 +431,87 @@ class _DefaultAccountDrawerTileState extends State<_DefaultAccountDrawerTile> {
   }
 }
 
-class _AccountsList extends StatelessWidget {
+class _AccountsList extends StatefulWidget {
+  @override
+  State<_AccountsList> createState() => _AccountsListState();
+}
+
+class _AccountsListState extends State<_AccountsList> {
+  List<AccountDto> _accounts = const [];
+  StreamSubscription? _accountBoxSub;
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _accountBoxSub = Hive.box<AccountDto>(
+      HiveBoxes.accounts,
+    ).watch().listen((_) => _load());
+    _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    _accountBoxSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+    final dtos = userId.isEmpty
+        ? const <AccountDto>[]
+        : await sl<AccountLocalDatasource>().getAccounts();
+    if (!mounted) return;
+    setState(() {
+      _accounts = dtos
+          .where((account) => account.userId == userId && !account.isArchived)
+          .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-    if (userId.isEmpty) return const SizedBox();
-    return FutureBuilder<List<AccountDto>>(
-      future: sl<AccountLocalDatasource>().getAccounts(),
-      builder: (context, snap) {
-        final accounts = snap.data?.where((a) => a.userId == userId && !a.isArchived).toList() ?? [];
-        if (accounts.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text('No accounts yet', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
-          );
-        }
-        return Column(
-          children: accounts.take(3).map((a) => ListTile(
-            dense: true,
-            leading: CircleAvatar(
-              radius: 16,
-              child: Text(a.accountName[0].toUpperCase(), style: const TextStyle(fontSize: 12)),
+    if (_accounts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(
+          'No accounts yet',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 13,
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: _accounts
+          .take(3)
+          .map(
+            (a) => ListTile(
+              dense: true,
+              leading: CircleAvatar(
+                radius: 16,
+                child: Text(
+                  a.accountName[0].toUpperCase(),
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
+              trailing: Text(
+                formatIndianRupee(a.currentBalance),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              onTap: () => context.pushNamed(
+                AppRoute.accountDetail.name,
+                extra: a.toEntity(),
+              ),
             ),
-            title: Text(a.accountName, style: const TextStyle(fontSize: 14)),
-            trailing: Text(formatIndianRupee(a.currentBalance), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            onTap: () => context.pushNamed(AppRoute.accountDetail.name, extra: a.toEntity()),
-          )).toList(),
-        );
-      },
+          )
+          .toList(),
     );
   }
 }

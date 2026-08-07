@@ -18,5 +18,6 @@ sealed class TransferEntity with _$TransferEntity {
     @Default(SyncStatus.synced) SyncStatus syncStatus,
   }) = _TransferEntity;
 
-  factory TransferEntity.fromJson(Map<String, dynamic> json) => _$TransferEntityFromJson(json);
+  factory TransferEntity.fromJson(Map<String, dynamic> json) =>
+      _$TransferEntityFromJson(json);
 }

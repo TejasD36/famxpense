@@ -19,5 +19,21 @@ class SettlementItem extends ActivityItem {
   final String? depositAccountName;
 
   SettlementItem(this.settlement, {this.depositAccountName})
-    : super(id: settlement.id, date: settlement.createdAt, amount: settlement.amount);
+    : super(
+        id: settlement.id,
+        date: settlement.createdAt,
+        amount: settlement.amount,
+      );
+}
+
+class IncomeItem extends ActivityItem {
+  final IncomeEntity income;
+  final String? accountName;
+
+  IncomeItem(this.income, {this.accountName})
+    : super(
+        id: income.id,
+        date: income.createdAt,
+        amount: income.amount,
+      );
 }

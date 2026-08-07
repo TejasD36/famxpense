@@ -28,5 +28,6 @@ sealed class PartnershipRemoteDto with _$PartnershipRemoteDto {
     @Default([]) List<String> participantIds,
   }) = _PartnershipRemoteDto;
 
-  factory PartnershipRemoteDto.fromJson(Map<String, dynamic> json) => _$PartnershipRemoteDtoFromJson(json);
+  factory PartnershipRemoteDto.fromJson(Map<String, dynamic> json) =>
+      _$PartnershipRemoteDtoFromJson(json);
 }

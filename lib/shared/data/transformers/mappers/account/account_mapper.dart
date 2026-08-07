@@ -13,6 +13,10 @@ extension AccountDtoMapper on AccountDto {
       isArchived: isArchived,
       isSavings: isSavings,
       monthlySavingsGoal: monthlySavingsGoal,
+      pendingBalanceMutations: pendingBalanceMutations,
+      appliedBalanceMutationIds: appliedBalanceMutationIds,
+      hasPendingMetadataChanges: hasPendingMetadataChanges,
+      isDeleted: isDeleted,
     );
   }
 }
@@ -30,6 +34,10 @@ extension AccountEntityMapper on AccountEntity {
       isArchived: isArchived,
       isSavings: isSavings,
       monthlySavingsGoal: monthlySavingsGoal,
+      pendingBalanceMutations: pendingBalanceMutations,
+      appliedBalanceMutationIds: appliedBalanceMutationIds,
+      hasPendingMetadataChanges: hasPendingMetadataChanges,
+      isDeleted: isDeleted,
     );
   }
 }

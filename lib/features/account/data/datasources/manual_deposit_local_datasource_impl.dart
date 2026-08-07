@@ -1,7 +1,9 @@
 import '../../xcore.dart';
 
-class ManualDepositLocalDatasourceImpl extends BaseHiveService<ManualDepositDto> implements ManualDepositLocalDatasource {
-  ManualDepositLocalDatasourceImpl() : super(Hive.box<ManualDepositDto>(HiveBoxes.manualDeposits));
+class ManualDepositLocalDatasourceImpl extends BaseHiveService<ManualDepositDto>
+    implements ManualDepositLocalDatasource {
+  ManualDepositLocalDatasourceImpl()
+    : super(Hive.box<ManualDepositDto>(HiveBoxes.manualDeposits));
 
   @override
   Future<void> save(ManualDepositDto deposit) async {

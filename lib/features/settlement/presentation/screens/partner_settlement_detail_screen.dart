@@ -16,10 +16,12 @@ class PartnerSettlementDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<PartnerSettlementDetailScreen> createState() => _PartnerSettlementDetailScreenState();
+  State<PartnerSettlementDetailScreen> createState() =>
+      _PartnerSettlementDetailScreenState();
 }
 
-class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailScreen> {
+class _PartnerSettlementDetailScreenState
+    extends State<PartnerSettlementDetailScreen> {
   String? _userId;
   List<ExpenseEntity> _expenses = [];
   List<SettlementEntity> _settlements = [];
@@ -27,6 +29,23 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
   bool _loading = true;
   bool _initialized = false;
   bool _settling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_onRefresh);
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_onRefresh);
+    super.dispose();
+  }
+
+  void _onRefresh() {
+    if (!_initialized) return;
+    _loadData();
+  }
 
   @override
   void didChangeDependencies() {
@@ -53,17 +72,21 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
     ]);
 
     final allSettlements = (results[0] as List<SettlementDto>)
-        .where((d) =>
-            (d.fromUserId == userId && d.toUserId == partnerId) ||
-            (d.fromUserId == partnerId && d.toUserId == userId))
+        .where(
+          (d) =>
+              (d.fromUserId == userId && d.toUserId == partnerId) ||
+              (d.fromUserId == partnerId && d.toUserId == userId),
+        )
         .map((d) => d.toEntity())
         .toList();
 
     final allExpenses = (results[1] as List<ExpenseDto>)
-        .where((d) =>
-            d.expenseType == ExpenseType.shared &&
-            d.participants.any((p) => p.userId == userId) &&
-            d.participants.any((p) => p.userId == partnerId))
+        .where(
+          (d) =>
+              d.expenseType == ExpenseType.shared &&
+              d.participants.any((p) => p.userId == userId) &&
+              d.participants.any((p) => p.userId == partnerId),
+        )
         .map((d) => d.toEntity())
         .toList();
 
@@ -96,48 +119,65 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
   Future<void> _handleSettle() async {
     final userId = _userId;
     if (userId == null || _partnerBalance <= 0) return;
+    final messenger = ScaffoldMessenger.of(context);
 
     /// Pick an account to deduct from
     final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
-    final userAccounts = accountDtos.where((a) => a.userId == userId && !a.isArchived).map((d) => d.toEntity()).toList();
+    final userAccounts = accountDtos
+        .where((a) => a.userId == userId && !a.isArchived)
+        .map((d) => d.toEntity())
+        .toList();
     AccountEntity? selectedAccount;
     if (userAccounts.isNotEmpty) {
       final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
       selectedAccount = defaultId != null
-          ? userAccounts.where((a) => a.id == defaultId).firstOrNull
+          ? userAccounts.where((a) => a.id == defaultId).firstOrNull ??
+                userAccounts.first
           : userAccounts.first;
       if (userAccounts.length > 1) {
-        selectedAccount = await showModalBottomSheet<AccountEntity>(
-          context: context,
-          builder: (ctx) => AccountPickerSheet(
-            accounts: userAccounts,
-            selectedAccountId: selectedAccount?.id,
-            onSelected: (a) {
-              Navigator.of(ctx).pop(a);
-            },
-            onAddNew: () => Navigator.of(context).pop(),
-          ),
-        ) ?? selectedAccount;
+        if (!mounted) return;
+        selectedAccount =
+            await showModalBottomSheet<AccountEntity>(
+              context: context,
+              builder: (ctx) => AccountPickerSheet(
+                accounts: userAccounts,
+                selectedAccountId: selectedAccount?.id,
+                onSelected: (a) {
+                  Navigator.of(ctx).pop(a);
+                },
+                onAddNew: () => Navigator.of(context).pop(),
+              ),
+            ) ??
+            selectedAccount;
       }
     }
 
     if (selectedAccount?.isSavings == true) {
+      if (!mounted) return;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('Savings Account'),
-          content: const Text('Settling from savings will reduce your monthly savings progress. Are you sure?'),
+          content: const Text(
+            'Settling from savings will reduce your monthly savings progress. Are you sure?',
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+            TextButton(
+              onPressed: () => Navigator.pop(c, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(c, true),
+              child: const Text('Use anyway'),
+            ),
           ],
         ),
       );
       if (confirmed != true) return;
     }
 
+    if (!mounted) return;
     setState(() => _settling = true);
-    final messenger = ScaffoldMessenger.of(context);
     try {
       final error = await sl<SettleDebtUsecase>().call(
         fromUserId: userId,
@@ -146,22 +186,25 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
         fromAccountId: selectedAccount?.id,
       );
       if (error != null) {
-        messenger.showSnackBar(SnackBar(
-          content: Text(error),
-          behavior: SnackBarBehavior.floating,
-        ));
+        messenger.showSnackBar(
+          SnackBar(content: Text(error), behavior: SnackBarBehavior.floating),
+        );
       } else {
-        messenger.showSnackBar(SnackBar(
-          content: Text('Settlement request sent to @${widget.partnerName}'),
-          behavior: SnackBarBehavior.floating,
-        ));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Settlement request sent to @${widget.partnerName}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
         await _loadData();
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('Failed to create settlement: $e'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to create settlement: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _settling = false);
     }
@@ -172,16 +215,20 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
     final messenger = ScaffoldMessenger.of(context);
     try {
       await sl<SettleDebtUsecase>().cancel(settlement.id);
-      messenger.showSnackBar(SnackBar(
-        content: const Text('Settlement request cancelled'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Settlement request cancelled'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('Failed to cancel: $e'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to cancel: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _settling = false);
     }
@@ -190,17 +237,24 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
   Future<void> _handleConfirm(SettlementEntity settlement) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await sl<ProcessSettlementUsecase>().confirm(settlementId: settlement.id, toAccountId: null);
-      messenger.showSnackBar(SnackBar(
-        content: const Text('Settlement confirmed'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      await sl<ProcessSettlementUsecase>().confirm(
+        settlementId: settlement.id,
+        toAccountId: null,
+      );
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Settlement confirmed'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('Failed to confirm: $e'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to confirm: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -208,16 +262,20 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
     final messenger = ScaffoldMessenger.of(context);
     try {
       await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
-      messenger.showSnackBar(SnackBar(
-        content: const Text('Settlement rejected'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Settlement rejected'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('Failed to reject: $e'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to reject: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -243,10 +301,16 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
     final absBalance = _partnerBalance.abs();
 
     /// Identify pending settlements
-    final incomingPending = _settlements.where((s) =>
-        s.toUserId == userId && s.status == SettlementStatus.pending).toList();
-    final outgoingPending = _settlements.where((s) =>
-        s.fromUserId == userId && s.status == SettlementStatus.pending).toList();
+    final incomingPending = _settlements
+        .where(
+          (s) => s.toUserId == userId && s.status == SettlementStatus.pending,
+        )
+        .toList();
+    final outgoingPending = _settlements
+        .where(
+          (s) => s.fromUserId == userId && s.status == SettlementStatus.pending,
+        )
+        .toList();
 
     /// Has a pending outgoing we can show cancel for
     final hasOutgoingPending = outgoingPending.isNotEmpty;
@@ -257,7 +321,9 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
     for (final e in _expenses) {
       items.add(_ItemData(e, null, e.expenseDate));
     }
-    for (final s in _settlements.where((s) => s.status != SettlementStatus.pending)) {
+    for (final s in _settlements.where(
+      (s) => s.status != SettlementStatus.pending,
+    )) {
       items.add(_ItemData(null, s, s.createdAt));
     }
     items.sort((a, b) => b.date.compareTo(a.date));
@@ -282,21 +348,27 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
                     Icon(
                       _partnerBalance == 0
                           ? Icons.check_circle_outline_rounded
-                          : (isOwed ? Icons.call_received_rounded : Icons.send_rounded),
+                          : (isOwed
+                                ? Icons.call_received_rounded
+                                : Icons.send_rounded),
                       size: 32,
-                      color: _partnerBalance == 0 ? Colors.grey : (isOwed ? Colors.green : Colors.red),
+                      color: _partnerBalance == 0
+                          ? Colors.grey
+                          : (isOwed ? Colors.green : Colors.red),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _partnerBalance == 0
                           ? 'All settled'
                           : (isOwed
-                              ? '@${widget.partnerName} owes you'
-                              : 'You owe @${widget.partnerName}'),
+                                ? '@${widget.partnerName} owes you'
+                                : 'You owe @${widget.partnerName}'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: _partnerBalance == 0 ? Colors.grey : (isOwed ? Colors.green : Colors.red),
+                        color: _partnerBalance == 0
+                            ? Colors.grey
+                            : (isOwed ? Colors.green : Colors.red),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -305,7 +377,9 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: _partnerBalance == 0 ? Colors.grey : (isOwed ? Colors.green : Colors.red),
+                        color: _partnerBalance == 0
+                            ? Colors.grey
+                            : (isOwed ? Colors.green : Colors.red),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -315,14 +389,23 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
                         child: FilledButton.icon(
                           onPressed: _settling ? null : _handleSettle,
                           icon: _settling
-                              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : const Icon(Icons.send_rounded),
                           label: Text(_settling ? 'Sending...' : 'Settle'),
                         ),
                       ),
                     if (hasOutgoingPending) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -330,20 +413,34 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.hourglass_empty_rounded, size: 16, color: Colors.orange.shade700),
+                            Icon(
+                              Icons.hourglass_empty_rounded,
+                              size: 16,
+                              color: Colors.orange.shade700,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Settlement pending',
-                              style: TextStyle(fontSize: 13, color: Colors.orange.shade700),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.orange.shade700,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             TextButton.icon(
-                              onPressed: _settling ? null : () => _handleCancel(outgoingPending.first),
+                              onPressed: _settling
+                                  ? null
+                                  : () => _handleCancel(outgoingPending.first),
                               icon: const Icon(Icons.close_rounded, size: 16),
-                              label: const Text('Cancel', style: TextStyle(fontSize: 13)),
+                              label: const Text(
+                                'Cancel',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
@@ -366,71 +463,99 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Text(
                 'Pending Request',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
-              ),
-            ),
-          ),
-        ...incomingPending.map((s) => SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Card(
-              elevation: 0,
-              color: Colors.orange.withValues(alpha: 0.05),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.orange.withValues(alpha: 0.12),
-                          child: const Icon(Icons.call_received_rounded, size: 18, color: Colors.orange),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Settlement from @${widget.partnerName}',
-                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                              ),
-                              Text(
-                                DateFormat('dd MMM yyyy · h:mm a').format(s.createdAt),
-                                style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          formatIndianRupee(s.amount),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.orange),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        OutlinedButton(
-                          onPressed: _settling ? null : () => _handleReject(s),
-                          child: const Text('Reject'),
-                        ),
-                        const SizedBox(width: 12),
-                        FilledButton(
-                          onPressed: _settling ? null : () => _handleConfirm(s),
-                          child: const Text('Confirm'),
-                        ),
-                      ],
-                    ),
-                  ],
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ),
           ),
-        )),
+        ...incomingPending.map(
+          (s) => SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Card(
+                elevation: 0,
+                color: Colors.orange.withValues(alpha: 0.05),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.orange.withValues(
+                              alpha: 0.12,
+                            ),
+                            child: const Icon(
+                              Icons.call_received_rounded,
+                              size: 18,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Settlement from @${widget.partnerName}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormat(
+                                    'dd MMM yyyy · h:mm a',
+                                  ).format(s.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            formatIndianRupee(s.amount),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: _settling
+                                ? null
+                                : () => _handleReject(s),
+                            child: const Text('Reject'),
+                          ),
+                          const SizedBox(width: 12),
+                          FilledButton(
+                            onPressed: _settling
+                                ? null
+                                : () => _handleConfirm(s),
+                            child: const Text('Confirm'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
 
         if (hasIncomingPending && items.isNotEmpty)
           SliverToBoxAdapter(
@@ -447,7 +572,11 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Text(
                 'Transactions',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
           ),
@@ -464,27 +593,37 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
           )
         else
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final item = items[index];
-                if (item.expense != null) {
-                  return _buildExpenseTile(context, item.expense!, userId, theme);
-                }
-                return _buildSettlementTile(context, item.settlement!, userId, theme);
-              },
-              childCount: items.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final item = items[index];
+              if (item.expense != null) {
+                return _buildExpenseTile(context, item.expense!, userId, theme);
+              }
+              return _buildSettlementTile(
+                context,
+                item.settlement!,
+                userId,
+                theme,
+              );
+            }, childCount: items.length),
           ),
       ],
     );
   }
 
-  Widget _buildExpenseTile(BuildContext context, ExpenseEntity expense, String userId, ThemeData theme) {
+  Widget _buildExpenseTile(
+    BuildContext context,
+    ExpenseEntity expense,
+    String userId,
+    ThemeData theme,
+  ) {
     final isPayer = expense.paidByUserId == userId;
     final shareAmount = _userShare(expense);
     final otherName = widget.partnerName;
-    final title = isPayer ? 'Shared with @$otherName' : '@$otherName\'s expense';
-    final subtitle = '${expense.title} · ${DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)}';
+    final title = isPayer
+        ? 'Shared with @$otherName'
+        : '@$otherName\'s expense';
+    final subtitle =
+        '${expense.title} · ${DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -494,24 +633,48 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
           leading: CircleAvatar(
             radius: 18,
             backgroundColor: Colors.blue.withValues(alpha: 0.12),
-            child: const Icon(Icons.shopping_bag_rounded, size: 18, color: Colors.blue),
+            child: const Icon(
+              Icons.shopping_bag_rounded,
+              size: 18,
+              color: Colors.blue,
+            ),
           ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-          subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           trailing: Text(
             formatIndianRupeeSigned(isPayer ? shareAmount : -shareAmount),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isPayer ? Colors.green : Colors.red),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: isPayer ? Colors.green : Colors.red,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSettlementTile(BuildContext context, SettlementEntity s, String userId, ThemeData theme) {
+  Widget _buildSettlementTile(
+    BuildContext context,
+    SettlementEntity s,
+    String userId,
+    ThemeData theme,
+  ) {
     final isPayer = s.fromUserId == userId;
     final otherName = widget.partnerName;
     final isPending = s.status == SettlementStatus.pending;
-    final title = isPayer ? 'Settlement to @$otherName' : 'Settlement from @$otherName';
+    final title = isPayer
+        ? 'Settlement to @$otherName'
+        : 'Settlement from @$otherName';
     final subtitle = isPending
         ? 'Pending confirmation · ${DateFormat('dd MMM yyyy · h:mm a').format(s.createdAt)}'
         : DateFormat('dd MMM yyyy · h:mm a').format(s.createdAt);
@@ -523,22 +686,45 @@ class _PartnerSettlementDetailScreenState extends State<PartnerSettlementDetailS
         child: ListTile(
           leading: CircleAvatar(
             radius: 18,
-            backgroundColor: (isPending ? Colors.orange : isPayer ? Colors.red : Colors.green).withValues(alpha: 0.12),
+            backgroundColor:
+                (isPending
+                        ? Colors.orange
+                        : isPayer
+                        ? Colors.red
+                        : Colors.green)
+                    .withValues(alpha: 0.12),
             child: Icon(
               isPending
                   ? Icons.hourglass_empty_rounded
                   : isPayer
-                      ? Icons.send_rounded
-                      : Icons.call_received_rounded,
+                  ? Icons.send_rounded
+                  : Icons.call_received_rounded,
               size: 18,
-              color: isPending ? Colors.orange : isPayer ? Colors.red : Colors.green,
+              color: isPending
+                  ? Colors.orange
+                  : isPayer
+                  ? Colors.red
+                  : Colors.green,
             ),
           ),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-          subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           trailing: Text(
             formatIndianRupeeSigned(isPayer ? -s.amount : s.amount),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isPayer ? Colors.red : Colors.green),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: isPayer ? Colors.red : Colors.green,
+            ),
           ),
         ),
       ),

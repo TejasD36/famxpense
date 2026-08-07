@@ -19,5 +19,6 @@ sealed class TransferDto with _$TransferDto {
     @HiveField(9) @Default(SyncStatus.synced) SyncStatus syncStatus,
   }) = _TransferDto;
 
-  factory TransferDto.fromJson(Map<String, dynamic> json) => _$TransferDtoFromJson(json);
+  factory TransferDto.fromJson(Map<String, dynamic> json) =>
+      _$TransferDtoFromJson(json);
 }

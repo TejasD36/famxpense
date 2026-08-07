@@ -5,6 +5,7 @@ export 'data/repositories/expense_repository_impl.dart';
 export 'data/transformers/dtos/expense_remote_dto.dart';
 export 'data/transformers/mappers/expense_remote_mapper.dart';
 export 'domain/repositories/expense_repository.dart';
+export 'domain/services/expense_split_calculator.dart';
 export 'domain/usecases/add_expense_usecase.dart';
 export 'domain/usecases/get_current_month_expenses_usecase.dart';
 export 'presentation/blocs/activity/activity_bloc.dart';

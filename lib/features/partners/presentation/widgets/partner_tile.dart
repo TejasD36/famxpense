@@ -9,7 +9,13 @@ class PartnerTile extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  const PartnerTile({super.key, required this.nickname, required this.email, this.trailing, this.onTap});
+  const PartnerTile({
+    super.key,
+    required this.nickname,
+    required this.email,
+    this.trailing,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,10 @@ class PartnerTile extends StatelessWidget {
                 child: Text(
                   nickname.isNotEmpty ? nickname[0].toUpperCase() : '?',
 
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
               ),
 
@@ -49,11 +58,23 @@ class PartnerTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-                    Text('@$nickname', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      '@$nickname',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
 
                     const SizedBox(height: 4),
 
-                    Text(email, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
+                    Text(
+                      email,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -19,8 +19,13 @@ class SettleDebtUsecase {
     String? fromAccountId,
   }) async {
     /// Prevent duplicate pending settlements
-    final hasPending = await _settlementRepository.hasPendingSettlement(fromUserId, toUserId);
-    if (hasPending) return 'A pending settlement already exists between you and this partner';
+    final hasPending = await _settlementRepository.hasPendingSettlement(
+      fromUserId,
+      toUserId,
+    );
+    if (hasPending) {
+      return 'A pending settlement already exists between you and this partner';
+    }
 
     final now = DateTime.now().toUtc();
     final settlement = SettlementEntity(
@@ -42,18 +47,36 @@ class SettleDebtUsecase {
     /// Deduct from payer's selected account (money set aside pending confirmation)
     if (fromAccountId != null) {
       try {
-        final accounts = await _accountRepository.getAccounts(userId: fromUserId);
-        final account = accounts.where((a) => a.id == fromAccountId).firstOrNull;
+        final accounts = await _accountRepository.getAccounts(
+          userId: fromUserId,
+        );
+        final account = accounts
+            .where((a) => a.id == fromAccountId)
+            .firstOrNull;
         if (account != null) {
-          await _accountRepository.updateBalance(fromAccountId, account.currentBalance - amount);
-          if (account.isSavings) {
+          final updatedAccount = await _accountRepository.adjustBalance(
+            fromAccountId,
+            -amount,
+            mutationId: 'settlement-reserve-${settlement.id}',
+          );
+          if (updatedAccount.isSavings) {
             try {
-              await sl<SavingsRepository>().computeCurrentMonth(fromAccountId, account.currentBalance - amount, account.monthlySavingsGoal);
+              await sl<SavingsRepository>().computeCurrentMonth(
+                fromAccountId,
+                updatedAccount.currentBalance,
+                updatedAccount.monthlySavingsGoal,
+              );
             } catch (e, stackTrace) {
-              AppLogger.error('Savings snapshot update failed after settlement deduction', e, stackTrace);
+              AppLogger.error(
+                'Savings snapshot update failed after settlement deduction',
+                e,
+                stackTrace,
+              );
             }
           }
-          AppLogger.success('Settlement deducted from account: ${account.accountName}');
+          AppLogger.success(
+            'Settlement deducted from account: ${account.accountName}',
+          );
         }
       } catch (e, stackTrace) {
         AppLogger.error('Payer account deduction failed', e, stackTrace);
@@ -83,22 +106,53 @@ class SettleDebtUsecase {
   }
 
   Future<void> cancel(String settlementId) async {
-    final settlement = await _settlementRepository.getSettlementById(settlementId);
+    final settlement = await _settlementRepository.getSettlementById(
+      settlementId,
+    );
     if (settlement == null) return;
+    if (settlement.status != SettlementStatus.pending) return;
+
+    /// Remote terminal-state guard: the recipient may have already confirmed.
+    try {
+      final remote = await sl<SettlementRemoteDatasource>()
+          .fetchSettlementById(settlementId);
+      if (remote != null && remote.status != SettlementStatus.pending) return;
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Remote settlement verification unavailable — using local status',
+      );
+      AppLogger.error('Settlement remote status check error', e, stackTrace);
+    }
 
     /// Refund payer's account FIRST before deleting the settlement record.
     /// If refund fails, money would be lost if we delete first.
     if (settlement.accountId != null) {
       try {
-        final accounts = await _accountRepository.getAccounts(userId: settlement.fromUserId);
-        final account = accounts.where((a) => a.id == settlement.accountId).firstOrNull;
+        final accounts = await _accountRepository.getAccounts(
+          userId: settlement.fromUserId,
+        );
+        final account = accounts
+            .where((a) => a.id == settlement.accountId)
+            .firstOrNull;
         if (account != null) {
-          await _accountRepository.updateBalance(settlement.accountId!, account.currentBalance + settlement.amount);
-          if (account.isSavings) {
+          final updatedAccount = await _accountRepository.adjustBalance(
+            settlement.accountId!,
+            settlement.amount,
+            mutationId: 'settlement-cancel-refund-${settlement.id}',
+          );
+          if (updatedAccount.isSavings) {
             try {
-              await sl<SavingsRepository>().computeCurrentMonth(settlement.accountId!, account.currentBalance + settlement.amount, account.monthlySavingsGoal);
+              await sl<SavingsRepository>().computeCurrentMonth(
+                settlement.accountId!,
+                updatedAccount.currentBalance,
+                updatedAccount.monthlySavingsGoal,
+              );
             } catch (e, stackTrace) {
-              AppLogger.error('Savings snapshot update failed after settlement refund', e, stackTrace);
+              AppLogger.error(
+                'Savings snapshot update failed after settlement refund',
+                e,
+                stackTrace,
+              );
             }
           }
         }
@@ -108,7 +162,10 @@ class SettleDebtUsecase {
       }
     }
 
-    await _settlementRepository.deleteSettlement(settlementId);
+    await _settlementRepository.updateSettlementStatus(
+      settlementId,
+      SettlementStatus.rejected,
+    );
 
     sl<SyncService>().syncAll(userId: settlement.fromUserId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();

@@ -70,14 +70,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
           error: (message) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           },
         );
       },
 
       child: Scaffold(
         appBar: AppBar(
-          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Register')),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13.0),
+            child: const Text('Register'),
+          ),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -93,14 +98,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    const Text('Create Account', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
 
                     const SizedBox(height: 32),
 
                     TextFormField(
                       controller: _nameController,
 
-                      decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(),
+                      ),
 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -124,7 +138,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9_]')),
 
                         TextInputFormatter.withFunction((oldValue, newValue) {
-                          return TextEditingValue(text: newValue.text.toLowerCase(), selection: newValue.selection);
+                          return TextEditingValue(
+                            text: newValue.text.toLowerCase(),
+                            selection: newValue.selection,
+                          );
                         }),
                       ],
 
@@ -164,13 +181,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       keyboardType: TextInputType.emailAddress,
 
-                      decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter email';
                         }
-                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                        if (!RegExp(
+                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                        ).hasMatch(value.trim())) {
                           return 'Enter a valid email address';
                         }
                         return null;
@@ -184,10 +206,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       obscureText: true,
 
-                      decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                      ),
 
                       onChanged: (_) {
-                        _confirmPasswordController.text.isNotEmpty ? _formKey.currentState?.validate() : null;
+                        _confirmPasswordController.text.isNotEmpty
+                            ? _formKey.currentState?.validate()
+                            : null;
                       },
                     ),
 
@@ -198,7 +225,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       obscureText: true,
 
-                      decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password',
+                        border: OutlineInputBorder(),
+                      ),
 
                       validator: (value) {
                         if (value != _passwordController.text) {
@@ -219,7 +249,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: isLoading ? null : _register,
 
                           child: isLoading
-                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(),
+                                )
                               : const Text('Register'),
                         );
                       },

@@ -19,7 +19,9 @@ sealed class MonthlySavingDto with _$MonthlySavingDto {
     @HiveField(9) @Default(false) bool isCompleted,
     @HiveField(10) @Default('') String userId,
     @HiveField(11) @Default(SyncStatus.synced) SyncStatus syncStatus,
+    @HiveField(12) DateTime? updatedAt,
   }) = _MonthlySavingDto;
 
-  factory MonthlySavingDto.fromJson(Map<String, dynamic> json) => _$MonthlySavingDtoFromJson(json);
+  factory MonthlySavingDto.fromJson(Map<String, dynamic> json) =>
+      _$MonthlySavingDtoFromJson(json);
 }

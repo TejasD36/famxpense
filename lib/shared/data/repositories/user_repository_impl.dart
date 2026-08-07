@@ -6,11 +6,18 @@ import '../transformers/mappers/user/user_remote_mapper.dart';
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDatasource _remoteDatasource;
 
-  UserRepositoryImpl({required UserRemoteDatasource remoteDatasource}) : _remoteDatasource = remoteDatasource;
+  UserRepositoryImpl({required UserRemoteDatasource remoteDatasource})
+    : _remoteDatasource = remoteDatasource;
 
   @override
-  Future<UserEntity?> searchUser({required String query, required String currentUserId}) async {
-    final result = await _remoteDatasource.searchUser(query: query, currentUserId: currentUserId);
+  Future<UserEntity?> searchUser({
+    required String query,
+    required String currentUserId,
+  }) async {
+    final result = await _remoteDatasource.searchUser(
+      query: query,
+      currentUserId: currentUserId,
+    );
 
     return result?.toEntity();
   }

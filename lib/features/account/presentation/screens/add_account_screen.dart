@@ -14,6 +14,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   final _goalController = TextEditingController();
   AccountType _selectedType = AccountType.bank;
   bool _isSavings = false;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -24,6 +25,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   }
 
   Future<void> _submit() async {
+    if (_saving) return;
     final name = _nameController.text.trim();
     final balance = double.tryParse(_balanceController.text.trim()) ?? 0;
 
@@ -32,31 +34,45 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
 
-    final now = DateTime.now().toUtc();
-    final account = AccountEntity(
-      id: const Uuid().v4(),
-      userId: userId,
-      accountName: name,
-      accountType: _selectedType,
-      currentBalance: balance,
-      createdAt: now,
-      updatedAt: now,
-      isSavings: _isSavings,
-      monthlySavingsGoal: _isSavings ? double.tryParse(_goalController.text.trim()) ?? 0 : 0,
-    );
+    setState(() => _saving = true);
+    try {
+      final repository = sl<AccountRepository>();
+      final hadAccounts = (await repository.getAccounts(
+        userId: userId,
+      )).isNotEmpty;
+      final now = DateTime.now().toUtc();
+      final account = AccountEntity(
+        id: const Uuid().v4(),
+        userId: userId,
+        accountName: name,
+        accountType: _selectedType,
+        currentBalance: balance,
+        createdAt: now,
+        updatedAt: now,
+        isSavings: _isSavings,
+        monthlySavingsGoal: _isSavings
+            ? double.tryParse(_goalController.text.trim()) ?? 0
+            : 0,
+      );
 
-    context.read<AccountBloc>().add(AccountEvent.saveAccount(account: account));
-    sl<RefreshNotifier>().notifyDataChanged();
+      await repository.saveAccount(account);
+      if (!hadAccounts) {
+        await AppSettings.setDefaultAccountId(
+          userId: userId,
+          accountId: account.id,
+        );
+      }
+      sl<RefreshNotifier>().notifyDataChanged();
 
-    /// Auto-set default account if user has no other accounts
-    final existing = await sl<AccountLocalDatasource>().getAccounts();
-    final userAccounts = existing.where((a) => a.userId == userId).toList();
-    if (userAccounts.isEmpty) {
-      await AppSettings.setDefaultAccountId(userId: userId, accountId: account.id);
+      if (!mounted) return;
+      Navigator.of(context).pop(account);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not save account: $error')));
+      setState(() => _saving = false);
     }
-
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
   }
 
   @override
@@ -71,7 +87,9 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
             decoration: InputDecoration(
               labelText: 'Account Name',
               hintText: 'e.g. HDFC Savings, Cash Wallet',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -79,7 +97,9 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
             initialValue: _selectedType,
             decoration: InputDecoration(
               labelText: 'Account Type',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             items: AccountType.values.map((type) {
               return DropdownMenuItem(value: type, child: Text(type.name));
@@ -96,7 +116,9 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               labelText: 'Current Balance (₹)',
               hintText: '0',
               prefixText: '₹ ',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -116,15 +138,22 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                 labelText: 'Monthly Savings Goal (₹)',
                 hintText: '0',
                 prefixText: '₹ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ],
           const SizedBox(height: 28),
           FilledButton(
-            onPressed: _submit,
-            style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-            child: const Text('Save Account'),
+            onPressed: _saving ? null : _submit,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: Text(_saving ? 'Saving…' : 'Save Account'),
           ),
         ],
       ),

@@ -4,12 +4,20 @@ part of 'auth_bloc.dart';
 sealed class AuthEvent with _$AuthEvent {
   const factory AuthEvent.checkAuthStatus() = CheckAuthStatusEvent;
 
-  const factory AuthEvent.login({required String email, required String password}) = LoginEvent;
+  const factory AuthEvent.login({
+    required String email,
+    required String password,
+  }) = LoginEvent;
 
-  const factory AuthEvent.register({required String name, required String nickname, required String email, required String password}) =
-      RegisterEvent;
+  const factory AuthEvent.register({
+    required String name,
+    required String nickname,
+    required String email,
+    required String password,
+  }) = RegisterEvent;
 
-  const factory AuthEvent.forgotPassword({required String email}) = ForgotPasswordEvent;
+  const factory AuthEvent.forgotPassword({required String email}) =
+      ForgotPasswordEvent;
 
   const factory AuthEvent.logout() = LogoutEvent;
 }

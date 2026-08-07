@@ -19,6 +19,7 @@ _IncomeEntity _$IncomeEntityFromJson(Map<String, dynamic> json) =>
       syncStatus:
           $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
           SyncStatus.pending,
+      isDeleted: json['isDeleted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$IncomeEntityToJson(_IncomeEntity instance) =>
@@ -32,6 +33,7 @@ Map<String, dynamic> _$IncomeEntityToJson(_IncomeEntity instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
+      'isDeleted': instance.isDeleted,
     };
 
 const _$IncomeSourceEnumMap = {

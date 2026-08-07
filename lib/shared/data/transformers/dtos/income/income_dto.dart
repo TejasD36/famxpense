@@ -16,7 +16,9 @@ sealed class IncomeDto with _$IncomeDto {
     @HiveField(6) required DateTime createdAt,
     @HiveField(7) required DateTime updatedAt,
     @HiveField(8) @Default(SyncStatus.pending) SyncStatus syncStatus,
+    @HiveField(9) @Default(false) bool isDeleted,
   }) = _IncomeDto;
 
-  factory IncomeDto.fromJson(Map<String, dynamic> json) => _$IncomeDtoFromJson(json);
+  factory IncomeDto.fromJson(Map<String, dynamic> json) =>
+      _$IncomeDtoFromJson(json);
 }

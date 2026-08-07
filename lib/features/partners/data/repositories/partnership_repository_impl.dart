@@ -41,10 +41,14 @@ class PartnershipRepositoryImpl implements PartnershipRepository {
   }
 
   @override
-  Future<List<PartnershipEntity>> getPartnerships({required String userId}) async {
+  Future<List<PartnershipEntity>> getPartnerships({
+    required String userId,
+  }) async {
     final result = await _remoteDatasource.getPartnerships(userId: userId);
     final entities = result.map((e) => e.toEntity()).toList();
-    await _localDatasource.savePartnerships(entities.map((e) => e.toDto()).toList());
+    await _localDatasource.savePartnerships(
+      entities.map((e) => e.toDto()).toList(),
+    );
     return entities;
   }
 }

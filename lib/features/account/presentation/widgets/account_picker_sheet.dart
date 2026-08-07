@@ -25,7 +25,10 @@ class AccountPickerSheet extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Select Account', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Select Account',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const Spacer(),
                 IconButton(
                   onPressed: onAddNew,
@@ -39,7 +42,12 @@ class AccountPickerSheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Center(
-                  child: Text('No accounts yet. Add one!', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  child: Text(
+                    'No accounts yet. Add one!',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
               )
             else
@@ -50,16 +58,31 @@ class AccountPickerSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: isSelected ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2) : BorderSide.none,
+                    side: isSelected
+                        ? BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          )
+                        : BorderSide.none,
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: account.isSavings ? Colors.amber.withValues(alpha: 0.15) : null,
-                      child: Icon(_iconForType(account), color: account.isSavings ? Colors.amber.shade700 : null),
+                      backgroundColor: account.isSavings
+                          ? Colors.amber.withValues(alpha: 0.15)
+                          : null,
+                      child: Icon(
+                        _iconForType(account),
+                        color: account.isSavings ? Colors.amber.shade700 : null,
+                      ),
                     ),
                     title: Text(account.accountName),
                     subtitle: Text(formatIndianRupee(account.currentBalance)),
-                    trailing: isSelected ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary) : null,
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check_circle_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
                     onTap: () => onSelected(account),
                   ),
                 );

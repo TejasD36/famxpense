@@ -23,5 +23,6 @@ sealed class UserRemoteDto with _$UserRemoteDto {
     @Default(true) bool isActive,
   }) = _UserRemoteDto;
 
-  factory UserRemoteDto.fromJson(Map<String, dynamic> json) => _$UserRemoteDtoFromJson(json);
+  factory UserRemoteDto.fromJson(Map<String, dynamic> json) =>
+      _$UserRemoteDtoFromJson(json);
 }

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ActivityEvent implements DiagnosticableTreeMixin {
 
- DateTime? get month;
+ DateTime? get month; DateTime? get rangeStart; DateTime? get rangeEnd;
 /// Create a copy of ActivityEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $ActivityEventCopyWith<ActivityEvent> get copyWith => _$ActivityEventCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ActivityEvent'))
-    ..add(DiagnosticsProperty('month', month));
+    ..add(DiagnosticsProperty('month', month))..add(DiagnosticsProperty('rangeStart', rangeStart))..add(DiagnosticsProperty('rangeEnd', rangeEnd));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ActivityEvent&&(identical(other.month, month) || other.month == month));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ActivityEvent&&(identical(other.month, month) || other.month == month)&&(identical(other.rangeStart, rangeStart) || other.rangeStart == rangeStart)&&(identical(other.rangeEnd, rangeEnd) || other.rangeEnd == rangeEnd));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,month);
+int get hashCode => Object.hash(runtimeType,month,rangeStart,rangeEnd);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ActivityEvent(month: $month)';
+  return 'ActivityEvent(month: $month, rangeStart: $rangeStart, rangeEnd: $rangeEnd)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $ActivityEventCopyWith<$Res>  {
   factory $ActivityEventCopyWith(ActivityEvent value, $Res Function(ActivityEvent) _then) = _$ActivityEventCopyWithImpl;
 @useResult
 $Res call({
- DateTime? month
+ DateTime? month, DateTime? rangeStart, DateTime? rangeEnd
 });
 
 
@@ -68,9 +68,11 @@ class _$ActivityEventCopyWithImpl<$Res>
 
 /// Create a copy of ActivityEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? month = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? month = freezed,Object? rangeStart = freezed,Object? rangeEnd = freezed,}) {
   return _then(_self.copyWith(
 month: freezed == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
+as DateTime?,rangeStart: freezed == rangeStart ? _self.rangeStart : rangeStart // ignore: cast_nullable_to_non_nullable
+as DateTime?,rangeEnd: freezed == rangeEnd ? _self.rangeEnd : rangeEnd // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -153,10 +155,10 @@ return loadExpenses(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( DateTime? month)?  loadExpenses,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( DateTime? month,  DateTime? rangeStart,  DateTime? rangeEnd)?  loadExpenses,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadExpensesEvent() when loadExpenses != null:
-return loadExpenses(_that.month);case _:
+return loadExpenses(_that.month,_that.rangeStart,_that.rangeEnd);case _:
   return orElse();
 
 }
@@ -174,10 +176,10 @@ return loadExpenses(_that.month);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( DateTime? month)  loadExpenses,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( DateTime? month,  DateTime? rangeStart,  DateTime? rangeEnd)  loadExpenses,}) {final _that = this;
 switch (_that) {
 case LoadExpensesEvent():
-return loadExpenses(_that.month);}
+return loadExpenses(_that.month,_that.rangeStart,_that.rangeEnd);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +193,10 @@ return loadExpenses(_that.month);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( DateTime? month)?  loadExpenses,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( DateTime? month,  DateTime? rangeStart,  DateTime? rangeEnd)?  loadExpenses,}) {final _that = this;
 switch (_that) {
 case LoadExpensesEvent() when loadExpenses != null:
-return loadExpenses(_that.month);case _:
+return loadExpenses(_that.month,_that.rangeStart,_that.rangeEnd);case _:
   return null;
 
 }
@@ -206,10 +208,12 @@ return loadExpenses(_that.month);case _:
 
 
 class LoadExpensesEvent with DiagnosticableTreeMixin implements ActivityEvent {
-  const LoadExpensesEvent({this.month});
+  const LoadExpensesEvent({this.month, this.rangeStart, this.rangeEnd});
   
 
 @override final  DateTime? month;
+@override final  DateTime? rangeStart;
+@override final  DateTime? rangeEnd;
 
 /// Create a copy of ActivityEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -222,21 +226,21 @@ $LoadExpensesEventCopyWith<LoadExpensesEvent> get copyWith => _$LoadExpensesEven
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ActivityEvent.loadExpenses'))
-    ..add(DiagnosticsProperty('month', month));
+    ..add(DiagnosticsProperty('month', month))..add(DiagnosticsProperty('rangeStart', rangeStart))..add(DiagnosticsProperty('rangeEnd', rangeEnd));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadExpensesEvent&&(identical(other.month, month) || other.month == month));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadExpensesEvent&&(identical(other.month, month) || other.month == month)&&(identical(other.rangeStart, rangeStart) || other.rangeStart == rangeStart)&&(identical(other.rangeEnd, rangeEnd) || other.rangeEnd == rangeEnd));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,month);
+int get hashCode => Object.hash(runtimeType,month,rangeStart,rangeEnd);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ActivityEvent.loadExpenses(month: $month)';
+  return 'ActivityEvent.loadExpenses(month: $month, rangeStart: $rangeStart, rangeEnd: $rangeEnd)';
 }
 
 
@@ -247,7 +251,7 @@ abstract mixin class $LoadExpensesEventCopyWith<$Res> implements $ActivityEventC
   factory $LoadExpensesEventCopyWith(LoadExpensesEvent value, $Res Function(LoadExpensesEvent) _then) = _$LoadExpensesEventCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime? month
+ DateTime? month, DateTime? rangeStart, DateTime? rangeEnd
 });
 
 
@@ -264,9 +268,11 @@ class _$LoadExpensesEventCopyWithImpl<$Res>
 
 /// Create a copy of ActivityEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? month = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? month = freezed,Object? rangeStart = freezed,Object? rangeEnd = freezed,}) {
   return _then(LoadExpensesEvent(
 month: freezed == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
+as DateTime?,rangeStart: freezed == rangeStart ? _self.rangeStart : rangeStart // ignore: cast_nullable_to_non_nullable
+as DateTime?,rangeEnd: freezed == rangeEnd ? _self.rangeEnd : rangeEnd // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

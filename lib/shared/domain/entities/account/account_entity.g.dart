@@ -19,6 +19,19 @@ _AccountEntity _$AccountEntityFromJson(Map<String, dynamic> json) =>
       isSavings: json['isSavings'] as bool? ?? false,
       monthlySavingsGoal:
           (json['monthlySavingsGoal'] as num?)?.toDouble() ?? 0.0,
+      pendingBalanceMutations:
+          (json['pendingBalanceMutations'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {},
+      appliedBalanceMutationIds:
+          (json['appliedBalanceMutationIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      hasPendingMetadataChanges:
+          json['hasPendingMetadataChanges'] as bool? ?? false,
+      isDeleted: json['isDeleted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
@@ -33,6 +46,10 @@ Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
       'isArchived': instance.isArchived,
       'isSavings': instance.isSavings,
       'monthlySavingsGoal': instance.monthlySavingsGoal,
+      'pendingBalanceMutations': instance.pendingBalanceMutations,
+      'appliedBalanceMutationIds': instance.appliedBalanceMutationIds,
+      'hasPendingMetadataChanges': instance.hasPendingMetadataChanges,
+      'isDeleted': instance.isDeleted,
     };
 
 const _$AccountTypeEnumMap = {

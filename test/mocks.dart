@@ -20,6 +20,7 @@ import 'package:famxpense/features/partners/domain/usecases/send_partnership_req
 import 'package:famxpense/features/savings/data/datasources/savings_local_datasource.dart';
 import 'package:famxpense/features/savings/data/datasources/remote/monthly_saving_remote_datasource.dart';
 import 'package:famxpense/features/savings/data/datasources/transfer_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/remote/transfer_remote_datasource.dart';
 import 'package:famxpense/features/savings/domain/repositories/savings_repository.dart';
 import 'package:famxpense/features/settlement/data/datasources/remote/settlement_remote_datasource.dart';
 import 'package:famxpense/features/settlement/domain/repositories/settlement_repository.dart';
@@ -28,7 +29,6 @@ import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/savings/monthly_saving_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/transfer/transfer_dto.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
-import 'package:famxpense/shared/domain/entities/expense/expense_participant_entity.dart';
 import 'package:famxpense/shared/domain/entities/income/income_entity.dart';
 import 'package:famxpense/shared/domain/entities/partnership/partnership_entity.dart';
 import 'package:famxpense/shared/domain/entities/savings/monthly_saving_entity.dart';
@@ -43,137 +43,194 @@ import 'package:famxpense/shared/enums/sync_status.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockDebtLedgerRepository extends Mock implements DebtLedgerRepository {}
-class MockDebtLedgerLocalDatasource extends Mock implements DebtLedgerLocalDatasource {}
+
+class MockDebtLedgerLocalDatasource extends Mock
+    implements DebtLedgerLocalDatasource {}
+
 class MockSettlementRepository extends Mock implements SettlementRepository {}
+
 class MockAccountRepository extends Mock implements AccountRepository {}
-class MockAccountLocalDatasource extends Mock implements AccountLocalDatasource {}
-class MockNotificationLocalDatasource extends Mock implements NotificationLocalDatasource {}
+
+class MockAccountLocalDatasource extends Mock
+    implements AccountLocalDatasource {}
+
+class MockNotificationLocalDatasource extends Mock
+    implements NotificationLocalDatasource {}
+
 class MockAuthLocalDatasource extends Mock implements AuthLocalDatasource {}
-class MockSettlementRemoteDatasource extends Mock implements SettlementRemoteDatasource {}
+
+class MockSettlementRemoteDatasource extends Mock
+    implements SettlementRemoteDatasource {}
+
 class MockSyncService extends Mock implements SyncService {}
 
 /// Expense / Partners
 class MockExpenseRepository extends Mock implements ExpenseRepository {}
+
 class MockUserLocalDatasource extends Mock implements UserLocalDatasource {}
+
 class MockNotificationService extends Mock implements NotificationService {}
+
 class MockSearchUserUsecase extends Mock implements SearchUserUsecase {}
-class MockSendPartnershipRequestUsecase extends Mock implements SendPartnershipRequestUsecase {}
-class MockGetPartnershipsUsecase extends Mock implements GetPartnershipsUsecase {}
+
+class MockSendPartnershipRequestUsecase extends Mock
+    implements SendPartnershipRequestUsecase {}
+
+class MockGetPartnershipsUsecase extends Mock
+    implements GetPartnershipsUsecase {}
+
 class MockPartnershipRepository extends Mock implements PartnershipRepository {}
-class MockPartnershipLocalDatasource extends Mock implements PartnershipLocalDatasource {}
-class MockPartnershipRemoteDatasource extends Mock implements PartnershipRemoteDatasource {}
+
+class MockPartnershipLocalDatasource extends Mock
+    implements PartnershipLocalDatasource {}
+
+class MockPartnershipRemoteDatasource extends Mock
+    implements PartnershipRemoteDatasource {}
+
 class MockIncomeLocalDatasource extends Mock implements IncomeLocalDatasource {}
-class MockIncomeRemoteDatasource extends Mock implements IncomeRemoteDatasource {}
+
+class MockIncomeRemoteDatasource extends Mock
+    implements IncomeRemoteDatasource {}
+
 class MockIncomeRepository extends Mock implements IncomeRepository {}
-class MockSavingsLocalDatasource extends Mock implements SavingsLocalDatasource {}
-class MockMonthlySavingRemoteDatasource extends Mock implements MonthlySavingRemoteDatasource {}
-class MockTransferLocalDatasource extends Mock implements TransferLocalDatasource {}
+
+class MockSavingsLocalDatasource extends Mock
+    implements SavingsLocalDatasource {}
+
+class MockMonthlySavingRemoteDatasource extends Mock
+    implements MonthlySavingRemoteDatasource {}
+
+class MockTransferLocalDatasource extends Mock
+    implements TransferLocalDatasource {}
+
+class MockTransferRemoteDatasource extends Mock
+    implements TransferRemoteDatasource {}
+
 class MockSavingsRepository extends Mock implements SavingsRepository {}
+
 class MockRefreshNotifier extends Mock implements RefreshNotifier {}
 
 /// Register fallback values for types used with `any()` matchers.
 void registerFallbacks() {
   registerFallbackValue(SettlementStatus.pending);
   registerFallbackValue(PartnershipStatus.pending);
-  registerFallbackValue(PartnershipEntity(
-    id: '',
-    senderId: '',
-    senderEmail: '',
-    senderNickname: '',
-    receiverId: '',
-    receiverEmail: '',
-    receiverNickname: '',
-    status: PartnershipStatus.pending,
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
-  registerFallbackValue(UserEntity(
-    id: '',
-    name: '',
-    nickname: '',
-    email: '',
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
-  registerFallbackValue(ExpenseEntity(
-    id: '',
-    title: '',
-    amount: 0,
-    paidByUserId: '',
-    ownerUserId: '',
-    expenseType: ExpenseType.personal,
-    splitType: SplitType.equal,
-    participants: [],
-    expenseDate: DateTime(2026),
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-    syncStatus: SyncStatus.synced,
-  ));
-  registerFallbackValue(IncomeEntity(
-    id: '',
-    userId: '',
-    accountId: '',
-    amount: 0,
-    source: IncomeSource.other,
-    description: '',
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
+  registerFallbackValue(
+    PartnershipEntity(
+      id: '',
+      senderId: '',
+      senderEmail: '',
+      senderNickname: '',
+      receiverId: '',
+      receiverEmail: '',
+      receiverNickname: '',
+      status: PartnershipStatus.pending,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
+  registerFallbackValue(
+    UserEntity(
+      id: '',
+      name: '',
+      nickname: '',
+      email: '',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
+  registerFallbackValue(
+    ExpenseEntity(
+      id: '',
+      title: '',
+      amount: 0,
+      paidByUserId: '',
+      ownerUserId: '',
+      expenseType: ExpenseType.personal,
+      splitType: SplitType.equal,
+      participants: [],
+      expenseDate: DateTime(2026),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      syncStatus: SyncStatus.synced,
+    ),
+  );
+  registerFallbackValue(
+    IncomeEntity(
+      id: '',
+      userId: '',
+      accountId: '',
+      amount: 0,
+      source: IncomeSource.other,
+      description: '',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
   registerFallbackValue(IncomeSource.other);
-  registerFallbackValue(MonthlySavingEntity(
-    id: '',
-    accountId: '',
-    year: 2026,
-    month: 1,
-    goalAmount: 0,
-    savedAmount: 0,
-    openingBalance: 0,
-    closingBalance: 0,
-    achievementPercent: 0,
-    userId: '',
-  ));
-  registerFallbackValue(TransferEntity(
-    id: '',
-    fromAccountId: '',
-    toAccountId: '',
-    fromUserId: '',
-    toUserId: '',
-    amount: 0,
-    description: '',
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
-  registerFallbackValue(IncomeDto(
-    id: '',
-    userId: '',
-    accountId: '',
-    amount: 0,
-    source: IncomeSource.other,
-    description: '',
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
-  registerFallbackValue(MonthlySavingDto(
-    id: '',
-    accountId: '',
-    year: 2026,
-    month: 1,
-    goalAmount: 0,
-    savedAmount: 0,
-    openingBalance: 0,
-    closingBalance: 0,
-    achievementPercent: 0,
-    userId: '',
-  ));
-  registerFallbackValue(TransferDto(
-    id: '',
-    fromAccountId: '',
-    toAccountId: '',
-    fromUserId: '',
-    toUserId: '',
-    amount: 0,
-    description: '',
-    createdAt: DateTime(2026),
-    updatedAt: DateTime(2026),
-  ));
+  registerFallbackValue(
+    MonthlySavingEntity(
+      id: '',
+      accountId: '',
+      year: 2026,
+      month: 1,
+      goalAmount: 0,
+      savedAmount: 0,
+      openingBalance: 0,
+      closingBalance: 0,
+      achievementPercent: 0,
+      userId: '',
+    ),
+  );
+  registerFallbackValue(
+    TransferEntity(
+      id: '',
+      fromAccountId: '',
+      toAccountId: '',
+      fromUserId: '',
+      toUserId: '',
+      amount: 0,
+      description: '',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
+  registerFallbackValue(
+    IncomeDto(
+      id: '',
+      userId: '',
+      accountId: '',
+      amount: 0,
+      source: IncomeSource.other,
+      description: '',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
+  registerFallbackValue(
+    MonthlySavingDto(
+      id: '',
+      accountId: '',
+      year: 2026,
+      month: 1,
+      goalAmount: 0,
+      savedAmount: 0,
+      openingBalance: 0,
+      closingBalance: 0,
+      achievementPercent: 0,
+      userId: '',
+    ),
+  );
+  registerFallbackValue(
+    TransferDto(
+      id: '',
+      fromAccountId: '',
+      toAccountId: '',
+      fromUserId: '',
+      toUserId: '',
+      amount: 0,
+      description: '',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  );
 }

@@ -1,7 +1,9 @@
 import '../../xcore.dart';
 
-class NotificationLocalDatasourceImpl extends BaseHiveService<NotificationDto> implements NotificationLocalDatasource {
-  NotificationLocalDatasourceImpl() : super(Hive.box<NotificationDto>(HiveBoxes.notifications));
+class NotificationLocalDatasourceImpl extends BaseHiveService<NotificationDto>
+    implements NotificationLocalDatasource {
+  NotificationLocalDatasourceImpl()
+    : super(Hive.box<NotificationDto>(HiveBoxes.notifications));
 
   @override
   Future<void> saveNotification(NotificationDto notification) async {

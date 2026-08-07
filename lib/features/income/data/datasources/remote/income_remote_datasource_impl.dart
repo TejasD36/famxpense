@@ -3,13 +3,17 @@ import '../../../xcore.dart';
 class IncomeRemoteDatasourceImpl implements IncomeRemoteDatasource {
   final FirebaseFirestore _firestore;
 
-  IncomeRemoteDatasourceImpl({required FirebaseFirestore firestore}) : _firestore = firestore;
+  IncomeRemoteDatasourceImpl({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   static const _collection = 'incomes';
 
   @override
   Future<void> createIncome(IncomeDto income) async {
-    await _firestore.collection(_collection).doc(income.id).set(income.toJson());
+    await _firestore
+        .collection(_collection)
+        .doc(income.id)
+        .set(income.toJson());
   }
 
   @override

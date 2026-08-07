@@ -16,7 +16,12 @@ sealed class AccountEntity with _$AccountEntity {
     @Default(false) bool isArchived,
     @Default(false) bool isSavings,
     @Default(0.0) double monthlySavingsGoal,
+    @Default({}) Map<String, double> pendingBalanceMutations,
+    @Default([]) List<String> appliedBalanceMutationIds,
+    @Default(false) bool hasPendingMetadataChanges,
+    @Default(false) bool isDeleted,
   }) = _AccountEntity;
 
-  factory AccountEntity.fromJson(Map<String, dynamic> json) => _$AccountEntityFromJson(json);
+  factory AccountEntity.fromJson(Map<String, dynamic> json) =>
+      _$AccountEntityFromJson(json);
 }

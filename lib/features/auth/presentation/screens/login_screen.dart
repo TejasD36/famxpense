@@ -9,15 +9,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
-
   final _passwordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _emailController.dispose();
-
     _passwordController.dispose();
 
     super.dispose();
@@ -25,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     if (!_formKey.currentState!.validate()) return;
-
     context.read<AuthBloc>().add(AuthEvent.login(email: _emailController.text.trim(), password: _passwordController.text));
   }
 
@@ -126,13 +122,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+
+                    TextButton(
+                      onPressed: () {
+                        context.push(AppRoute.forgotPassword.path);
+                      },
+                      child: const Text('Forgot Password?'),
+                    ),
+
+                    const SizedBox(height: 8),
 
                     TextButton(
                       onPressed: () {
                         context.go(AppRoute.register.path);
                       },
-
                       child: const Text('Create Account'),
                     ),
                   ],

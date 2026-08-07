@@ -29,13 +29,23 @@ class AccountDtoAdapter extends TypeAdapter<AccountDto> {
       monthlySavingsGoal: fields[9] == null
           ? 0.0
           : (fields[9] as num).toDouble(),
+      pendingBalanceMutations: fields[10] == null
+          ? {}
+          : (fields[10] as Map).cast<String, double>(),
+      hasPendingMetadataChanges: fields[11] == null
+          ? false
+          : fields[11] as bool,
+      appliedBalanceMutationIds: fields[12] == null
+          ? []
+          : (fields[12] as List).cast<String>(),
+      isDeleted: fields[13] == null ? false : fields[13] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, AccountDto obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -55,7 +65,15 @@ class AccountDtoAdapter extends TypeAdapter<AccountDto> {
       ..writeByte(8)
       ..write(obj.isSavings)
       ..writeByte(9)
-      ..write(obj.monthlySavingsGoal);
+      ..write(obj.monthlySavingsGoal)
+      ..writeByte(10)
+      ..write(obj.pendingBalanceMutations)
+      ..writeByte(11)
+      ..write(obj.hasPendingMetadataChanges)
+      ..writeByte(12)
+      ..write(obj.appliedBalanceMutationIds)
+      ..writeByte(13)
+      ..write(obj.isDeleted);
   }
 
   @override
@@ -84,6 +102,19 @@ _AccountDto _$AccountDtoFromJson(Map<String, dynamic> json) => _AccountDto(
   isArchived: json['isArchived'] as bool? ?? false,
   isSavings: json['isSavings'] as bool? ?? false,
   monthlySavingsGoal: (json['monthlySavingsGoal'] as num?)?.toDouble() ?? 0.0,
+  pendingBalanceMutations:
+      (json['pendingBalanceMutations'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toDouble()),
+      ) ??
+      const {},
+  hasPendingMetadataChanges:
+      json['hasPendingMetadataChanges'] as bool? ?? false,
+  appliedBalanceMutationIds:
+      (json['appliedBalanceMutationIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  isDeleted: json['isDeleted'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$AccountDtoToJson(_AccountDto instance) =>
@@ -98,6 +129,10 @@ Map<String, dynamic> _$AccountDtoToJson(_AccountDto instance) =>
       'isArchived': instance.isArchived,
       'isSavings': instance.isSavings,
       'monthlySavingsGoal': instance.monthlySavingsGoal,
+      'pendingBalanceMutations': instance.pendingBalanceMutations,
+      'hasPendingMetadataChanges': instance.hasPendingMetadataChanges,
+      'appliedBalanceMutationIds': instance.appliedBalanceMutationIds,
+      'isDeleted': instance.isDeleted,
     };
 
 const _$AccountTypeEnumMap = {

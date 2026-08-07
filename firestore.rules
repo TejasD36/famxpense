@@ -17,18 +17,77 @@ service cloud.firestore {
       allow read: if request.auth != null
         && resource.data.participantIds != null
         && resource.data.participantIds.hasAny([request.auth.uid]);
-      allow create: if request.auth.uid == request.resource.data.paidByUserId;
-      allow update: if request.auth.uid == resource.data.paidByUserId;
-      allow delete: if request.auth.uid == resource.data.paidByUserId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.paidByUserId
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.hasAny([request.auth.uid])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.paidByUserId
+        && request.resource.data.paidByUserId == resource.data.paidByUserId
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.hasAny([request.auth.uid])
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.paidByUserId;
     }
 
     // Accounts: read/write own only
     match /accounts/{accountId} {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId;
-      allow delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+    }
+
+    // Immutable idempotency records for account balance changes. These allow
+    // clients to retry an offline debit/credit without applying it twice.
+    match /account_balance_mutations/{mutationId} {
+      // Transactions must be able to confirm that a mutation does not exist
+      // before creating it. Keep collection queries owner-scoped so mutation
+      // history cannot be enumerated across users.
+      allow get: if request.auth != null
+        && (!exists(
+          /databases/$(database)/documents/account_balance_mutations/$(mutationId)
+        ) || resource.data.userId == request.auth.uid);
+      allow list: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.id == mutationId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.accountId is string
+        && request.resource.data.delta is number
+        && getAfter(
+          /databases/$(database)/documents/accounts/$(request.resource.data.accountId)
+        ).data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Immutable account history entries. Manual balance edits and deposits are
+    // created atomically with their idempotent account balance mutation.
+    match /account_entries/{entryId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.id == entryId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.accountId is string
+        && request.resource.data.amount is number
+        && request.resource.data.previousBalance is number
+        && request.resource.data.newBalance is number
+        && request.resource.data.newBalance
+          == request.resource.data.previousBalance + request.resource.data.amount
+        && getAfter(
+          /databases/$(database)/documents/accounts/$(request.resource.data.accountId)
+        ).data.userId == request.auth.uid;
+      allow update, delete: if false;
     }
 
     // Settlements: read if participant, create/update if participant
@@ -57,9 +116,17 @@ service cloud.firestore {
     match /incomes/{incomeId} {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId;
-      allow delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.userId;
     }
 
     // Notifications: read own only, create allowed for any authed user
@@ -76,8 +143,19 @@ service cloud.firestore {
     match /transfers/{transferId} {
       allow read: if request.auth != null
         && resource.data.fromUserId == request.auth.uid;
-      allow create: if request.auth.uid == request.resource.data.fromUserId;
-      allow update: if request.auth.uid == resource.data.fromUserId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.fromUserId
+        && request.resource.data.toUserId == request.auth.uid
+        && request.resource.data.fromAccountId != request.resource.data.toAccountId
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.fromUserId
+        && request.resource.data.fromUserId == resource.data.fromUserId
+        && request.resource.data.toUserId == resource.data.toUserId
+        && request.resource.data.fromAccountId != request.resource.data.toAccountId
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0;
       allow delete: if false;
     }
 
@@ -85,21 +163,60 @@ service cloud.firestore {
     match /monthly_savings/{snapshotId} {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.month >= 1
+        && request.resource.data.month <= 12;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.accountId == resource.data.accountId
+        && request.resource.data.year == resource.data.year
+        && request.resource.data.month == resource.data.month;
       allow delete: if false;
     }
 
     // Debt ledgers: read if participant, write if participant
     match /debt_ledgers/{ledgerId} {
+      // The first write uses a transaction that GETs the (not yet existing)
+      // ledger doc — permit that read so the document can be created.
       allow read: if request.auth != null
-        && resource.data.participantIds != null
-        && resource.data.participantIds.hasAny([request.auth.uid]);
+        && (!exists(
+          /databases/$(database)/documents/debt_ledgers/$(ledgerId)
+        ) || (
+          resource.data.participantIds != null
+          && resource.data.participantIds.hasAny([request.auth.uid])
+        ));
       allow create: if request.auth.uid == request.resource.data.userA
         || request.auth.uid == request.resource.data.userB;
+
       allow update: if request.auth.uid == resource.data.userA
         || request.auth.uid == resource.data.userB;
       allow delete: if false;
+    }
+
+    // Immutable idempotency records for shared-debt adjustments.
+    match /debt_ledger_mutations/{mutationId} {
+      allow get: if request.auth != null
+        && (!exists(
+          /databases/$(database)/documents/debt_ledger_mutations/$(mutationId)
+        ) || (
+          resource.data.participantIds is list
+          && resource.data.participantIds.hasAny([request.auth.uid])
+        ));
+      allow list: if request.auth != null
+        && resource.data.participantIds is list
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if request.auth != null
+        && request.resource.data.id == mutationId
+        && request.resource.data.ledgerId is string
+        && request.resource.data.delta is number
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.hasAny([request.auth.uid])
+        && getAfter(
+          /databases/$(database)/documents/debt_ledgers/$(request.resource.data.ledgerId)
+        ).data.participantIds.hasAny([request.auth.uid]);
+      allow update, delete: if false;
     }
 
     // Deny everything else

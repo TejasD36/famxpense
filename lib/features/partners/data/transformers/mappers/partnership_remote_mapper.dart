@@ -41,7 +41,9 @@ extension PartnershipRemoteDtoMapper on PartnershipRemoteDto {
       senderNickname: senderNickname,
       receiverNickname: receiverNickname,
 
-      status: PartnershipStatus.values.where((e) => e.name == status).firstOrNull ?? PartnershipStatus.pending,
+      status:
+          PartnershipStatus.values.where((e) => e.name == status).firstOrNull ??
+          PartnershipStatus.pending,
 
       createdAt: createdAt,
 

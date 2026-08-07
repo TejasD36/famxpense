@@ -36,7 +36,10 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     on<_ClearSearch>(_onClearSearch);
   }
 
-  Future<void> _onSearchUser(_SearchUser event, Emitter<PartnerState> emit) async {
+  Future<void> _onSearchUser(
+    _SearchUser event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
       final currentUserId = _authLocalDatasource.getUserId();
 
@@ -46,24 +49,38 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
 
       /// Capture current partner lists before search
       final previousState = state;
-      final connected = previousState is _Loaded ? previousState.connectedPartners : <PartnershipEntity>[];
-      final incoming = previousState is _Loaded ? previousState.incomingRequests : <PartnershipEntity>[];
-      final outgoing = previousState is _Loaded ? previousState.outgoingRequests : <PartnershipEntity>[];
+      final connected = previousState is _Loaded
+          ? previousState.connectedPartners
+          : <PartnershipEntity>[];
+      final incoming = previousState is _Loaded
+          ? previousState.incomingRequests
+          : <PartnershipEntity>[];
+      final outgoing = previousState is _Loaded
+          ? previousState.outgoingRequests
+          : <PartnershipEntity>[];
 
-      final user = await _searchUserUsecase(query: event.query, currentUserId: currentUserId);
+      final user = await _searchUserUsecase(
+        query: event.query,
+        currentUserId: currentUserId,
+      );
 
-      emit(PartnerState.loaded(
-        searchedUser: user,
-        connectedPartners: connected,
-        incomingRequests: incoming,
-        outgoingRequests: outgoing,
-      ));
+      emit(
+        PartnerState.loaded(
+          searchedUser: user,
+          connectedPartners: connected,
+          incomingRequests: incoming,
+          outgoingRequests: outgoing,
+        ),
+      );
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
   }
 
-  Future<void> _onSendRequest(_SendRequest event, Emitter<PartnerState> emit) async {
+  Future<void> _onSendRequest(
+    _SendRequest event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
       final currentUserId = _authLocalDatasource.getUserId();
 
@@ -106,13 +123,20 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
         partnershipId: partnership.id,
       );
 
-      emit(currentState.copyWith(outgoingRequests: [...currentState.outgoingRequests, partnership]));
+      emit(
+        currentState.copyWith(
+          outgoingRequests: [...currentState.outgoingRequests, partnership],
+        ),
+      );
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
   }
 
-  Future<void> _onLoadPartners(_LoadPartners event, Emitter<PartnerState> emit) async {
+  Future<void> _onLoadPartners(
+    _LoadPartners event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
       emit(const PartnerState.loading());
 
@@ -129,22 +153,36 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
       }).toList();
 
       final incoming = partnerships.where((e) {
-        return e.status == PartnershipStatus.pending && e.receiverId == currentUserId;
+        return e.status == PartnershipStatus.pending &&
+            e.receiverId == currentUserId;
       }).toList();
 
       final outgoing = partnerships.where((e) {
-        return e.status == PartnershipStatus.pending && e.senderId == currentUserId;
+        return e.status == PartnershipStatus.pending &&
+            e.senderId == currentUserId;
       }).toList();
 
-      emit(PartnerState.loaded(connectedPartners: connected, incomingRequests: incoming, outgoingRequests: outgoing));
+      emit(
+        PartnerState.loaded(
+          connectedPartners: connected,
+          incomingRequests: incoming,
+          outgoingRequests: outgoing,
+        ),
+      );
     } catch (e) {
       emit(PartnerState.error(message: e.toString()));
     }
   }
 
-  Future<void> _onAcceptRequest(_AcceptRequest event, Emitter<PartnerState> emit) async {
+  Future<void> _onAcceptRequest(
+    _AcceptRequest event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
-      final updated = event.partnership.copyWith(status: PartnershipStatus.accepted, updatedAt: DateTime.now().toUtc());
+      final updated = event.partnership.copyWith(
+        status: PartnershipStatus.accepted,
+        updatedAt: DateTime.now().toUtc(),
+      );
       await _sendRequestUsecase(updated);
 
       final accepterNickname = () {
@@ -160,10 +198,14 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
 
       final currentState = state;
       if (currentState is _Loaded) {
-        emit(currentState.copyWith(
-          connectedPartners: [...currentState.connectedPartners, updated],
-          incomingRequests: currentState.incomingRequests.where((e) => e.id != updated.id).toList(),
-        ));
+        emit(
+          currentState.copyWith(
+            connectedPartners: [...currentState.connectedPartners, updated],
+            incomingRequests: currentState.incomingRequests
+                .where((e) => e.id != updated.id)
+                .toList(),
+          ),
+        );
       } else {
         add(const _LoadPartners());
       }
@@ -174,16 +216,26 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     }
   }
 
-  Future<void> _onRejectRequest(_RejectRequest event, Emitter<PartnerState> emit) async {
+  Future<void> _onRejectRequest(
+    _RejectRequest event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
-      final updated = event.partnership.copyWith(status: PartnershipStatus.rejected, updatedAt: DateTime.now().toUtc());
+      final updated = event.partnership.copyWith(
+        status: PartnershipStatus.rejected,
+        updatedAt: DateTime.now().toUtc(),
+      );
       await _sendRequestUsecase(updated);
 
       final currentState = state;
       if (currentState is _Loaded) {
-        emit(currentState.copyWith(
-          incomingRequests: currentState.incomingRequests.where((e) => e.id != updated.id).toList(),
-        ));
+        emit(
+          currentState.copyWith(
+            incomingRequests: currentState.incomingRequests
+                .where((e) => e.id != updated.id)
+                .toList(),
+          ),
+        );
       } else {
         add(const _LoadPartners());
       }
@@ -194,15 +246,22 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     }
   }
 
-  Future<void> _onRemovePartner(_RemovePartner event, Emitter<PartnerState> emit) async {
+  Future<void> _onRemovePartner(
+    _RemovePartner event,
+    Emitter<PartnerState> emit,
+  ) async {
     try {
       await _partnershipRepository.deletePartnership(event.partnershipId);
 
       final currentState = state;
       if (currentState is _Loaded) {
-        emit(currentState.copyWith(
-          connectedPartners: currentState.connectedPartners.where((p) => p.id != event.partnershipId).toList(),
-        ));
+        emit(
+          currentState.copyWith(
+            connectedPartners: currentState.connectedPartners
+                .where((p) => p.id != event.partnershipId)
+                .toList(),
+          ),
+        );
       } else {
         add(const _LoadPartners());
       }
@@ -213,14 +272,19 @@ class PartnerBloc extends Bloc<PartnerEvent, PartnerState> {
     }
   }
 
-  Future<void> _onClearSearch(_ClearSearch event, Emitter<PartnerState> emit) async {
+  Future<void> _onClearSearch(
+    _ClearSearch event,
+    Emitter<PartnerState> emit,
+  ) async {
     final previousState = state;
     if (previousState is _Loaded) {
-      emit(PartnerState.loaded(
-        connectedPartners: previousState.connectedPartners,
-        incomingRequests: previousState.incomingRequests,
-        outgoingRequests: previousState.outgoingRequests,
-      ));
+      emit(
+        PartnerState.loaded(
+          connectedPartners: previousState.connectedPartners,
+          incomingRequests: previousState.incomingRequests,
+          outgoingRequests: previousState.outgoingRequests,
+        ),
+      );
     } else {
       emit(const PartnerState.initial());
     }

@@ -22,6 +22,9 @@ _MonthlySavingEntity _$MonthlySavingEntityFromJson(Map<String, dynamic> json) =>
       syncStatus:
           $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
           SyncStatus.synced,
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$MonthlySavingEntityToJson(
@@ -39,6 +42,7 @@ Map<String, dynamic> _$MonthlySavingEntityToJson(
   'isCompleted': instance.isCompleted,
   'userId': instance.userId,
   'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
+  'updatedAt': instance.updatedAt?.toIso8601String(),
 };
 
 const _$SyncStatusEnumMap = {

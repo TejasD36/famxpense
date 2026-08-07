@@ -11,9 +11,14 @@ class SettlementRepositoryImpl implements SettlementRepository {
        _remoteDatasource = remoteDatasource;
 
   @override
-  Future<List<SettlementEntity>> getSettlements({required String userId}) async {
+  Future<List<SettlementEntity>> getSettlements({
+    required String userId,
+  }) async {
     final dtos = await _localDatasource.getSettlements();
-    return dtos.where((s) => s.fromUserId == userId || s.toUserId == userId).map((d) => d.toEntity()).toList();
+    return dtos
+        .where((s) => s.fromUserId == userId || s.toUserId == userId)
+        .map((d) => d.toEntity())
+        .toList();
   }
 
   @override
@@ -39,7 +44,10 @@ class SettlementRepositoryImpl implements SettlementRepository {
   }
 
   @override
-  Future<void> updateSettlementStatus(String settlementId, SettlementStatus status) async {
+  Future<void> updateSettlementStatus(
+    String settlementId,
+    SettlementStatus status,
+  ) async {
     await _localDatasource.updateSettlementStatus(settlementId, status);
     try {
       await _remoteDatasource.updateSettlementStatus(settlementId, status);
@@ -60,9 +68,11 @@ class SettlementRepositoryImpl implements SettlementRepository {
   @override
   Future<bool> hasPendingSettlement(String fromUserId, String toUserId) async {
     final all = await _localDatasource.getSettlements();
-    return all.any((s) =>
-        s.status == SettlementStatus.pending &&
-        ((s.fromUserId == fromUserId && s.toUserId == toUserId) ||
-         (s.fromUserId == toUserId && s.toUserId == fromUserId)));
+    return all.any(
+      (s) =>
+          s.status == SettlementStatus.pending &&
+          ((s.fromUserId == fromUserId && s.toUserId == toUserId) ||
+              (s.fromUserId == toUserId && s.toUserId == fromUserId)),
+    );
   }
 }

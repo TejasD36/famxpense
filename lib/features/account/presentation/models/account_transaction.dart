@@ -32,9 +32,20 @@ class ManualDepositEntry extends AccountTransaction {
   final String id;
   final double amount;
   final String description;
+  final double? previousBalance;
+  final double? newBalance;
+  final bool isBalanceEdit;
   @override
   final DateTime date;
-  ManualDepositEntry({required this.id, required this.amount, required this.description, required this.date});
+  ManualDepositEntry({
+    required this.id,
+    required this.amount,
+    required this.description,
+    required this.date,
+    this.previousBalance,
+    this.newBalance,
+    this.isBalanceEdit = false,
+  });
 }
 
 class IncomeEntry extends AccountTransaction {

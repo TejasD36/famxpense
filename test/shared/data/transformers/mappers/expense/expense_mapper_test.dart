@@ -2,11 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
 import 'package:famxpense/shared/data/transformers/mappers/expense/expense_mapper.dart';
-import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/split_type.dart';
 import 'package:famxpense/shared/enums/sync_status.dart';
-import 'package:famxpense/features/expenses/data/transformers/dtos/expense_remote_dto.dart';
 import 'package:famxpense/features/expenses/data/transformers/mappers/expense_remote_mapper.dart';
 
 void main() {

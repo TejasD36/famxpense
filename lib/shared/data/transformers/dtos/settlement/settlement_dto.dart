@@ -18,5 +18,6 @@ sealed class SettlementDto with _$SettlementDto {
     @HiveField(8) String? accountId,
   }) = _SettlementDto;
 
-  factory SettlementDto.fromJson(Map<String, dynamic> json) => _$SettlementDtoFromJson(json);
+  factory SettlementDto.fromJson(Map<String, dynamic> json) =>
+      _$SettlementDtoFromJson(json);
 }

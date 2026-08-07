@@ -13,7 +13,10 @@ class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
     on<SubmitExpenseEvent>(_onSubmit);
   }
 
-  Future<void> _onSubmit(SubmitExpenseEvent event, Emitter<AddExpenseState> emit) async {
+  Future<void> _onSubmit(
+    SubmitExpenseEvent event,
+    Emitter<AddExpenseState> emit,
+  ) async {
     emit(const AddExpenseState.loading());
 
     try {

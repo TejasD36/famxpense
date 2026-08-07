@@ -18,11 +18,19 @@ class AccountTile extends StatelessWidget {
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           child: account.isSavings
               ? const Icon(Icons.savings_rounded, color: Colors.amber)
-              : Icon(_iconForType(account.accountType), color: Theme.of(context).colorScheme.primary),
+              : Icon(
+                  _iconForType(account.accountType),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
         ),
         title: Row(
           children: [
-            Flexible(child: Text(account.accountName, style: const TextStyle(fontWeight: FontWeight.w600))),
+            Flexible(
+              child: Text(
+                account.accountName,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
             if (account.isSavings) ...[
               const SizedBox(width: 8),
               Container(
@@ -31,14 +39,19 @@ class AccountTile extends StatelessWidget {
                   color: Colors.amber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('Savings', style: TextStyle(fontSize: 10, color: Colors.amber)),
+                child: const Text(
+                  'Savings',
+                  style: TextStyle(fontSize: 10, color: Colors.amber),
+                ),
               ),
             ],
           ],
         ),
         subtitle: Text(
           formatIndianRupee(account.currentBalance),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
       ),

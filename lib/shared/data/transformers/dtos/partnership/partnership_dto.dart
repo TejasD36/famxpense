@@ -31,5 +31,6 @@ sealed class PartnershipDto with _$PartnershipDto {
     @HiveField(9) required DateTime updatedAt,
   }) = _PartnershipDto;
 
-  factory PartnershipDto.fromJson(Map<String, dynamic> json) => _$PartnershipDtoFromJson(json);
+  factory PartnershipDto.fromJson(Map<String, dynamic> json) =>
+      _$PartnershipDtoFromJson(json);
 }

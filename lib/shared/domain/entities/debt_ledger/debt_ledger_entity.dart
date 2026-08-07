@@ -12,7 +12,10 @@ sealed class DebtLedgerEntity with _$DebtLedgerEntity {
     required double netBalance,
     required DateTime updatedAt,
     @Default([]) List<String> participantIds,
+    @Default({}) Map<String, double> pendingMutations,
+    @Default([]) List<String> appliedMutationIds,
   }) = _DebtLedgerEntity;
 
-  factory DebtLedgerEntity.fromJson(Map<String, dynamic> json) => _$DebtLedgerEntityFromJson(json);
+  factory DebtLedgerEntity.fromJson(Map<String, dynamic> json) =>
+      _$DebtLedgerEntityFromJson(json);
 }

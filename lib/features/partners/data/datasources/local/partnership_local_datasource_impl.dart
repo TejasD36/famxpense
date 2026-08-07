@@ -3,7 +3,7 @@ import '../../../xcore.dart';
 class PartnershipLocalDatasourceImpl extends BaseHiveService<PartnershipDto>
     implements PartnershipLocalDatasource {
   PartnershipLocalDatasourceImpl()
-      : super(Hive.box<PartnershipDto>(HiveBoxes.partnerships));
+    : super(Hive.box<PartnershipDto>(HiveBoxes.partnerships));
 
   @override
   Future<void> savePartnership(PartnershipDto partnership) async {

@@ -3,6 +3,7 @@ import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../account/data/datasources/manual_deposit_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../expenses/data/datasources/local/expense_local_datasource.dart';
+import '../../../income/data/datasources/income_local_datasource.dart';
 import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 import '../../presentation/models/statistics_models.dart';
 
@@ -15,7 +16,10 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
     on<LoadStatisticsEvent>(_onLoad);
   }
 
-  Future<void> _onLoad(LoadStatisticsEvent event, Emitter<StatisticsState> emit) async {
+  Future<void> _onLoad(
+    LoadStatisticsEvent event,
+    Emitter<StatisticsState> emit,
+  ) async {
     emit(const StatisticsState.loading());
     try {
       final userId = sl<AuthLocalDatasource>().getUserId();
@@ -28,16 +32,45 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       final year = now.year;
       final month = now.month;
 
-      final allExpenses = await sl<ExpenseLocalDatasource>().getExpenses(ownerUserId: userId);
+      final allExpenses = await sl<ExpenseLocalDatasource>().getExpenses(
+        ownerUserId: userId,
+      );
       final accounts = await sl<AccountLocalDatasource>().getAccounts();
       final deposits = await sl<ManualDepositLocalDatasource>().fetchAll();
-      final settlements = await sl<SettlementLocalDatasource>().getSettlements();
+      final settlements = await sl<SettlementLocalDatasource>()
+          .getSettlements();
+      final allIncomes = (await sl<IncomeLocalDatasource>().fetchAll())
+          .where((i) => i.userId == userId && !i.isDeleted)
+          .toList();
 
-      final monthExpenses = allExpenses.where((e) => e.expenseDate.year == year && e.expenseDate.month == month).toList();
-      final monthDeposits = deposits.where((d) => d.createdAt.year == year && d.createdAt.month == month).toList();
-      final monthSettlements = settlements.where((s) =>
-        s.createdAt.year == year && s.createdAt.month == month &&
-        s.status == SettlementStatus.confirmed).toList();
+      final hasRange = event.rangeStart != null && event.rangeEnd != null;
+      final rangeEndExclusive = hasRange
+          ? DateTime(
+              event.rangeEnd!.year,
+              event.rangeEnd!.month,
+              event.rangeEnd!.day + 1,
+            )
+          : null;
+      bool inPeriod(DateTime date) => hasRange
+          ? !date.isBefore(event.rangeStart!) &&
+                date.isBefore(rangeEndExclusive!)
+          : date.year == year && date.month == month;
+
+      final monthExpenses = allExpenses
+          .where((e) => inPeriod(e.expenseDate))
+          .toList();
+      final monthDeposits = deposits
+          .where((d) => inPeriod(d.createdAt))
+          .toList();
+      final monthIncomes = allIncomes
+          .where((i) => inPeriod(i.createdAt))
+          .toList();
+      final monthSettlements = settlements
+          .where(
+            (s) =>
+                inPeriod(s.createdAt) && s.status == SettlementStatus.confirmed,
+          )
+          .toList();
 
       double totalSpent = 0;
       double totalDeposited = 0;
@@ -62,38 +95,80 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         totalSpent += userShare;
 
         final category = expense.category ?? ExpenseCategory.other.name;
-        categoryTotals.update(category, (v) => v + userShare, ifAbsent: () => userShare);
+        categoryTotals.update(
+          category,
+          (v) => v + userShare,
+          ifAbsent: () => userShare,
+        );
 
         final day = expense.expenseDate.day;
-        dailyTotals.update(day, (v) => v + userShare, ifAbsent: () => userShare);
+        dailyTotals.update(
+          day,
+          (v) => v + userShare,
+          ifAbsent: () => userShare,
+        );
 
-        expenseTypeTotals.update(expense.expenseType.name, (v) => v + userShare, ifAbsent: () => userShare);
+        expenseTypeTotals.update(
+          expense.expenseType.name,
+          (v) => v + userShare,
+          ifAbsent: () => userShare,
+        );
 
         if (expense.accountId != null) {
-          accountSpend.update(expense.accountId!, (v) => v + expense.amount, ifAbsent: () => expense.amount);
+          accountSpend.update(
+            expense.accountId!,
+            (v) => v + expense.amount,
+            ifAbsent: () => expense.amount,
+          );
         }
 
-        transactions.add(ExpenseTxn(
-          id: expense.id,
-          amount: userShare,
-          date: expense.expenseDate,
-          title: expense.title,
-          category: category,
-          accountId: expense.accountId ?? '',
-          paidByUserId: expense.paidByUserId,
-        ));
+        transactions.add(
+          ExpenseTxn(
+            id: expense.id,
+            amount: userShare,
+            date: expense.expenseDate,
+            title: expense.title,
+            category: category,
+            accountId: expense.accountId ?? '',
+            paidByUserId: expense.paidByUserId,
+          ),
+        );
       }
 
       for (final deposit in monthDeposits) {
         totalDeposited += deposit.amount;
-        accountDeposit.update(deposit.accountId, (v) => v + deposit.amount, ifAbsent: () => deposit.amount);
-        transactions.add(DepositTxn(
-          id: deposit.id,
-          amount: deposit.amount,
-          date: deposit.createdAt,
-          description: deposit.description,
-          accountId: deposit.accountId,
-        ));
+        accountDeposit.update(
+          deposit.accountId,
+          (v) => v + deposit.amount,
+          ifAbsent: () => deposit.amount,
+        );
+        transactions.add(
+          DepositTxn(
+            id: deposit.id,
+            amount: deposit.amount,
+            date: deposit.createdAt,
+            description: deposit.description,
+            accountId: deposit.accountId,
+          ),
+        );
+      }
+
+      for (final income in monthIncomes) {
+        totalDeposited += income.amount;
+        accountDeposit.update(
+          income.accountId,
+          (v) => v + income.amount,
+          ifAbsent: () => income.amount,
+        );
+        transactions.add(
+          IncomeTxn(
+            id: income.id,
+            amount: income.amount,
+            date: income.createdAt,
+            description: income.description,
+            accountId: income.accountId,
+          ),
+        );
       }
 
       final seenSettlementIds = <String>{};
@@ -102,20 +177,30 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         final isIncoming = settlement.toUserId == userId;
         if (settlement.accountId != null) {
           if (isIncoming) {
-            accountDeposit.update(settlement.accountId!, (v) => v + settlement.amount, ifAbsent: () => settlement.amount);
+            accountDeposit.update(
+              settlement.accountId!,
+              (v) => v + settlement.amount,
+              ifAbsent: () => settlement.amount,
+            );
             totalDeposited += settlement.amount;
           } else {
-            accountSpend.update(settlement.accountId!, (v) => v + settlement.amount, ifAbsent: () => settlement.amount);
+            accountSpend.update(
+              settlement.accountId!,
+              (v) => v + settlement.amount,
+              ifAbsent: () => settlement.amount,
+            );
             totalSpent += settlement.amount;
           }
         }
-        transactions.add(SettlementTxn(
-          id: settlement.id,
-          amount: settlement.amount,
-          date: settlement.createdAt,
-          accountId: isIncoming ? '' : (settlement.accountId ?? ''),
-          isIncoming: isIncoming,
-        ));
+        transactions.add(
+          SettlementTxn(
+            id: settlement.id,
+            amount: settlement.amount,
+            date: settlement.createdAt,
+            accountId: isIncoming ? '' : (settlement.accountId ?? ''),
+            isIncoming: isIncoming,
+          ),
+        );
       }
 
       transactions.sort((a, b) => b.date.compareTo(a.date));
@@ -135,45 +220,82 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         );
       }).toList();
 
-      final sortedCategories = categoryTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-      final sortedDaily = dailyTotals.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+      final sortedCategories = categoryTotals.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final sortedDaily = dailyTotals.entries.toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
 
       final monthComparisons = <MonthComparison>[];
       for (int i = 1; i <= 3; i++) {
         final prev = DateTime(year, month - i, 1);
-        final prevExpenses = allExpenses.where((e) => e.expenseDate.year == prev.year && e.expenseDate.month == prev.month).toList();
-        final prevDeposits = deposits.where((d) => d.createdAt.year == prev.year && d.createdAt.month == prev.month).toList();
-        if (prevExpenses.isEmpty && prevDeposits.isEmpty) continue;
+        final prevExpenses = allExpenses
+            .where(
+              (e) =>
+                  e.expenseDate.year == prev.year &&
+                  e.expenseDate.month == prev.month,
+            )
+            .toList();
+        final prevDeposits = deposits
+            .where(
+              (d) =>
+                  d.createdAt.year == prev.year &&
+                  d.createdAt.month == prev.month,
+            )
+            .toList();
+        final prevIncomes = allIncomes
+            .where(
+              (i) =>
+                  i.createdAt.year == prev.year &&
+                  i.createdAt.month == prev.month,
+            )
+            .toList();
+        if (prevExpenses.isEmpty &&
+            prevDeposits.isEmpty &&
+            prevIncomes.isEmpty) {
+          continue;
+        }
 
         double prevSpent = 0;
         for (final e in prevExpenses) {
           for (final p in e.participants) {
-            if (p.userId == userId) { prevSpent += p.amount; break; }
+            if (p.userId == userId) {
+              prevSpent += p.amount;
+              break;
+            }
           }
         }
-        final prevDeposited = prevDeposits.fold<double>(0, (s, d) => s + d.amount);
+        final prevDeposited =
+            prevDeposits.fold<double>(0, (s, d) => s + d.amount) +
+            prevIncomes.fold<double>(0, (s, i) => s + i.amount);
 
-        monthComparisons.add(MonthComparison(
-          label: DateFormat('MMM yyyy').format(prev),
-          totalSpent: prevSpent,
-          totalDeposited: prevDeposited,
-        ));
+        monthComparisons.add(
+          MonthComparison(
+            label: DateFormat('MMM yyyy').format(prev),
+            totalSpent: prevSpent,
+            totalDeposited: prevDeposited,
+          ),
+        );
       }
 
-      emit(StatisticsState.loaded(
-        selectedYear: year,
-        selectedMonth: month,
-        totalSpent: totalSpent,
-        totalDeposited: totalDeposited,
-        expenseCount: monthExpenses.length,
-        depositCount: monthDeposits.length + monthSettlements.where((s) => s.toUserId == userId).length,
-        categoryTotals: Map.fromEntries(sortedCategories),
-        dailyTotals: Map.fromEntries(sortedDaily),
-        expenseTypeTotals: expenseTypeTotals,
-        accountStats: accountStats,
-        transactions: transactions,
-        monthComparisons: monthComparisons,
-      ));
+      emit(
+        StatisticsState.loaded(
+          selectedYear: year,
+          selectedMonth: month,
+          totalSpent: totalSpent,
+          totalDeposited: totalDeposited,
+          expenseCount: monthExpenses.length,
+          depositCount:
+              monthDeposits.length +
+              monthIncomes.length +
+              monthSettlements.where((s) => s.toUserId == userId).length,
+          categoryTotals: Map.fromEntries(sortedCategories),
+          dailyTotals: Map.fromEntries(sortedDaily),
+          expenseTypeTotals: expenseTypeTotals,
+          accountStats: accountStats,
+          transactions: transactions,
+          monthComparisons: monthComparisons,
+        ),
+      );
     } catch (e) {
       emit(StatisticsState.error(e.toString()));
     }

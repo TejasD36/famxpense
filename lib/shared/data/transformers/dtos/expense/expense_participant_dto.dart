@@ -13,5 +13,6 @@ sealed class ExpenseParticipantDto with _$ExpenseParticipantDto {
     @HiveField(3) DateTime? settledAt,
   }) = _ExpenseParticipantDto;
 
-  factory ExpenseParticipantDto.fromJson(Map<String, dynamic> json) => _$ExpenseParticipantDtoFromJson(json);
+  factory ExpenseParticipantDto.fromJson(Map<String, dynamic> json) =>
+      _$ExpenseParticipantDtoFromJson(json);
 }

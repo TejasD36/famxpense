@@ -1,7 +1,9 @@
 import '../../xcore.dart';
 
-class TransferLocalDatasourceImpl extends BaseHiveService<TransferDto> implements TransferLocalDatasource {
-  TransferLocalDatasourceImpl() : super(Hive.box<TransferDto>(HiveBoxes.transfers));
+class TransferLocalDatasourceImpl extends BaseHiveService<TransferDto>
+    implements TransferLocalDatasource {
+  TransferLocalDatasourceImpl()
+    : super(Hive.box<TransferDto>(HiveBoxes.transfers));
 
   @override
   Future<void> save(TransferDto transfer) async {
@@ -15,6 +17,15 @@ class TransferLocalDatasourceImpl extends BaseHiveService<TransferDto> implement
 
   @override
   Future<List<TransferDto>> getByAccount(String accountId) async {
-    return box.values.where((t) => t.fromAccountId == accountId || t.toAccountId == accountId).toList();
+    return box.values
+        .where(
+          (t) => t.fromAccountId == accountId || t.toAccountId == accountId,
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> deleteTransfer(String transferId) async {
+    await delete(transferId);
   }
 }

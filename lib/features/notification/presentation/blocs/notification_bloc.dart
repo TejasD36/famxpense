@@ -16,7 +16,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<DeleteNotificationEvent>(_onDelete);
   }
 
-  Future<void> _onLoad(LoadNotificationsEvent event, Emitter<NotificationState> emit) async {
+  Future<void> _onLoad(
+    LoadNotificationsEvent event,
+    Emitter<NotificationState> emit,
+  ) async {
     emit(const NotificationState.loading());
     try {
       final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
@@ -33,13 +36,19 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     }
   }
 
-  Future<void> _onMarkRead(MarkNotificationReadEvent event, Emitter<NotificationState> emit) async {
+  Future<void> _onMarkRead(
+    MarkNotificationReadEvent event,
+    Emitter<NotificationState> emit,
+  ) async {
     await _datasource.markAsRead(event.notificationId);
     sl<RefreshNotifier>().notifyDataChanged();
     add(const LoadNotificationsEvent());
   }
 
-  Future<void> _onDelete(DeleteNotificationEvent event, Emitter<NotificationState> emit) async {
+  Future<void> _onDelete(
+    DeleteNotificationEvent event,
+    Emitter<NotificationState> emit,
+  ) async {
     await _datasource.deleteNotification(event.notificationId);
     sl<RefreshNotifier>().notifyDataChanged();
     add(const LoadNotificationsEvent());

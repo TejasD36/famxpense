@@ -1,7 +1,9 @@
 import '../../xcore.dart';
 
-class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto> implements SettlementLocalDatasource {
-  SettlementLocalDatasourceImpl() : super(Hive.box<SettlementDto>(HiveBoxes.settlements));
+class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto>
+    implements SettlementLocalDatasource {
+  SettlementLocalDatasourceImpl()
+    : super(Hive.box<SettlementDto>(HiveBoxes.settlements));
 
   @override
   Future<void> saveSettlement(SettlementDto settlement) async {
@@ -20,7 +22,9 @@ class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto> imple
 
   @override
   Future<List<SettlementDto>> getPendingSettlements() async {
-    return box.values.where((settlement) => settlement.status == SettlementStatus.pending).toList();
+    return box.values
+        .where((settlement) => settlement.status == SettlementStatus.pending)
+        .toList();
   }
 
   @override
@@ -29,10 +33,16 @@ class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto> imple
   }
 
   @override
-  Future<void> updateSettlementStatus(String settlementId, SettlementStatus status) async {
+  Future<void> updateSettlementStatus(
+    String settlementId,
+    SettlementStatus status,
+  ) async {
     final s = get(settlementId);
     if (s != null) {
-      await put(key: settlementId, value: s.copyWith(status: status));
+      await put(
+        key: settlementId,
+        value: s.copyWith(status: status),
+      );
     }
   }
 }

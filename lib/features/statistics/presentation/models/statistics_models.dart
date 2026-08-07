@@ -3,7 +3,11 @@ sealed class TransactionItem {
   final double amount;
   final DateTime date;
 
-  const TransactionItem({required this.id, required this.amount, required this.date});
+  const TransactionItem({
+    required this.id,
+    required this.amount,
+    required this.date,
+  });
 }
 
 class ExpenseTxn extends TransactionItem {
@@ -28,6 +32,19 @@ class DepositTxn extends TransactionItem {
   final String accountId;
 
   const DepositTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.description,
+    required this.accountId,
+  });
+}
+
+class IncomeTxn extends TransactionItem {
+  final String description;
+  final String accountId;
+
+  const IncomeTxn({
     required super.id,
     required super.amount,
     required super.date,

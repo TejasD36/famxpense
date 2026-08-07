@@ -5,7 +5,11 @@ class MapPickerScreen extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
 
-  const MapPickerScreen({super.key, this.initialLatitude, this.initialLongitude});
+  const MapPickerScreen({
+    super.key,
+    this.initialLatitude,
+    this.initialLongitude,
+  });
 
   @override
   State<MapPickerScreen> createState() => _MapPickerScreenState();
@@ -48,10 +52,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       appBar: AppBar(
         title: const Text('Pick location'),
         actions: [
-          TextButton(
-            onPressed: _confirm,
-            child: const Text('Confirm'),
-          ),
+          TextButton(onPressed: _confirm, child: const Text('Confirm')),
         ],
       ),
       body: GoogleMap(

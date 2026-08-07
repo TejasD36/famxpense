@@ -22,7 +22,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: _emailController.text.trim()));
+    context.read<AuthBloc>().add(
+      AuthEvent.forgotPassword(email: _emailController.text.trim()),
+    );
   }
 
   @override
@@ -32,14 +34,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         state.whenOrNull(
           passwordResetSent: () {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Password reset email sent')),
+            );
 
-            context.pop();
+            context.go(AppRoute.login.path);
           },
 
           error: (message) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           },
         );
       },
@@ -61,11 +67,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    const Text('Reset Password', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Reset Password',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
 
                     const SizedBox(height: 16),
 
-                    const Text('Enter your email address and we will send you a password reset link.'),
+                    const Text(
+                      'Enter your email address and we will send you a password reset link.',
+                    ),
 
                     const SizedBox(height: 32),
 
@@ -74,13 +88,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                       keyboardType: TextInputType.emailAddress,
 
-                      decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
 
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter email';
                         }
-                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
+                        if (!RegExp(
+                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                        ).hasMatch(value.trim())) {
                           return 'Enter a valid email address';
                         }
                         return null;
@@ -97,7 +116,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           onPressed: isLoading ? null : _submit,
 
                           child: isLoading
-                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(),
+                                )
                               : const Text('Send Reset Link'),
                         );
                       },

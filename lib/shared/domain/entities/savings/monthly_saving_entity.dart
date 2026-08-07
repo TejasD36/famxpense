@@ -18,7 +18,9 @@ sealed class MonthlySavingEntity with _$MonthlySavingEntity {
     @Default(false) bool isCompleted,
     @Default('') String userId,
     @Default(SyncStatus.synced) SyncStatus syncStatus,
+    DateTime? updatedAt,
   }) = _MonthlySavingEntity;
 
-  factory MonthlySavingEntity.fromJson(Map<String, dynamic> json) => _$MonthlySavingEntityFromJson(json);
+  factory MonthlySavingEntity.fromJson(Map<String, dynamic> json) =>
+      _$MonthlySavingEntityFromJson(json);
 }

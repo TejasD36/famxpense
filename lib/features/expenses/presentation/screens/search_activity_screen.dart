@@ -46,7 +46,9 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
   void initState() {
     super.initState();
     _loadData();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _focusNode.requestFocus(),
+    );
   }
 
   @override
@@ -63,11 +65,18 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
       return;
     }
 
-    final allExpenses = await sl<ExpenseLocalDatasource>().getExpenses(ownerUserId: userId);
-    final allSettlements = await sl<SettlementLocalDatasource>().getSettlements();
-    final userSettlements = allSettlements.where((s) =>
-      (s.fromUserId == userId || s.toUserId == userId) &&
-      s.status == SettlementStatus.confirmed).toList();
+    final allExpenses = await sl<ExpenseLocalDatasource>().getExpenses(
+      ownerUserId: userId,
+    );
+    final allSettlements = await sl<SettlementLocalDatasource>()
+        .getSettlements();
+    final userSettlements = allSettlements
+        .where(
+          (s) =>
+              (s.fromUserId == userId || s.toUserId == userId) &&
+              s.status == SettlementStatus.confirmed,
+        )
+        .toList();
     final userCache = <String, String?>{};
 
     String? nickname(String uid) {
@@ -81,26 +90,34 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
 
     for (final dto in allExpenses) {
       final e = dto.toEntity();
-      final catLabel = e.category != null && e.category != ExpenseCategory.other.name
-          ? ExpenseCategory.values.where((c) => c.name == e.category).firstOrNull?.label ?? e.category!
+      final catLabel =
+          e.category != null && e.category != ExpenseCategory.other.name
+          ? ExpenseCategory.values
+                    .where((c) => c.name == e.category)
+                    .firstOrNull
+                    ?.label ??
+                e.category!
           : '';
       final paidBy = nickname(e.paidByUserId) ?? e.paidByUserId;
       final partnerNames = e.participants
           .where((p) => p.userId != userId)
           .map((p) => nickname(p.userId) ?? p.userId)
           .join(' ');
-      final searchText = '${e.title} ${e.note ?? ''} $catLabel ${e.amount.toStringAsFixed(0)} $paidBy $partnerNames'
-          .toLowerCase();
+      final searchText =
+          '${e.title} ${e.note ?? ''} $catLabel ${e.amount.toStringAsFixed(0)} $paidBy $partnerNames'
+              .toLowerCase();
 
-      items.add(_SearchableItem(
-        id: e.id,
-        date: e.expenseDate,
-        amount: e.amount,
-        title: e.title,
-        searchText: searchText,
-        type: _SearchFilter.expenses,
-        expense: e,
-      ));
+      items.add(
+        _SearchableItem(
+          id: e.id,
+          date: e.expenseDate,
+          amount: e.amount,
+          title: e.title,
+          searchText: searchText,
+          type: _SearchFilter.expenses,
+          expense: e,
+        ),
+      );
     }
 
     for (final dto in userSettlements) {
@@ -110,19 +127,24 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
       final isOutgoing = s.fromUserId == userId;
       final prefix = isOutgoing ? 'Settlement to' : 'Settlement from';
       final title = '$prefix @$other';
-      final searchText = '$title ${s.amount.toStringAsFixed(0)} $other ${isOutgoing ? 'paid' : 'received'}'
-          .toLowerCase();
-      final type = isOutgoing ? _SearchFilter.settlements : _SearchFilter.deposits;
+      final searchText =
+          '$title ${s.amount.toStringAsFixed(0)} $other ${isOutgoing ? 'paid' : 'received'}'
+              .toLowerCase();
+      final type = isOutgoing
+          ? _SearchFilter.settlements
+          : _SearchFilter.deposits;
 
-      items.add(_SearchableItem(
-        id: s.id,
-        date: s.createdAt,
-        amount: s.amount,
-        title: title,
-        searchText: searchText,
-        type: type,
-        settlement: s,
-      ));
+      items.add(
+        _SearchableItem(
+          id: s.id,
+          date: s.createdAt,
+          amount: s.amount,
+          title: title,
+          searchText: searchText,
+          type: type,
+          settlement: s,
+        ),
+      );
     }
 
     items.sort((a, b) => b.date.compareTo(a.date));
@@ -140,10 +162,21 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
     final query = _controller.text.trim().toLowerCase();
     setState(() {
       _filteredItems = _allItems.where((item) {
-        if (query.isNotEmpty && !item.searchText.contains(query)) return false;
-        if (_filter == _SearchFilter.expenses && item.type != _SearchFilter.expenses) return false;
-        if (_filter == _SearchFilter.settlements && item.type != _SearchFilter.settlements) return false;
-        if (_filter == _SearchFilter.deposits && item.type != _SearchFilter.deposits) return false;
+        if (query.isNotEmpty && !item.searchText.contains(query)) {
+          return false;
+        }
+        if (_filter == _SearchFilter.expenses &&
+            item.type != _SearchFilter.expenses) {
+          return false;
+        }
+        if (_filter == _SearchFilter.settlements &&
+            item.type != _SearchFilter.settlements) {
+          return false;
+        }
+        if (_filter == _SearchFilter.deposits &&
+            item.type != _SearchFilter.deposits) {
+          return false;
+        }
         return true;
       }).toList();
     });
@@ -158,9 +191,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search'),
-      ),
+      appBar: AppBar(title: const Text('Search')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -179,9 +210,14 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                               onPressed: _clearSearch,
                             )
                           : null,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      fillColor: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.5),
                     ),
                     onChanged: (_) => _applyFilter(),
                   ),
@@ -223,11 +259,23 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.search_off_rounded, size: 48,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+                              Icon(
+                                Icons.search_off_rounded,
+                                size: 48,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.4),
+                              ),
                               const SizedBox(height: 12),
-                              Text('No matching transactions',
-                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                              Text(
+                                'No matching transactions',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ],
                           ),
                         )
@@ -263,10 +311,16 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
   }
 
   Widget _buildCategoryRow(String category) {
-    final catEnum = ExpenseCategory.values.where((c) => c.name == category).firstOrNull;
+    final catEnum = ExpenseCategory.values
+        .where((c) => c.name == category)
+        .firstOrNull;
     return Row(
       children: [
-        Icon(catEnum?.icon ?? Icons.label_rounded, size: 14, color: catEnum?.color),
+        Icon(
+          catEnum?.icon ?? Icons.label_rounded,
+          size: 14,
+          color: catEnum?.color,
+        ),
         const SizedBox(width: 4),
         Text(catEnum?.label ?? category, style: const TextStyle(fontSize: 12)),
       ],
@@ -298,13 +352,20 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
               Row(
                 children: [
                   Container(
-                    height: 40, width: 40,
+                    height: 40,
+                    width: 40,
                     decoration: BoxDecoration(
-                      color: (expense.expenseType == ExpenseType.shared ? Colors.orange : Colors.green).withValues(alpha: 0.15),
+                      color:
+                          (expense.expenseType == ExpenseType.shared
+                                  ? Colors.orange
+                                  : Colors.green)
+                              .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded,
+                      expense.expenseType == ExpenseType.shared
+                          ? Icons.groups_rounded
+                          : Icons.person_rounded,
                       size: 20,
                     ),
                   ),
@@ -313,13 +374,26 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(expense.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(
+                          expense.title,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)
-,
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          DateFormat(
+                            'dd MMM yyyy · h:mm a',
+                          ).format(expense.expenseDate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -327,17 +401,30 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(formatIndianRupee(expense.amount),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(
+                        formatIndianRupee(expense.amount),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(expense.expenseType.name.toUpperCase(),
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                        child: Text(
+                          expense.expenseType.name.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -345,7 +432,10 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
@@ -359,25 +449,33 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                       const Divider(),
                       if (expense.note != null && expense.note!.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text(expense.note!, style: const TextStyle(fontSize: 13)),
+                        Text(
+                          expense.note!,
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ],
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(Icons.paypal_rounded, size: 14),
                           const SizedBox(width: 4),
-                          Text(isPayer ? 'Paid by You' : 'Paid by @$paidBy',
-                              style: const TextStyle(fontSize: 12)),
+                          Text(
+                            isPayer ? 'Paid by You' : 'Paid by @$paidBy',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
-                      if (expense.category != null && expense.category != ExpenseCategory.other.name) ...[
+                      if (expense.category != null &&
+                          expense.category != ExpenseCategory.other.name) ...[
                         const SizedBox(height: 4),
                         _buildCategoryRow(expense.category!),
                       ],
                     ],
                   ),
                 ),
-                crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 duration: const Duration(milliseconds: 200),
               ),
             ],
@@ -409,7 +507,8 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
               Row(
                 children: [
                   Container(
-                    height: 40, width: 40,
+                    height: 40,
+                    width: 40,
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
@@ -421,12 +520,26 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMM yyyy · h:mm a').format(settlement.createdAt),
-                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          DateFormat(
+                            'dd MMM yyyy · h:mm a',
+                          ).format(settlement.createdAt),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -434,16 +547,30 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(formatIndianRupee(settlement.amount),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(
+                        formatIndianRupee(settlement.amount),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.blue.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text('SETTLEMENT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                        child: const Text(
+                          'SETTLEMENT',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -451,7 +578,10 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
@@ -467,14 +597,20 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                         children: [
                           const Icon(Icons.person_rounded, size: 14),
                           const SizedBox(width: 4),
-                          Text(isPayer ? 'Paid to @$other' : 'Received from @$other',
-                              style: const TextStyle(fontSize: 12)),
+                          Text(
+                            isPayer
+                                ? 'Paid to @$other'
+                                : 'Received from @$other',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
-                crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
                 duration: const Duration(milliseconds: 200),
               ),
             ],

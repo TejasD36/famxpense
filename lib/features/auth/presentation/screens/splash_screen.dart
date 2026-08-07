@@ -50,7 +50,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
               SizedBox(height: 16),
 
-              Text('FamXpense', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              Text(
+                'FamXpense',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
 
               SizedBox(height: 24),
 

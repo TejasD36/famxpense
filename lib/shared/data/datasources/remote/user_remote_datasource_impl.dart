@@ -3,7 +3,8 @@ import '../../../../core.dart';
 class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   final FirebaseFirestore _firestore;
 
-  UserRemoteDatasourceImpl({required FirebaseFirestore firestore}) : _firestore = firestore;
+  UserRemoteDatasourceImpl({required FirebaseFirestore firestore})
+    : _firestore = firestore;
 
   static const _collection = 'users';
 
@@ -16,7 +17,10 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
   }
 
   @override
-  Future<UserRemoteDto?> searchUser({required String query, required String currentUserId}) async {
+  Future<UserRemoteDto?> searchUser({
+    required String query,
+    required String currentUserId,
+  }) async {
     AppLogger.firebase('Searching user: $query');
 
     QuerySnapshot<Map<String, dynamic>> snapshot;
@@ -24,7 +28,11 @@ class UserRemoteDatasourceImpl implements UserRemoteDatasource {
     /// EMAIL SEARCH — exact match only
 
     if (query.contains('@')) {
-      snapshot = await _firestore.collection(_collection).where('email', isEqualTo: query.trim()).limit(1).get();
+      snapshot = await _firestore
+          .collection(_collection)
+          .where('email', isEqualTo: query.trim())
+          .limit(1)
+          .get();
     } else {
       /// NICKNAME SEARCH — prefix (starts-with) match (nickname is always lowercase)
 

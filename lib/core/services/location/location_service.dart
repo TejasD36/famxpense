@@ -5,9 +5,11 @@ class LocationService {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       final granted = await Geolocator.requestPermission();
-      return granted == LocationPermission.always || granted == LocationPermission.whileInUse;
+      return granted == LocationPermission.always ||
+          granted == LocationPermission.whileInUse;
     }
-    return permission == LocationPermission.always || permission == LocationPermission.whileInUse;
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
   }
 
   Future<Position?> getCurrentPosition() async {
@@ -15,7 +17,9 @@ class LocationService {
     if (!hasPermission) return null;
     try {
       return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
     } catch (_) {
       return null;

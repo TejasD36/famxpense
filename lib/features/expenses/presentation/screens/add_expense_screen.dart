@@ -51,18 +51,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (userId == null) return;
 
     final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
-    final userAccounts = accountDtos.where((a) => a.userId == userId && !a.isArchived).map((d) => d.toEntity()).toList();
+    final userAccounts = accountDtos
+        .where((a) => a.userId == userId && !a.isArchived)
+        .map((d) => d.toEntity())
+        .toList();
 
-    final partnershipDtos = await sl<PartnershipRemoteDatasource>().getPartnerships(userId: userId);
+    final partnershipDtos = await sl<PartnershipRemoteDatasource>()
+        .getPartnerships(userId: userId);
     final connected = partnershipDtos
-        .where((p) => PartnershipStatus.values.any((e) => e.name == p.status && e == PartnershipStatus.accepted))
+        .where(
+          (p) => PartnershipStatus.values.any(
+            (e) => e.name == p.status && e == PartnershipStatus.accepted,
+          ),
+        )
         .map((d) => d.toEntity())
         .toList();
 
     AccountEntity? selected;
     if (userAccounts.isNotEmpty) {
       final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
-      selected = defaultId != null ? userAccounts.where((a) => a.id == defaultId).firstOrNull : userAccounts.first;
+      selected = defaultId != null
+          ? userAccounts.where((a) => a.id == defaultId).firstOrNull ??
+                userAccounts.first
+          : userAccounts.first;
     }
 
     if (mounted) {
@@ -129,7 +140,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final position = await Navigator.push<LatLng>(
       context,
       MaterialPageRoute(
-        builder: (_) => MapPickerScreen(initialLatitude: _latitude, initialLongitude: _longitude),
+        builder: (_) => MapPickerScreen(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+        ),
       ),
     );
     if (!mounted) return;
@@ -152,9 +166,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please fill all required fields (Title and Amount)'),
+          content: const Text(
+            'Please fill all required fields (Title and Amount)',
+          ),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
         ),
       );
       return;
@@ -173,7 +191,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         SnackBar(
           content: const Text('User not found'),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
         ),
       );
       return;
@@ -187,22 +207,32 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (_expenseType == ExpenseType.shared && _selectedPartners.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('No partner selected for shared expense. Switch to Personal or add a partner.'),
+          content: const Text(
+            'No partner selected for shared expense. Switch to Personal or add a partner.',
+          ),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
         ),
       );
       return;
     }
 
     /// Balance check
-    if (_selectedAccount != null && amount > _selectedAccount!.currentBalance && !_forceSubmit) {
+    if (_selectedAccount != null &&
+        amount > _selectedAccount!.currentBalance &&
+        !_forceSubmit) {
       setState(() => _amountExceedsBalance = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Insufficient balance. Tick "Add anyway" to proceed.'),
+          content: const Text(
+            'Insufficient balance. Tick "Add anyway" to proceed.',
+          ),
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
         ),
       );
       return;
@@ -216,16 +246,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
       final autoId = participantIds.length > 1 ? participantIds.last : null;
       if (autoId != null) {
-        final sumOthers = _manualAmounts.entries.where((e) => e.key != autoId).fold(0.0, (s, e) => s + e.value);
+        final sumOthers = _manualAmounts.entries
+            .where((e) => e.key != autoId)
+            .fold(0.0, (s, e) => s + e.value);
         _manualAmounts[autoId] = amount - sumOthers;
       }
       final manualTotal = _manualAmounts.values.fold(0.0, (a, b) => a + b);
       if ((manualTotal - amount).abs() > 0.01) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}'),
+            content: Text(
+              'Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}',
+            ),
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height * 0.1,
+            ),
           ),
         );
         return;
@@ -236,7 +272,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             SnackBar(
               content: const Text('Shares cannot be negative'),
               behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height * 0.1,
+              ),
             ),
           );
           return;
@@ -244,9 +282,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         if (entry.value > amount) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('A participant share cannot exceed the total amount'),
+              content: const Text(
+                'A participant share cannot exceed the total amount',
+              ),
               behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height * 0.1,
+              ),
             ),
           );
           return;
@@ -254,18 +296,38 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
     }
 
-    final participants = <ExpenseParticipantEntity>[
-      ExpenseParticipantEntity(userId: currentUserId, amount: _computeShare(amount, currentUserId)),
-      ..._selectedPartners.map((p) {
-        final partnerId = p.senderId == currentUserId ? p.receiverId : p.senderId;
-        return ExpenseParticipantEntity(userId: partnerId, amount: _computeShare(amount, partnerId));
-      }),
+    final participantIds = <String>[
+      currentUserId,
+      ..._selectedPartners.map(
+        (partner) => _partnerUserId(partner, currentUserId),
+      ),
     ];
+    final equalShares =
+        _expenseType != ExpenseType.personal && _splitType == SplitType.equal
+        ? ExpenseSplitCalculator.equal(
+            totalAmount: amount,
+            participantIds: participantIds,
+          )
+        : const <String, double>{};
+    final participants = participantIds.map((participantId) {
+      final share = switch ((_expenseType, _splitType)) {
+        (ExpenseType.personal, _) => amount,
+        (ExpenseType.shared, SplitType.equal) => equalShares[participantId]!,
+        (ExpenseType.shared, SplitType.manual) =>
+          _manualAmounts[participantId] ?? 0,
+        (ExpenseType.group, SplitType.equal) => equalShares[participantId]!,
+        (ExpenseType.group, SplitType.manual) =>
+          _manualAmounts[participantId] ?? 0,
+      };
+      return ExpenseParticipantEntity(userId: participantId, amount: share);
+    }).toList();
 
     final expense = ExpenseEntity(
       id: const Uuid().v4(),
       title: _titleController.text.trim(),
-      note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      note: _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim(),
       amount: amount,
       paidByUserId: currentUserId,
       ownerUserId: currentUserId,
@@ -284,20 +346,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     context.read<AddExpenseBloc>().add(AddExpenseEvent.submit(expense));
   }
 
-  double _computeShare(double total, String userId) {
-    if (_expenseType != ExpenseType.shared) return total;
-    if (_splitType == SplitType.equal) {
-      final totalPeople = 1 + _selectedPartners.length;
-      return (total / totalPeople).roundToDouble();
-    }
-    return _manualAmounts[userId] ?? 0;
-  }
-
   void _initManualAmounts() {
     final total = double.tryParse(_amountController.text.trim()) ?? 0;
-    final totalPeople = 1 + _selectedPartners.length;
-    final perPerson = totalPeople > 0 ? (total / totalPeople).roundToDouble() : 0.0;
     final userId = sl<AuthLocalDatasource>().getUserId();
+    final participantIds = <String>[
+      ?userId,
+      ..._selectedPartners.map((partner) => _partnerUserId(partner, userId)),
+    ];
+    final shares = participantIds.isEmpty
+        ? const <String, double>{}
+        : ExpenseSplitCalculator.equal(
+            totalAmount: total,
+            participantIds: participantIds,
+          );
     _manualAmounts.clear();
     for (final c in _manualControllers.values) {
       c.dispose();
@@ -306,13 +367,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     void setFor(String uid, double val) {
       _manualAmounts[uid] = val;
-      _manualControllers[uid] = TextEditingController(text: val.toStringAsFixed(0));
+      _manualControllers[uid] = TextEditingController(
+        text: val.toStringAsFixed(0),
+      );
     }
 
-    if (userId != null) setFor(userId, perPerson);
+    if (userId != null) setFor(userId, shares[userId] ?? 0);
     for (final p in _selectedPartners) {
       final partnerId = _partnerUserId(p, userId);
-      setFor(partnerId, perPerson);
+      setFor(partnerId, shares[partnerId] ?? 0);
     }
   }
 
@@ -337,10 +400,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               context: context,
               builder: (c) => AlertDialog(
                 title: const Text('Savings Account'),
-                content: const Text('Spending from savings will reduce your monthly savings progress. Are you sure?'),
+                content: const Text(
+                  'Spending from savings will reduce your monthly savings progress. Are you sure?',
+                ),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                  FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Use anyway')),
+                  TextButton(
+                    onPressed: () => Navigator.pop(c, false),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(c, true),
+                    child: const Text('Use anyway'),
+                  ),
                 ],
               ),
             ).then((confirmed) {
@@ -386,7 +457,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Split With', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Split With',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
                   if (_connectedPartners.isEmpty)
                     const Padding(
@@ -395,26 +469,37 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     )
                   else
                     ..._connectedPartners.map((p) {
-                      final isSelected = _selectedPartners.any((sp) => sp.id == p.id);
-                      final nickname = pickerUserId == p.senderId ? p.receiverNickname : p.senderNickname;
+                      final isSelected = _selectedPartners.any(
+                        (sp) => sp.id == p.id,
+                      );
+                      final nickname = pickerUserId == p.senderId
+                          ? p.receiverNickname
+                          : p.senderNickname;
                       return CheckboxListTile(
                         value: isSelected,
                         title: Text('@$nickname'),
                         onChanged: (checked) {
                           setSheetState(() {
                             if (checked == true) {
-                              if (!_selectedPartners.any((sp) => sp.id == p.id)) {
+                              if (!_selectedPartners.any(
+                                (sp) => sp.id == p.id,
+                              )) {
                                 _selectedPartners.add(p);
                               }
                             } else {
-                              _selectedPartners.removeWhere((sp) => sp.id == p.id);
+                              _selectedPartners.removeWhere(
+                                (sp) => sp.id == p.id,
+                              );
                             }
                           });
                         },
                       );
                     }),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Done'),
+                  ),
                 ],
               ),
             ),
@@ -439,7 +524,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               SnackBar(
                 content: const Text('Expense added successfully'),
                 behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height * 0.1,
+                ),
               ),
             );
             context.goNamed(AppRoute.home.name);
@@ -449,7 +536,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               SnackBar(
                 content: Text(message),
                 behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height * 0.1,
+                ),
               ),
             );
           },
@@ -471,14 +560,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       /// Amount
                       TextFormField(
                         controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                        decoration: const InputDecoration(labelText: 'Amount', prefixText: '₹ ', border: OutlineInputBorder()),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Amount',
+                          prefixText: '₹ ',
+                          border: OutlineInputBorder(),
+                        ),
                         onChanged: (_) => _checkBalance(),
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Enter amount';
+                          if (value == null || value.isEmpty) {
+                            return 'Enter amount';
+                          }
                           final amount = double.tryParse(value);
-                          if (amount == null || amount <= 0) return 'Enter a valid amount greater than 0';
+                          if (amount == null || amount <= 0) {
+                            return 'Enter a valid amount greater than 0';
+                          }
                           if (amount > 999999999) return 'Amount too large';
                           return null;
                         },
@@ -488,7 +590,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       /// Category
                       DropdownButtonFormField<String>(
                         initialValue: _category,
-                        decoration: InputDecoration(labelText: 'Category', border: const OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          labelText: 'Category',
+                          border: const OutlineInputBorder(),
+                        ),
                         items: ExpenseCategory.values.map((c) {
                           return DropdownMenuItem(
                             value: c.name,
@@ -510,26 +615,57 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         onTap: _showAccountPicker,
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              Icon(_selectedAccount?.isSavings == true ? Icons.savings_rounded : Icons.account_balance_wallet_rounded,
-                                color: _selectedAccount?.isSavings == true ? Colors.amber.shade700 : null),
+                              Icon(
+                                _selectedAccount?.isSavings == true
+                                    ? Icons.savings_rounded
+                                    : Icons.account_balance_wallet_rounded,
+                                color: _selectedAccount?.isSavings == true
+                                    ? Colors.amber.shade700
+                                    : null,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _selectedAccount == null
-                                    ? Text('Select Account', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
+                                    ? Text(
+                                        'Select Account',
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                      )
                                     : Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(_selectedAccount!.accountName, style: const TextStyle(fontWeight: FontWeight.w600)),
                                           Text(
-                                            formatIndianRupee(_selectedAccount!.currentBalance),
-                                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                            _selectedAccount!.accountName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            formatIndianRupee(
+                                              _selectedAccount!.currentBalance,
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -551,12 +687,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error),
+                              Icon(
+                                Icons.warning_rounded,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   'Account balance is less than this expense amount',
-                                  style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
                             ],
@@ -565,8 +709,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Checkbox(value: _forceSubmit, onChanged: (v) => setState(() => _forceSubmit = v ?? false)),
-                            const Text('Add anyway', style: TextStyle(fontSize: 13)),
+                            Checkbox(
+                              value: _forceSubmit,
+                              onChanged: (v) =>
+                                  setState(() => _forceSubmit = v ?? false),
+                            ),
+                            const Text(
+                              'Add anyway',
+                              style: TextStyle(fontSize: 13),
+                            ),
                           ],
                         ),
                       ],
@@ -581,7 +732,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Enter title';
+                          if (value == null || value.isEmpty) {
+                            return 'Enter title';
+                          }
                           return null;
                         },
                       ),
@@ -592,7 +745,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         controller: _noteController,
                         minLines: 3,
                         maxLines: 5,
-                        decoration: const InputDecoration(labelText: 'Note (Optional)', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'Note (Optional)',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                       const SizedBox(height: 24),
 
@@ -604,19 +760,34 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               onTap: _openMapPicker,
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 18,
+                                ),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Theme.of(context).dividerColor),
+                                  border: Border.all(
+                                    color: Theme.of(context).dividerColor,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(_latitude != null ? Icons.location_on_rounded : Icons.add_location_alt_rounded),
+                                    Icon(
+                                      _latitude != null
+                                          ? Icons.location_on_rounded
+                                          : Icons.add_location_alt_rounded,
+                                    ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        _latitude != null ? 'Location captured' : 'Add location',
-                                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                        _latitude != null
+                                            ? 'Location captured'
+                                            : 'Add location',
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -626,14 +797,24 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           ),
                           if (_latitude != null) ...[
                             const SizedBox(width: 8),
-                            IconButton(icon: const Icon(Icons.close), onPressed: _clearLocation, tooltip: 'Remove location'),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: _clearLocation,
+                              tooltip: 'Remove location',
+                            ),
                           ],
                         ],
                       ),
                       const SizedBox(height: 24),
 
                       /// Expense Type
-                      const Text('Expense Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Expense Type',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       SegmentedButton<ExpenseType>(
                         selected: {_expenseType},
@@ -646,24 +827,41 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           });
                         },
                         segments: const [
-                          ButtonSegment(value: ExpenseType.personal, label: Text('Personal')),
-                          ButtonSegment(value: ExpenseType.shared, label: Text('Shared')),
+                          ButtonSegment(
+                            value: ExpenseType.personal,
+                            label: Text('Personal'),
+                          ),
+                          ButtonSegment(
+                            value: ExpenseType.shared,
+                            label: Text('Shared'),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
 
                       /// Partners (Shared only)
                       if (_expenseType == ExpenseType.shared) ...[
-                        const Text('Split With', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Split With',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         InkWell(
                           onTap: _showPartnerPicker,
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 18,
+                            ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Theme.of(context).dividerColor),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -672,8 +870,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _selectedPartners.isEmpty
-                                      ? Text('Select partners', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
-                                      : Text('${_selectedPartners.length} partner${_selectedPartners.length > 1 ? 's' : ''} selected'),
+                                      ? Text(
+                                          'Select partners',
+                                          style: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                        )
+                                      : Text(
+                                          '${_selectedPartners.length} partner${_selectedPartners.length > 1 ? 's' : ''} selected',
+                                        ),
                                 ),
                                 const Icon(Icons.keyboard_arrow_down_rounded),
                               ],
@@ -686,13 +893,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             spacing: 8,
                             runSpacing: 4,
                             children: _selectedPartners.map((p) {
-                              final chipUserId = sl<AuthLocalDatasource>().getUserId();
-                              final nickname = chipUserId == p.senderId ? p.receiverNickname : p.senderNickname;
+                              final chipUserId = sl<AuthLocalDatasource>()
+                                  .getUserId();
+                              final nickname = chipUserId == p.senderId
+                                  ? p.receiverNickname
+                                  : p.senderNickname;
                               return Chip(
-                                label: Text('@$nickname', style: const TextStyle(fontSize: 12)),
+                                label: Text(
+                                  '@$nickname',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
                                 onDeleted: () {
                                   setState(() {
-                                    _selectedPartners.removeWhere((sp) => sp.id == p.id);
+                                    _selectedPartners.removeWhere(
+                                      (sp) => sp.id == p.id,
+                                    );
                                     if (_splitType == SplitType.manual) {
                                       _initManualAmounts();
                                     }
@@ -705,7 +920,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         const SizedBox(height: 24),
 
                         /// Split Type
-                        const Text('Split Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Split Type',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         SegmentedButton<SplitType>(
                           selected: {_splitType},
@@ -718,8 +939,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                             });
                           },
                           segments: const [
-                            ButtonSegment(value: SplitType.equal, label: Text('Equal')),
-                            ButtonSegment(value: SplitType.manual, label: Text('Manual')),
+                            ButtonSegment(
+                              value: SplitType.equal,
+                              label: Text('Equal'),
+                            ),
+                            ButtonSegment(
+                              value: SplitType.manual,
+                              label: Text('Manual'),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -729,12 +956,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
                               children: [
-                                const Text('Split Preview', style: TextStyle(fontWeight: FontWeight.w600)),
+                                const Text(
+                                  'Split Preview',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
                                 const SizedBox(height: 12),
                                 ..._buildSplitPreview(),
                               ],
@@ -749,16 +981,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         onTap: _selectDate,
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
                               const Icon(Icons.calendar_month_rounded),
                               const SizedBox(width: 12),
-                              Expanded(child: Text(DateFormat('dd MMM yyyy').format(_selectedDate))),
+                              Expanded(
+                                child: Text(
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                  ).format(_selectedDate),
+                                ),
+                              ),
                               const Icon(Icons.keyboard_arrow_down_rounded),
                             ],
                           ),
@@ -772,11 +1015,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         height: 54,
                         child: BlocBuilder<AddExpenseBloc, AddExpenseState>(
                           builder: (context, state) {
-                            final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+                            final isLoading = state.maybeWhen(
+                              loading: () => true,
+                              orElse: () => false,
+                            );
                             return FilledButton(
                               onPressed: isLoading ? null : _submit,
                               child: isLoading
-                                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 3))
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                      ),
+                                    )
                                   : const Text('Save Expense'),
                             );
                           },
@@ -796,7 +1048,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   List<Widget> _buildSplitPreview() {
     final total = double.tryParse(_amountController.text.trim()) ?? 0;
     final totalPeople = 1 + _selectedPartners.length;
-    final perPerson = totalPeople > 0 ? (total / totalPeople).roundToDouble() : 0.0;
+    final perPerson = totalPeople > 0
+        ? (total / totalPeople).roundToDouble()
+        : 0.0;
     final userId = sl<AuthLocalDatasource>().getUserId();
     final widgets = <Widget>[];
 
@@ -808,7 +1062,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
 
     // The last entry auto-completes
-    final autoCompleteId = participantIds.length > 1 ? participantIds.last : null;
+    final autoCompleteId = participantIds.length > 1
+        ? participantIds.last
+        : null;
 
     for (int i = 0; i < participantIds.length; i++) {
       final pid = participantIds[i];
@@ -816,7 +1072,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
       // For auto-complete entry, compute amount = total - sum of others
       final autoAmount = isAuto && total > 0
-          ? total - _manualAmounts.entries.where((e) => e.key != pid).fold(0.0, (s, e) => s + e.value)
+          ? total -
+                _manualAmounts.entries
+                    .where((e) => e.key != pid)
+                    .fold(0.0, (s, e) => s + e.value)
           : 0.0;
 
       if (isAuto && autoAmount >= 0) {
@@ -832,27 +1091,43 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       final isSelf = pid == userId;
       final partnerEntity = isSelf
           ? null
-          : _selectedPartners.firstWhere((p) => _partnerUserId(p, userId) == pid, orElse: () => _selectedPartners.first);
+          : _selectedPartners.firstWhere(
+              (p) => _partnerUserId(p, userId) == pid,
+              orElse: () => _selectedPartners.first,
+            );
       final label = isSelf
           ? 'You'
           : partnerEntity != null
-              ? (userId == partnerEntity.senderId ? '@${partnerEntity.receiverNickname}' : '@${partnerEntity.senderNickname}')
-              : pid;
+          ? (userId == partnerEntity.senderId
+                ? '@${partnerEntity.receiverNickname}'
+                : '@${partnerEntity.senderNickname}')
+          : pid;
 
       widgets.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
             children: [
-              Icon(isSelf ? Icons.person_rounded : Icons.person_outline_rounded, size: 18),
+              Icon(
+                isSelf ? Icons.person_rounded : Icons.person_outline_rounded,
+                size: 18,
+              ),
               const SizedBox(width: 8),
-              Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+              Expanded(
+                child: Text(label, style: const TextStyle(fontSize: 14)),
+              ),
               if (_splitType == SplitType.equal)
-                Text(formatIndianRupee(perPerson), style: const TextStyle(fontWeight: FontWeight.w600))
+                Text(
+                  formatIndianRupee(perPerson),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                )
               else if (isAuto)
                 Text(
                   formatIndianRupee(autoAmount),
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 )
               else
                 SizedBox(
@@ -864,12 +1139,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       isDense: true,
                       prefixText: '₹ ',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                     ),
                     controller: _manualControllers.putIfAbsent(pid, () {
                       final val = _manualAmounts[pid] ?? perPerson;
                       _manualAmounts[pid] = val;
-                      return TextEditingController(text: val.toStringAsFixed(0));
+                      return TextEditingController(
+                        text: val.toStringAsFixed(0),
+                      );
                     }),
                     onChanged: (val) {
                       final parsed = double.tryParse(val.trim());
@@ -893,7 +1173,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               'Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(total)}',
-              style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
             ),
           ),
         );

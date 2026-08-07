@@ -30,5 +30,6 @@ sealed class PartnershipEntity with _$PartnershipEntity {
     required DateTime updatedAt,
   }) = _PartnershipEntity;
 
-  factory PartnershipEntity.fromJson(Map<String, dynamic> json) => _$PartnershipEntityFromJson(json);
+  factory PartnershipEntity.fromJson(Map<String, dynamic> json) =>
+      _$PartnershipEntityFromJson(json);
 }

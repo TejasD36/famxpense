@@ -31,13 +31,14 @@ class MonthlySavingDtoAdapter extends TypeAdapter<MonthlySavingDto> {
       syncStatus: fields[11] == null
           ? SyncStatus.synced
           : fields[11] as SyncStatus,
+      updatedAt: fields[12] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MonthlySavingDto obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -61,7 +62,9 @@ class MonthlySavingDtoAdapter extends TypeAdapter<MonthlySavingDto> {
       ..writeByte(10)
       ..write(obj.userId)
       ..writeByte(11)
-      ..write(obj.syncStatus);
+      ..write(obj.syncStatus)
+      ..writeByte(12)
+      ..write(obj.updatedAt);
   }
 
   @override
@@ -95,6 +98,9 @@ _MonthlySavingDto _$MonthlySavingDtoFromJson(Map<String, dynamic> json) =>
       syncStatus:
           $enumDecodeNullable(_$SyncStatusEnumMap, json['syncStatus']) ??
           SyncStatus.synced,
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$MonthlySavingDtoToJson(_MonthlySavingDto instance) =>
@@ -111,6 +117,7 @@ Map<String, dynamic> _$MonthlySavingDtoToJson(_MonthlySavingDto instance) =>
       'isCompleted': instance.isCompleted,
       'userId': instance.userId,
       'syncStatus': _$SyncStatusEnumMap[instance.syncStatus]!,
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
 const _$SyncStatusEnumMap = {

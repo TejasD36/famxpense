@@ -15,7 +15,9 @@ sealed class IncomeEntity with _$IncomeEntity {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(SyncStatus.pending) SyncStatus syncStatus,
+    @Default(false) bool isDeleted,
   }) = _IncomeEntity;
 
-  factory IncomeEntity.fromJson(Map<String, dynamic> json) => _$IncomeEntityFromJson(json);
+  factory IncomeEntity.fromJson(Map<String, dynamic> json) =>
+      _$IncomeEntityFromJson(json);
 }

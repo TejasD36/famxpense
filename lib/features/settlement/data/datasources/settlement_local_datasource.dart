@@ -11,5 +11,8 @@ abstract interface class SettlementLocalDatasource {
 
   Future<void> deleteSettlement(String settlementId);
 
-  Future<void> updateSettlementStatus(String settlementId, SettlementStatus status);
+  Future<void> updateSettlementStatus(
+    String settlementId,
+    SettlementStatus status,
+  );
 }

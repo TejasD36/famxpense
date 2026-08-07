@@ -88,6 +88,7 @@ import '../../shared/data/datasources/local/user_local_datasource_impl.dart';
 import '../../shared/data/datasources/remote/user_remote_datasource_impl.dart';
 import '../../shared/data/repositories/user_repository_impl.dart';
 import '../../shared/domain/repositories/user_repository.dart';
+
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -103,20 +104,48 @@ Future<void> initDependencies() async {
 
   /// DATASOURCES
 
-  sl.registerLazySingleton<AuthLocalDatasource>(() => AuthLocalDatasourceImpl());
-  sl.registerLazySingleton<AuthRemoteDatasource>(() => AuthRemoteDatasourceImpl(firebaseAuth: sl(), firestore: sl()));
+  sl.registerLazySingleton<AuthLocalDatasource>(
+    () => AuthLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<AuthRemoteDatasource>(
+    () => AuthRemoteDatasourceImpl(firebaseAuth: sl(), firestore: sl()),
+  );
 
-  sl.registerLazySingleton<ExpenseLocalDatasource>(() => ExpenseLocalDatasourceImpl());
+  sl.registerLazySingleton<ExpenseLocalDatasource>(
+    () => ExpenseLocalDatasourceImpl(),
+  );
 
   /// REPOSITORIES
 
-  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(remoteDatasource: sl(), localDatasource: sl(), userLocalDatasource: sl()));
-  sl.registerLazySingleton<ExpenseRepository>(
-    () => ExpenseRepositoryImpl(localDatasource: sl(), authLocalDatasource: sl(), remoteDatasource: sl(), computeDebtUsecase: sl(), accountRepository: sl()),
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDatasource: sl(),
+      localDatasource: sl(),
+      userLocalDatasource: sl(),
+      syncService: sl(),
+    ),
   );
-  sl.registerLazySingleton<PartnershipLocalDatasource>(() => PartnershipLocalDatasourceImpl());
-  sl.registerLazySingleton<PartnershipRepository>(() => PartnershipRepositoryImpl(remoteDatasource: sl(), localDatasource: sl()));
-  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(remoteDatasource: sl()));
+  sl.registerLazySingleton<ExpenseRepository>(
+    () => ExpenseRepositoryImpl(
+      localDatasource: sl(),
+      authLocalDatasource: sl(),
+      remoteDatasource: sl(),
+      computeDebtUsecase: sl(),
+      accountRepository: sl(),
+    ),
+  );
+  sl.registerLazySingleton<PartnershipLocalDatasource>(
+    () => PartnershipLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<PartnershipRepository>(
+    () => PartnershipRepositoryImpl(
+      remoteDatasource: sl(),
+      localDatasource: sl(),
+    ),
+  );
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(remoteDatasource: sl()),
+  );
 
   /// USECASES
 
@@ -137,13 +166,26 @@ Future<void> initDependencies() async {
   /// BLOCS
 
   sl.registerLazySingleton<AuthBloc>(
-    () =>
-        AuthBloc(registerUsecase: sl(), loginUsecase: sl(), logoutUsecase: sl(), forgotPasswordUsecase: sl(), getCurrentUserUsecase: sl()),
+    () => AuthBloc(
+      registerUsecase: sl(),
+      loginUsecase: sl(),
+      logoutUsecase: sl(),
+      forgotPasswordUsecase: sl(),
+      getCurrentUserUsecase: sl(),
+    ),
   );
 
   sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
-  sl.registerFactory(() => ActivityBloc(expenseRepository: sl(), settlementLocal: sl()));
-  sl.registerFactory(() => HomeBloc(getExpensesUsecase: sl(), getDebtsUsecase: sl(), settlementLocal: sl()));
+  sl.registerFactory(
+    () => ActivityBloc(expenseRepository: sl(), settlementLocal: sl()),
+  );
+  sl.registerFactory(
+    () => HomeBloc(
+      getExpensesUsecase: sl(),
+      getDebtsUsecase: sl(),
+      settlementLocal: sl(),
+    ),
+  );
   sl.registerFactory(
     () => PartnerBloc(
       searchUserUsecase: sl(),
@@ -159,15 +201,27 @@ Future<void> initDependencies() async {
 
   /// LOCAL DATASOURCE
 
-  sl.registerLazySingleton<UserLocalDatasource>(() => UserLocalDatasourceImpl());
+  sl.registerLazySingleton<UserLocalDatasource>(
+    () => UserLocalDatasourceImpl(),
+  );
 
   /// REMOTE DATASOURCE
 
-  sl.registerLazySingleton<ExpenseRemoteDatasource>(() => ExpenseRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<PartnershipRemoteDatasource>(() => PartnershipRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<UserRemoteDatasource>(() => UserRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<AccountRemoteDatasource>(() => AccountRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<DebtLedgerRemoteDatasource>(() => DebtLedgerRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<ExpenseRemoteDatasource>(
+    () => ExpenseRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<PartnershipRemoteDatasource>(
+    () => PartnershipRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<UserRemoteDatasource>(
+    () => UserRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<AccountRemoteDatasource>(
+    () => AccountRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<DebtLedgerRemoteDatasource>(
+    () => DebtLedgerRemoteDatasourceImpl(firestore: sl()),
+  );
 
   /// Services
   sl.registerLazySingleton(
@@ -176,6 +230,7 @@ Future<void> initDependencies() async {
       expenseRemote: sl(),
       accountLocal: sl(),
       accountRemote: sl(),
+      manualDepositLocal: sl(),
       debtLedgerLocal: sl(),
       debtLedgerRemote: sl(),
       settlementLocal: sl(),
@@ -191,6 +246,7 @@ Future<void> initDependencies() async {
       transferRemote: sl(),
       monthlySavingLocal: sl(),
       monthlySavingRemote: sl(),
+      savingsRepository: sl(),
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
@@ -198,46 +254,118 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => LocationService());
 
   /// ACCOUNT
-  sl.registerLazySingleton<AccountLocalDatasource>(() => AccountLocalDatasourceImpl());
-  sl.registerLazySingleton<ManualDepositLocalDatasource>(() => ManualDepositLocalDatasourceImpl());
-  sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
+  sl.registerLazySingleton<AccountLocalDatasource>(
+    () => AccountLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<ManualDepositLocalDatasource>(
+    () => ManualDepositLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<AccountRepository>(
+    () => AccountRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()),
+  );
   sl.registerLazySingleton(() => GetAccountsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SaveAccountUsecase(repository: sl()));
   sl.registerLazySingleton(() => DeleteAccountUsecase(repository: sl()));
   sl.registerFactory(
-    () => AccountBloc(getAccountsUsecase: sl(), saveAccountUsecase: sl(), deleteAccountUsecase: sl(), authLocalDatasource: sl()),
+    () => AccountBloc(
+      getAccountsUsecase: sl(),
+      saveAccountUsecase: sl(),
+      deleteAccountUsecase: sl(),
+      authLocalDatasource: sl(),
+    ),
   );
 
   /// DEBT LEDGER
-  sl.registerLazySingleton<DebtLedgerLocalDatasource>(() => DebtLedgerLocalDatasourceImpl());
-  sl.registerLazySingleton<DebtLedgerRepository>(() => DebtLedgerRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
+  sl.registerLazySingleton<DebtLedgerLocalDatasource>(
+    () => DebtLedgerLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<DebtLedgerRepository>(
+    () =>
+        DebtLedgerRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()),
+  );
   sl.registerLazySingleton(() => ComputeDebtUsecase(repository: sl()));
   sl.registerLazySingleton(() => GetDebtsUsecase(repository: sl()));
 
   /// SETTLEMENT
-  sl.registerLazySingleton<SettlementLocalDatasource>(() => SettlementLocalDatasourceImpl());
-  sl.registerLazySingleton<SettlementRemoteDatasource>(() => SettlementRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<SettlementRepository>(() => SettlementRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()));
-  sl.registerLazySingleton(() => SettleDebtUsecase(settlementRepository: sl(), accountRepository: sl()));
-  sl.registerLazySingleton(() => ProcessSettlementUsecase(settlementRepository: sl(), debtLedgerRepository: sl(), accountRepository: sl()));
+  sl.registerLazySingleton<SettlementLocalDatasource>(
+    () => SettlementLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<SettlementRemoteDatasource>(
+    () => SettlementRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<SettlementRepository>(
+    () =>
+        SettlementRepositoryImpl(localDatasource: sl(), remoteDatasource: sl()),
+  );
+  sl.registerLazySingleton(
+    () =>
+        SettleDebtUsecase(settlementRepository: sl(), accountRepository: sl()),
+  );
+  sl.registerLazySingleton(
+    () => ProcessSettlementUsecase(
+      settlementRepository: sl(),
+      debtLedgerRepository: sl(),
+      accountRepository: sl(),
+    ),
+  );
 
   /// NOTIFICATIONS
-  sl.registerLazySingleton<NotificationLocalDatasource>(() => NotificationLocalDatasourceImpl());
-  sl.registerLazySingleton<NotificationRemoteDatasource>(() => NotificationRemoteDatasourceImpl(firestore: sl()));
+  sl.registerLazySingleton<NotificationLocalDatasource>(
+    () => NotificationLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<NotificationRemoteDatasource>(
+    () => NotificationRemoteDatasourceImpl(firestore: sl()),
+  );
   sl.registerLazySingleton(() => NotificationService(sl(), sl()));
   sl.registerLazySingleton(() => RealtimeNotificationService(sl(), sl()));
   sl.registerFactory(() => NotificationBloc(datasource: sl()));
 
   /// INCOME
-  sl.registerLazySingleton<IncomeLocalDatasource>(() => IncomeLocalDatasourceImpl());
-  sl.registerLazySingleton<IncomeRemoteDatasource>(() => IncomeRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<IncomeRepository>(() => IncomeRepositoryImpl(localDatasource: sl(), remoteDatasource: sl(), accountRepository: sl(), authLocalDatasource: sl(), refreshNotifier: sl()));
+  sl.registerLazySingleton<IncomeLocalDatasource>(
+    () => IncomeLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<IncomeRemoteDatasource>(
+    () => IncomeRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<IncomeRepository>(
+    () => IncomeRepositoryImpl(
+      localDatasource: sl(),
+      remoteDatasource: sl(),
+      accountRepository: sl(),
+      authLocalDatasource: sl(),
+      savingsRepository: sl(),
+      refreshNotifier: sl(),
+    ),
+  );
 
   /// SAVINGS
-  sl.registerLazySingleton<TransferLocalDatasource>(() => TransferLocalDatasourceImpl());
-  sl.registerLazySingleton<TransferRemoteDatasource>(() => TransferRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<TransferRepository>(() => TransferRepositoryImpl(local: sl(), remote: sl(), refreshNotifier: sl()));
-  sl.registerLazySingleton<SavingsLocalDatasource>(() => SavingsLocalDatasourceImpl());
-  sl.registerLazySingleton<MonthlySavingRemoteDatasource>(() => MonthlySavingRemoteDatasourceImpl(firestore: sl()));
-  sl.registerLazySingleton<SavingsRepository>(() => SavingsRepositoryImpl(local: sl(), accountLocal: sl(), remote: sl(), refreshNotifier: sl()));
+  sl.registerLazySingleton<TransferLocalDatasource>(
+    () => TransferLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<TransferRemoteDatasource>(
+    () => TransferRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<TransferRepository>(
+    () => TransferRepositoryImpl(
+      local: sl(),
+      remote: sl(),
+      accountRepository: sl(),
+      savingsRepository: sl(),
+      refreshNotifier: sl(),
+    ),
+  );
+  sl.registerLazySingleton<SavingsLocalDatasource>(
+    () => SavingsLocalDatasourceImpl(),
+  );
+  sl.registerLazySingleton<MonthlySavingRemoteDatasource>(
+    () => MonthlySavingRemoteDatasourceImpl(firestore: sl()),
+  );
+  sl.registerLazySingleton<SavingsRepository>(
+    () => SavingsRepositoryImpl(
+      local: sl(),
+      accountLocal: sl(),
+      remote: sl(),
+      refreshNotifier: sl(),
+    ),
+  );
 }

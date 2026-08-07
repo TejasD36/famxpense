@@ -11,7 +11,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+    context.read<NotificationBloc>().add(
+      const NotificationEvent.loadNotifications(),
+    );
   }
 
   @override
@@ -30,17 +32,29 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.notifications_off_rounded, size: 64,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
+                      Icon(
+                        Icons.notifications_off_rounded,
+                        size: 64,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                      ),
                       const SizedBox(height: 16),
-                      Text('No notifications yet',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text(
+                        'No notifications yet',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 );
               }
               return ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: notifications.length,
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
@@ -49,7 +63,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     leading: CircleAvatar(
                       radius: 22,
                       backgroundColor: n.isRead
-                          ? Theme.of(context).colorScheme.surfaceContainerHighest
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest
                           : Theme.of(context).colorScheme.primaryContainer,
                       child: Icon(
                         _iconForType(n.type),
@@ -59,17 +75,28 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             : Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    title: Text(n.title, style: TextStyle(
-                      fontWeight: n.isRead ? FontWeight.normal : FontWeight.w600,
-                    )),
-                    subtitle: Text(n.message, style: const TextStyle(fontSize: 13)),
-                    trailing: n.isRead ? null : Container(
-                      width: 10, height: 10,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
+                    title: Text(
+                      n.title,
+                      style: TextStyle(
+                        fontWeight: n.isRead
+                            ? FontWeight.normal
+                            : FontWeight.w600,
                       ),
                     ),
+                    subtitle: Text(
+                      n.message,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    trailing: n.isRead
+                        ? null
+                        : Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                     onTap: () {
                       if (!n.isRead) {
                         context.read<NotificationBloc>().add(
