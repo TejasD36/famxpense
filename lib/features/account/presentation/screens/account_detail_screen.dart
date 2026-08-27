@@ -95,7 +95,8 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     /// Settlements paid from this account
     for (final dto in settlementDtos) {
       final entity = dto.toEntity();
-      if (entity.accountId == account.id) {
+      if (entity.status == SettlementStatus.confirmed &&
+          entity.accountId == account.id) {
         transactions.add(SettlementPayment(entity));
         totalSpent += entity.amount;
       }
@@ -107,7 +108,9 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
         final entity = dto.toEntity();
 
         /// Skip if already shown as a payment from this account
-        if (entity.toUserId == userId && entity.accountId != account.id) {
+        if (entity.status == SettlementStatus.confirmed &&
+            entity.toUserId == userId &&
+            entity.accountId != account.id) {
           transactions.add(SettlementDeposit(entity));
           totalDeposited += entity.amount;
         }
@@ -180,15 +183,34 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                   : 'Mark as savings',
               onPressed: () => _toggleSavings(context, account),
             ),
-            IconButton(
-              icon: const Icon(Icons.edit_rounded),
-              tooltip: 'Rename',
-              onPressed: () => _showRenameDialog(context, account),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_rounded, color: Colors.red),
-              tooltip: 'Delete Account',
-              onPressed: () => _confirmDelete(context, account),
+            PopupMenuButton<String>(
+              tooltip: 'Account actions',
+              onSelected: (action) {
+                switch (action) {
+                  case 'rename':
+                    _showRenameDialog(context, account);
+                  case 'delete':
+                    _confirmDelete(context, account);
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'rename',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.edit_rounded),
+                    title: Text('Rename account'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.delete_outline_rounded),
+                    title: Text('Delete account'),
+                  ),
+                ),
+              ],
             ),
           ],
         ],
@@ -204,71 +226,70 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                       child: Column(
                         children: [
-                          /// Account Info Card
-                          Card(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: Theme.of(
+                          GradientPatternPanel(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 21,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.12),
+                                  child: Icon(
+                                    _iconForType(account.accountType),
+                                    size: 21,
+                                    color: Theme.of(
                                       context,
-                                    ).colorScheme.primaryContainer,
-                                    child: Icon(
-                                      _iconForType(account.accountType),
-                                      size: 22,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
+                                    ).colorScheme.primary,
                                   ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          account.accountName,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        account.accountName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          account.accountType.name
-                                              .toUpperCase(),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        account.accountType.name.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          letterSpacing: 0.6,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      formatIndianRupee(account.currentBalance),
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w800,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
                                     ),
                                   ),
-                                  Text(
-                                    formatIndianRupee(account.currentBalance),
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -317,40 +338,23 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          /// Summary Bar
-                          Card(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _SummaryLabel(
-                                      label: 'Deposited',
-                                      amount: _totalDeposited,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 1,
-                                    height: 40,
-                                    color: Theme.of(context).dividerColor,
-                                  ),
-                                  Expanded(
-                                    child: _SummaryLabel(
-                                      label: 'Spent',
-                                      amount: _totalSpent,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ],
+                          MoneyMetricStrip(
+                            metrics: [
+                              MoneyMetric(
+                                label: 'Deposited',
+                                value: formatIndianRupee(_totalDeposited),
+                                color: Colors.green,
+                                icon: Icons.call_received_rounded,
                               ),
-                            ),
+                              MoneyMetric(
+                                label: 'Spent',
+                                value: formatIndianRupee(_totalSpent),
+                                color: Colors.red,
+                                icon: Icons.call_made_rounded,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
                           /// Savings Progress Section
                           if (account.isSavings) ...[
@@ -364,24 +368,18 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                           ],
 
                           /// Transaction History Header
-                          Row(
-                            children: [
-                              Text(
-                                'Transactions',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const Spacer(),
-                              if (_loading)
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                            ],
+                          CompactSectionHeader(
+                            title: 'Transactions',
+                            trailing: _loading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : null,
                           ),
-                          const SizedBox(height: 12),
                         ],
                       ),
                     ),
@@ -393,18 +391,11 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                     )
                   else if (_transactions.isEmpty)
                     SliverToBoxAdapter(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Text(
-                            'No transactions yet',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
+                      child: FinanceEmptyState(
+                        icon: Icons.receipt_long_rounded,
+                        title: 'No transactions yet',
+                        subtitle:
+                            'Deposits, spends, settlements, and transfers for this account will appear here.',
                       ),
                     )
                   else
@@ -477,7 +468,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
           icon: Icons.send_rounded,
           iconColor: Colors.orange,
           title: 'Settled to ${snap.data ?? "..."}',
-          subtitle: _formatDate(settlement.createdAt),
+          subtitle: _formatDate(settlement.resolvedAt ?? settlement.createdAt),
           amount: -settlement.amount,
           amountColor: Colors.red,
         ),
@@ -488,7 +479,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
           icon: Icons.call_received_rounded,
           iconColor: Colors.green,
           title: 'Received from ${snap.data ?? "..."}',
-          subtitle: _formatDate(settlement.createdAt),
+          subtitle: _formatDate(settlement.resolvedAt ?? settlement.createdAt),
           amount: settlement.amount,
           amountColor: Colors.green,
         ),
@@ -552,6 +543,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Manual Deposit'),
+        scrollable: true,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -667,9 +659,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                 AppLogger.error('Balance update failed', e, stackTrace);
                 if (ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
-                      content: Text('Could not record deposit: $e'),
-                    ),
+                    SnackBar(content: Text('Could not record deposit: $e')),
                   );
                 }
                 return;
@@ -697,6 +687,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Update Balance'),
+        scrollable: true,
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
@@ -1030,6 +1021,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Rename Account'),
+        scrollable: true,
         content: TextField(
           controller: controller,
           decoration: InputDecoration(
@@ -1219,6 +1211,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Savings Settings'),
+        scrollable: true,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1346,9 +1339,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       final accounts = await sl<AccountRepository>().getAccounts(
         userId: updated.userId,
       );
-      final current = accounts
-          .where((a) => a.id == updated.id)
-          .firstOrNull;
+      final current = accounts.where((a) => a.id == updated.id).firstOrNull;
       final merged = current == null
           ? updated
           : updated.copyWith(
@@ -1390,42 +1381,6 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
       AccountType.creditCard => Icons.credit_card_rounded,
       AccountType.wallet => Icons.wallet_rounded,
     };
-  }
-}
-
-class _SummaryLabel extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color color;
-
-  const _SummaryLabel({
-    required this.label,
-    required this.amount,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          formatIndianRupee(amount),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
   }
 }
 

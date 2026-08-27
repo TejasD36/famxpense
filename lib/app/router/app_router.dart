@@ -13,6 +13,7 @@ import '../../features/expenses/presentation/screens/activity_screen.dart';
 import '../../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../../features/expenses/presentation/screens/home_screen.dart';
 import '../../features/expenses/presentation/screens/search_activity_screen.dart';
+import '../../features/expenses/presentation/screens/reconciliation_screen.dart';
 import '../../features/income/presentation/screens/income_list_screen.dart';
 import '../../features/notification/presentation/blocs/notification_bloc.dart';
 import '../../features/savings/presentation/screens/savings_list_screen.dart';
@@ -88,11 +89,8 @@ class AppRouter {
                   path: AppRoute.activity.path,
                   name: AppRoute.activity.name,
                   builder: (_, _) {
-                    return MultiBlocProvider(
-                      providers: [
-                        BlocProvider(create: (_) => sl<ActivityBloc>()),
-                        BlocProvider(create: (_) => sl<StatisticsBloc>()),
-                      ],
+                    return BlocProvider(
+                      create: (_) => sl<ActivityBloc>(),
                       child: const ActivityScreen(),
                     );
                   },
@@ -207,6 +205,11 @@ class AppRouter {
           path: AppRoute.savings.path,
           name: AppRoute.savings.name,
           builder: (_, _) => const SavingsListScreen(),
+        ),
+        GoRoute(
+          path: AppRoute.reconciliation.path,
+          name: AppRoute.reconciliation.name,
+          builder: (_, _) => const ReconciliationScreen(),
         ),
       ],
     );

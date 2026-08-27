@@ -28,65 +28,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
             error: (m) => Center(child: Text(m)),
             loaded: (notifications) {
               if (notifications.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.notifications_off_rounded,
-                        size: 64,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No notifications yet',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+                return const FinanceEmptyState(
+                  icon: Icons.notifications_off_rounded,
+                  title: 'No notifications yet',
+                  subtitle:
+                      'Partner requests, settlements, and shared expense updates will appear here.',
                 );
               }
               return ListView.separated(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 12,
                 ),
                 itemCount: notifications.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final n = notifications[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      radius: 22,
-                      backgroundColor: n.isRead
-                          ? Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest
-                          : Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(
-                        _iconForType(n.type),
-                        size: 20,
-                        color: n.isRead
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    title: Text(
-                      n.title,
-                      style: TextStyle(
-                        fontWeight: n.isRead
-                            ? FontWeight.normal
-                            : FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      n.message,
-                      style: const TextStyle(fontSize: 13),
-                    ),
+                  final accent = n.isRead
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : Theme.of(context).colorScheme.primary;
+                  return CompactInfoTile(
+                    icon: _iconForType(n.type),
+                    color: accent,
+                    title: n.title,
+                    subtitle:
+                        '${n.message} · ${formatRelativeCalendarDate(n.createdAt)}',
                     trailing: n.isRead
                         ? null
                         : Container(

@@ -15,4 +15,6 @@ abstract interface class SettlementLocalDatasource {
     String settlementId,
     SettlementStatus status,
   );
+
+  Future<void> saveResolvedSettlement(SettlementEntity settlement);
 }

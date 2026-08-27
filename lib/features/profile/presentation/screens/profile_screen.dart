@@ -231,65 +231,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.all(20),
 
                       children: [
-                        /// User Card
                         Card(
                           elevation: 0,
-
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-
-                            child: Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 42,
-
-                                  child: Text(
-                                    user.name.substring(0, 1).toUpperCase(),
-
-                                    style: const TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            leading: CircleAvatar(
+                              radius: 24,
+                              child: Text(
+                                user.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
-
-                                const SizedBox(height: 16),
-
-                                Text(
-                                  user.name,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 4),
-
-                                Text(
-                                  '@${user.nickname}',
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                Text(
-                                  user.email,
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
+                              ),
+                            ),
+                            title: Text(
+                              user.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '@${user.nickname} • ${user.email}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 20),
 
                         /// Accounts
                         _AccountsSection(),
@@ -358,27 +333,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         /// Settlements Summary
                         _SettlementsTile(),
                         const SizedBox(height: 12),
-
-                        /// Activity
-                        Card(
-                          elevation: 0,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.12),
-                              child: const Icon(Icons.receipt_long_rounded),
-                            ),
-                            title: const Text(
-                              'Activity',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            trailing: const Icon(Icons.chevron_right_rounded),
-                            onTap: () =>
-                                context.goNamed(AppRoute.activity.name),
-                          ),
-                        ),
 
                         /// Income
                         Card(

@@ -18,11 +18,13 @@ class AccountPickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SheetGrabber(),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Text(
@@ -39,16 +41,10 @@ class AccountPickerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (accounts.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(
-                    'No accounts yet. Add one!',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
+              const FinanceEmptyState(
+                icon: Icons.account_balance_wallet_rounded,
+                title: 'No accounts yet',
+                subtitle: 'Add an account to continue.',
               )
             else
               ...accounts.map((account) {
@@ -57,7 +53,7 @@ class AccountPickerSheet extends StatelessWidget {
                   elevation: 0,
                   margin: const EdgeInsets.only(bottom: 8),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(6),
                     side: isSelected
                         ? BorderSide(
                             color: Theme.of(context).colorScheme.primary,
@@ -66,7 +62,12 @@ class AccountPickerSheet extends StatelessWidget {
                         : BorderSide.none,
                   ),
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
                     leading: CircleAvatar(
+                      radius: 20,
                       backgroundColor: account.isSavings
                           ? Colors.amber.withValues(alpha: 0.15)
                           : null,

@@ -74,11 +74,20 @@ void main() {
         () => settlementRepository.getSettlementById(settlementId),
       ).thenAnswer((_) async => settlement);
       when(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.confirmed,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.confirmed,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.confirmed.name,
+          fromAccountId: 'account-1',
+          toAccountId: 'deposit-account-1',
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer(
+        (_) async => settlement.copyWith(
+          status: SettlementStatus.confirmed,
+          toAccountId: 'deposit-account-1',
+        ),
+      );
       when(
         () => debtLedgerRepository.updateDebt(
           any(),
@@ -89,7 +98,36 @@ void main() {
       ).thenAnswer((_) async {});
       when(
         () => accountRepository.getAccounts(userId: any(named: 'userId')),
-      ).thenAnswer((_) async => []);
+      ).thenAnswer(
+        (_) async => [
+          AccountEntity(
+            id: 'deposit-account-1',
+            userId: 'user-recipient',
+            accountName: 'Wallet',
+            accountType: AccountType.wallet,
+            currentBalance: 500.0,
+            createdAt: DateTime(2026, 7, 1),
+            updatedAt: DateTime(2026, 7, 1),
+          ),
+        ],
+      );
+      when(
+        () => accountRepository.adjustBalance(
+          'deposit-account-1',
+          100,
+          mutationId: 'settlement-receipt-settlement-1',
+        ),
+      ).thenAnswer(
+        (_) async => AccountEntity(
+          id: 'deposit-account-1',
+          userId: 'user-recipient',
+          accountName: 'Wallet',
+          accountType: AccountType.wallet,
+          currentBalance: 600.0,
+          createdAt: DateTime(2026, 7, 1),
+          updatedAt: DateTime(2026, 7, 1),
+        ),
+      );
       when(
         () => sl<SyncService>().syncAll(userId: any(named: 'userId')),
       ).thenAnswer((_) async => true);
@@ -100,9 +138,13 @@ void main() {
       );
 
       verify(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.confirmed,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.confirmed,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.confirmed.name,
+          fromAccountId: 'account-1',
+          toAccountId: 'deposit-account-1',
         ),
       ).called(1);
       verify(
@@ -141,11 +183,20 @@ void main() {
         () => settlementRepository.getSettlementById(settlementId),
       ).thenAnswer((_) async => settlement);
       when(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.confirmed,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.confirmed,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.confirmed.name,
+          fromAccountId: 'account-1',
+          toAccountId: 'deposit-account-1',
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer(
+        (_) async => settlement.copyWith(
+          status: SettlementStatus.confirmed,
+          toAccountId: 'deposit-account-1',
+        ),
+      );
       when(
         () => debtLedgerRepository.updateDebt(
           any(),
@@ -190,7 +241,14 @@ void main() {
       await usecase.confirm(settlementId: 'nonexistent', toAccountId: null);
 
       verifyNever(
-        () => settlementRepository.updateSettlementStatus(any(), any()),
+        () => settlementRepository.resolveSettlement(
+          settlementId: any(named: 'settlementId'),
+          status: any(named: 'status'),
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: any(named: 'resolutionType'),
+          fromAccountId: any(named: 'fromAccountId'),
+          toAccountId: any(named: 'toAccountId'),
+        ),
       );
       verifyNever(
         () => debtLedgerRepository.updateDebt(
@@ -220,11 +278,17 @@ void main() {
         () => settlementRepository.getSettlementById(settlementId),
       ).thenAnswer((_) async => settlement);
       when(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.rejected,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.rejected,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.rejected.name,
+          fromAccountId: 'account-1',
+          toAccountId: null,
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer(
+        (_) async => settlement.copyWith(status: SettlementStatus.rejected),
+      );
       when(
         () => accountRepository.getAccounts(userId: any(named: 'userId')),
       ).thenAnswer((_) async => []);
@@ -232,9 +296,13 @@ void main() {
       await usecase.reject(settlementId: settlementId);
 
       verify(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.rejected,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.rejected,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.rejected.name,
+          fromAccountId: 'account-1',
+          toAccountId: null,
         ),
       ).called(1);
     });
@@ -265,11 +333,17 @@ void main() {
         () => settlementRepository.getSettlementById(settlementId),
       ).thenAnswer((_) async => settlement);
       when(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.rejected,
+        () => settlementRepository.resolveSettlement(
+          settlementId: settlementId,
+          status: SettlementStatus.rejected,
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: SettlementStatus.rejected.name,
+          fromAccountId: 'account-1',
+          toAccountId: null,
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer(
+        (_) async => settlement.copyWith(status: SettlementStatus.rejected),
+      );
       when(
         () => accountRepository.getAccounts(userId: any(named: 'userId')),
       ).thenAnswer((_) async => [account]);
@@ -277,7 +351,7 @@ void main() {
         () => accountRepository.adjustBalance(
           'account-1',
           100,
-          mutationId: 'settlement-rejection-refund-settlement-1',
+          mutationId: 'settlement-refund-settlement-1',
         ),
       ).thenAnswer((_) async => account.copyWith(currentBalance: 300));
 
@@ -287,100 +361,123 @@ void main() {
         () => accountRepository.adjustBalance(
           'account-1',
           100.0,
-          mutationId: 'settlement-rejection-refund-settlement-1',
+          mutationId: 'settlement-refund-settlement-1',
         ),
       ).called(1);
     });
 
-    test('does not refund payer account when current user is the recipient',
-        () async {
-      const settlementId = 'settlement-1';
-      final settlement = SettlementEntity(
-        id: settlementId,
-        fromUserId: 'user-payer',
-        toUserId: 'user-recipient',
-        amount: 100.0,
-        status: SettlementStatus.pending,
-        createdAt: DateTime(2026, 7, 1),
-        accountId: 'account-1',
-      );
+    test(
+      'does not refund payer account when current user is the recipient',
+      () async {
+        const settlementId = 'settlement-1';
+        final settlement = SettlementEntity(
+          id: settlementId,
+          fromUserId: 'user-payer',
+          toUserId: 'user-recipient',
+          amount: 100.0,
+          status: SettlementStatus.pending,
+          createdAt: DateTime(2026, 7, 1),
+          accountId: 'account-1',
+        );
 
-      final account = AccountEntity(
-        id: 'account-1',
-        userId: 'user-payer',
-        accountName: 'Wallet',
-        accountType: AccountType.wallet,
-        currentBalance: 200.0,
-        createdAt: DateTime(2026, 7, 1),
-        updatedAt: DateTime(2026, 7, 1),
-      );
+        final account = AccountEntity(
+          id: 'account-1',
+          userId: 'user-payer',
+          accountName: 'Wallet',
+          accountType: AccountType.wallet,
+          currentBalance: 200.0,
+          createdAt: DateTime(2026, 7, 1),
+          updatedAt: DateTime(2026, 7, 1),
+        );
 
-      when(() => authLocalDatasource.getUserId()).thenReturn('user-recipient');
-      when(
-        () => settlementRepository.getSettlementById(settlementId),
-      ).thenAnswer((_) async => settlement);
-      when(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.rejected,
-        ),
-      ).thenAnswer((_) async {});
-      when(
-        () => accountRepository.getAccounts(userId: any(named: 'userId')),
-      ).thenAnswer((_) async => [account]);
+        when(
+          () => authLocalDatasource.getUserId(),
+        ).thenReturn('user-recipient');
+        when(
+          () => settlementRepository.getSettlementById(settlementId),
+        ).thenAnswer((_) async => settlement);
+        when(
+          () => settlementRepository.resolveSettlement(
+            settlementId: settlementId,
+            status: SettlementStatus.rejected,
+            resolvedAt: any(named: 'resolvedAt'),
+            resolutionType: SettlementStatus.rejected.name,
+            fromAccountId: 'account-1',
+            toAccountId: null,
+          ),
+        ).thenAnswer(
+          (_) async => settlement.copyWith(status: SettlementStatus.rejected),
+        );
+        when(
+          () => accountRepository.getAccounts(userId: any(named: 'userId')),
+        ).thenAnswer((_) async => [account]);
 
-      await usecase.reject(settlementId: settlementId);
+        await usecase.reject(settlementId: settlementId);
 
-      verifyNever(
-        () => accountRepository.adjustBalance(
-          any(),
-          any(),
-          mutationId: any(named: 'mutationId'),
-        ),
-      );
-      verify(
-        () => settlementRepository.updateSettlementStatus(
-          settlementId,
-          SettlementStatus.rejected,
-        ),
-      ).called(1);
-    });
+        verifyNever(
+          () => accountRepository.adjustBalance(
+            any(),
+            any(),
+            mutationId: any(named: 'mutationId'),
+          ),
+        );
+        verify(
+          () => settlementRepository.resolveSettlement(
+            settlementId: settlementId,
+            status: SettlementStatus.rejected,
+            resolvedAt: any(named: 'resolvedAt'),
+            resolutionType: SettlementStatus.rejected.name,
+            fromAccountId: 'account-1',
+            toAccountId: null,
+          ),
+        ).called(1);
+      },
+    );
 
-    test('returns early when settlement was already resolved remotely',
-        () async {
-      const settlementId = 'settlement-1';
-      final settlement = SettlementEntity(
-        id: settlementId,
-        fromUserId: 'user-payer',
-        toUserId: 'user-recipient',
-        amount: 100.0,
-        status: SettlementStatus.pending,
-        createdAt: DateTime(2026, 7, 1),
-        accountId: 'account-1',
-      );
+    test(
+      'returns early when settlement was already resolved remotely',
+      () async {
+        const settlementId = 'settlement-1';
+        final settlement = SettlementEntity(
+          id: settlementId,
+          fromUserId: 'user-payer',
+          toUserId: 'user-recipient',
+          amount: 100.0,
+          status: SettlementStatus.pending,
+          createdAt: DateTime(2026, 7, 1),
+          accountId: 'account-1',
+        );
 
-      when(
-        () => settlementRepository.getSettlementById(settlementId),
-      ).thenAnswer((_) async => settlement);
-      when(
-        () => settlementRemoteDatasource.fetchSettlementById(settlementId),
-      ).thenAnswer(
-        (_) async => settlement.copyWith(status: SettlementStatus.confirmed),
-      );
+        when(
+          () => settlementRepository.getSettlementById(settlementId),
+        ).thenAnswer((_) async => settlement);
+        when(
+          () => settlementRemoteDatasource.fetchSettlementById(settlementId),
+        ).thenAnswer(
+          (_) async => settlement.copyWith(status: SettlementStatus.confirmed),
+        );
 
-      await usecase.reject(settlementId: settlementId);
+        await usecase.reject(settlementId: settlementId);
 
-      verifyNever(
-        () => settlementRepository.updateSettlementStatus(any(), any()),
-      );
-      verifyNever(
-        () => accountRepository.adjustBalance(
-          any(),
-          any(),
-          mutationId: any(named: 'mutationId'),
-        ),
-      );
-    });
+        verifyNever(
+          () => settlementRepository.resolveSettlement(
+            settlementId: any(named: 'settlementId'),
+            status: any(named: 'status'),
+            resolvedAt: any(named: 'resolvedAt'),
+            resolutionType: any(named: 'resolutionType'),
+            fromAccountId: any(named: 'fromAccountId'),
+            toAccountId: any(named: 'toAccountId'),
+          ),
+        );
+        verifyNever(
+          () => accountRepository.adjustBalance(
+            any(),
+            any(),
+            mutationId: any(named: 'mutationId'),
+          ),
+        );
+      },
+    );
 
     test('returns early when settlement is null', () async {
       when(
@@ -390,7 +487,14 @@ void main() {
       await usecase.reject(settlementId: 'nonexistent');
 
       verifyNever(
-        () => settlementRepository.updateSettlementStatus(any(), any()),
+        () => settlementRepository.resolveSettlement(
+          settlementId: any(named: 'settlementId'),
+          status: any(named: 'status'),
+          resolvedAt: any(named: 'resolvedAt'),
+          resolutionType: any(named: 'resolutionType'),
+          fromAccountId: any(named: 'fromAccountId'),
+          toAccountId: any(named: 'toAccountId'),
+        ),
       );
     });
   });

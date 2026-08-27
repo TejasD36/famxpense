@@ -13,7 +13,7 @@ class ExpenseRemoteDatasourceImpl implements ExpenseRemoteDatasource {
     await _firestore
         .collection(_expensesCollection)
         .doc(expense.id)
-        .set(expense.toJson());
+        .set(_toFirestoreJson(expense));
   }
 
   @override
@@ -26,5 +26,21 @@ class ExpenseRemoteDatasourceImpl implements ExpenseRemoteDatasource {
     return snapshot.docs.map((doc) {
       return ExpenseRemoteDto.fromJson(doc.data());
     }).toList();
+  }
+
+  Map<String, dynamic> _toFirestoreJson(ExpenseRemoteDto expense) {
+    return {
+      ...expense.toJson(),
+      'amount': expense.amount.round(),
+      'participants': expense.participants
+          .map(
+            (participant) => {
+              ...participant,
+              if (participant['amount'] is num)
+                'amount': (participant['amount'] as num).round(),
+            },
+          )
+          .toList(),
+    };
   }
 }

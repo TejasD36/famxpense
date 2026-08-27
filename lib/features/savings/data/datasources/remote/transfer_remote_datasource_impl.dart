@@ -10,10 +10,10 @@ class TransferRemoteDatasourceImpl implements TransferRemoteDatasource {
 
   @override
   Future<void> createTransfer(TransferDto transfer) async {
-    await _firestore
-        .collection(_collection)
-        .doc(transfer.id)
-        .set(transfer.toJson());
+    await _firestore.collection(_collection).doc(transfer.id).set({
+      ...transfer.toJson(),
+      'amount': transfer.amount.round(),
+    });
   }
 
   @override

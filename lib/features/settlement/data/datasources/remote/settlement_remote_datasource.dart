@@ -8,5 +8,13 @@ abstract interface class SettlementRemoteDatasource {
     String settlementId,
     SettlementStatus status,
   );
+  Future<SettlementEntity> resolveSettlement({
+    required String settlementId,
+    required SettlementStatus status,
+    required DateTime resolvedAt,
+    required String resolutionType,
+    required String? fromAccountId,
+    required String? toAccountId,
+  });
   Future<void> deleteSettlement(String settlementId);
 }

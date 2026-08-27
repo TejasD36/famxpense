@@ -145,6 +145,7 @@ class AccountRepositoryImpl implements AccountRepository {
         'Balance must be finite',
       );
     }
+    _validateWholeRupees(newBalance, field: 'newBalance');
     final accounts = await _localDatasource.getAccounts();
     final account = accounts.firstWhere((item) => item.id == accountId);
     final delta = newBalance - account.currentBalance;
@@ -170,6 +171,8 @@ class AccountRepositoryImpl implements AccountRepository {
         'A manual account entry requires old and new balances',
       );
     }
+    _validateWholeRupees(entry.previousBalance!, field: 'previousBalance');
+    _validateWholeRupees(entry.newBalance!, field: 'newBalance');
     if (account.currentBalance != entry.previousBalance) {
       throw StateError('Account balance changed before the entry was applied');
     }
@@ -202,6 +205,7 @@ class AccountRepositoryImpl implements AccountRepository {
         'Balance adjustment must be finite and non-zero',
       );
     }
+    _validateWholeRupees(delta, field: 'delta');
 
     final resolvedMutationId = mutationId ?? const Uuid().v4();
     late bool requiresRemote;
@@ -292,6 +296,7 @@ class AccountRepositoryImpl implements AccountRepository {
         'Transfer amount must be finite and greater than zero',
       );
     }
+    _validateWholeRupees(amount, field: 'amount');
     if (fromAccountId == toAccountId) {
       throw ArgumentError('Source and destination accounts must be different');
     }
@@ -420,6 +425,12 @@ class AccountRepositoryImpl implements AccountRepository {
       }
     });
     return completer.future;
+  }
+
+  void _validateWholeRupees(double amount, {required String field}) {
+    if ((amount - amount.round()).abs() > 0.000001) {
+      throw ArgumentError.value(amount, field, 'Amount must be whole rupees');
+    }
   }
 
   bool _hasMetadataChanged(AccountDto existing, AccountEntity updated) {

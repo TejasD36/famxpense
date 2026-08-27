@@ -80,15 +80,31 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                child: FinanceEmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: 'Could not load income',
+                  subtitle: _error!,
+                  action: OutlinedButton.icon(
+                    onPressed: _load,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
                 ),
               ),
             )
           : _incomes.isEmpty
-          ? const Center(child: Text('No income recorded yet'))
+          ? FinanceEmptyState(
+              icon: Icons.account_balance_rounded,
+              title: 'No income recorded yet',
+              subtitle:
+                  'Add salary, business income, deposits, or other money coming in.',
+              showLottie: true,
+              action: FilledButton.icon(
+                onPressed: () => _showAddSheet(context),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Add Income'),
+              ),
+            )
           : _buildList(),
     );
   }
@@ -109,59 +125,32 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: sortedKeys.length,
-        itemBuilder: (context, i) {
-          final key = sortedKeys[i];
-          final items = grouped[key]!;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  key,
+        children: [
+          _IncomeSummaryPanel(incomes: _incomes),
+          const SizedBox(height: 14),
+          for (final key in sortedKeys) ...[
+            CompactSectionHeader(title: key),
+            ...grouped[key]!.map(
+              (income) => CompactInfoTile(
+                icon: income.source.icon,
+                title: income.description,
+                subtitle:
+                    '${income.source.label} · ${formatRelativeCalendarDate(income.createdAt)}',
+                color: Colors.green,
+                trailing: Text(
+                  formatIndianRupee(income.amount),
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
                   ),
                 ),
               ),
-              ...items.map(
-                (income) => Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.12),
-                      child: Icon(
-                        income.source.icon,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    title: Text(
-                      income.description,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      '${income.source.label} · ${formatRelativeCalendarDate(income.createdAt)}',
-                    ),
-                    trailing: Text(
-                      formatIndianRupee(income.amount),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -227,10 +216,10 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
           return Padding(
             padding: EdgeInsets.fromLTRB(
-              24,
-              12,
-              24,
-              MediaQuery.of(ctx).viewInsets.bottom + 24,
+              16,
+              10,
+              16,
+              MediaQuery.of(ctx).viewInsets.bottom + 16,
             ),
             child: SingleChildScrollView(
               child: Form(
@@ -239,35 +228,33 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Theme.of(ctx).dividerColor,
-                          borderRadius: BorderRadius.circular(2),
+                    const SheetGrabber(),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Add Income',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        Icon(
+                          selectedSource.icon,
+                          color: Theme.of(ctx).colorScheme.primary,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Add Income',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
 
                     TextFormField(
                       controller: amountCtl,
                       keyboardType: TextInputType.number,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Amount (₹)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                       validator: (v) {
                         final cleaned = (v ?? '').replaceAll(
@@ -286,12 +273,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
                     DropdownButtonFormField<IncomeSource>(
                       initialValue: selectedSource,
-                      decoration: InputDecoration(
-                        labelText: 'Source',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                      decoration: const InputDecoration(labelText: 'Source'),
                       items: IncomeSource.values
                           .map(
                             (s) => DropdownMenuItem(
@@ -314,11 +296,8 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
                     TextFormField(
                       controller: descCtl,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Description',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -336,12 +315,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                         }
                       },
                       child: InputDecorator(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Date',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          suffixIcon: const Icon(Icons.calendar_month_rounded),
+                          suffixIcon: Icon(Icons.calendar_month_rounded),
                         ),
                         child: Text(
                           DateFormat('d MMM yyyy').format(selectedDate),
@@ -360,20 +336,19 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                         ),
                       )
                     else if (accountList.isEmpty)
-                      const Text(
+                      Text(
                         'No accounts found. Create one first.',
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(
+                          color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                        ),
                       )
                     else
                       DropdownButtonFormField<String>(
                         key: ValueKey(selectedAccountId),
                         initialValue: selectedAccountId,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Deposit to Account',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
                         validator: (v) =>
                             v == null ? 'Select an account' : null,
@@ -388,25 +363,32 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                         onChanged: (v) => setVal(() => selectedAccountId = v),
                       ),
                     if (accountsLoaded && savingsAccounts.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'Transfer to savings',
-                          style: TextStyle(fontSize: 14),
+                      const SizedBox(height: 8),
+                      Card(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        child: CheckboxListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 0,
+                          ),
+                          title: const Text(
+                            'Transfer to savings',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          subtitle: const Text(
+                            'Allocate part of this income',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          value: transferToSavings,
+                          onChanged: (v) => setVal(() {
+                            transferToSavings = v ?? false;
+                            if (!transferToSavings) {
+                              selectedSavingsId = {};
+                              savingsAmountCtl.clear();
+                            }
+                          }),
                         ),
-                        subtitle: const Text(
-                          'Allocate part of this income to savings',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: transferToSavings,
-                        onChanged: (v) => setVal(() {
-                          transferToSavings = v ?? false;
-                          if (!transferToSavings) {
-                            selectedSavingsId = {};
-                            savingsAmountCtl.clear();
-                          }
-                        }),
                       ),
                       if (transferToSavings) ...[
                         const SizedBox(height: 8),
@@ -417,12 +399,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                                 : null,
                           ),
                           autovalidateMode: AutovalidateMode.onUserInteraction,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'To Savings Account',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            errorStyle: const TextStyle(fontSize: 12),
+                            errorStyle: TextStyle(fontSize: 12),
                           ),
                           validator: (v) =>
                               v == null ? 'Select a savings account' : null,
@@ -456,13 +435,10 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                           controller: savingsAmountCtl,
                           keyboardType: TextInputType.number,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Amount to transfer (₹)',
                             hintText: 'Enter amount to allocate to savings',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            errorStyle: const TextStyle(fontSize: 12),
+                            errorStyle: TextStyle(fontSize: 12),
                           ),
                           validator: (v) {
                             if (!transferToSavings) return null;
@@ -486,9 +462,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                         ),
                       ],
                     ],
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    FilledButton(
+                    FilledButton.icon(
                       onPressed: () async {
                         if (!formKey.currentState!.validate()) return;
                         if (selectedAccountId == null) return;
@@ -549,7 +525,8 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
-                      child: const Text('Add'),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Income'),
                     ),
                   ],
                 ),
@@ -557,6 +534,47 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _IncomeSummaryPanel extends StatelessWidget {
+  final List<IncomeEntity> incomes;
+
+  const _IncomeSummaryPanel({required this.incomes});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final thisMonth = incomes.where(
+      (income) =>
+          income.createdAt.year == now.year &&
+          income.createdAt.month == now.month,
+    );
+    final monthTotal = thisMonth.fold<double>(
+      0,
+      (total, i) => total + i.amount,
+    );
+    final total = incomes.fold<double>(0, (total, i) => total + i.amount);
+
+    return GradientPatternPanel(
+      padding: const EdgeInsets.all(14),
+      child: MoneyMetricStrip(
+        metrics: [
+          MoneyMetric(
+            label: 'This month',
+            value: formatIndianRupee(monthTotal),
+            color: Colors.green,
+            icon: Icons.trending_up_rounded,
+          ),
+          MoneyMetric(
+            label: 'All income',
+            value: formatIndianRupee(total),
+            color: Theme.of(context).colorScheme.primary,
+            icon: Icons.account_balance_wallet_rounded,
+          ),
+        ],
       ),
     );
   }

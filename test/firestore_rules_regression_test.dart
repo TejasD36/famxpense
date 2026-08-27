@@ -52,8 +52,12 @@ void main() {
     final block = rules.substring(start, nextMatch);
 
     expect(block, contains('resource.data.userId == request.auth.uid'));
-    expect(block, contains('request.resource.data.previousBalance is number'));
-    expect(block, contains('request.resource.data.newBalance is number'));
+    expect(block, contains('isWholeRupee(request.resource.data.amount)'));
+    expect(
+      block,
+      contains('isWholeRupee(request.resource.data.previousBalance)'),
+    );
+    expect(block, contains('isWholeRupee(request.resource.data.newBalance)'));
     expect(block, contains('allow update, delete: if false'));
   });
 }

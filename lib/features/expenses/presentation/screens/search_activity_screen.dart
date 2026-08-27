@@ -198,28 +198,31 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Search expenses, settlements...',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: _controller.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded),
-                              onPressed: _clearSearch,
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Card(
+                    elevation: 0,
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Search expenses, settlements...',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: _controller.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded),
+                                  onPressed: _clearSearch,
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                        ),
+                        onChanged: (_) => _applyFilter(),
                       ),
-                      filled: true,
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.5),
                     ),
-                    onChanged: (_) => _applyFilter(),
                   ),
                 ),
                 Padding(
@@ -256,27 +259,18 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
                 Expanded(
                   child: _filteredItems.isEmpty
                       ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.search_off_rounded,
-                                size: 48,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withValues(alpha: 0.4),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No matching transactions',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
+                          child: FinanceEmptyState(
+                            icon: Icons.search_off_rounded,
+                            title: 'No matching transactions',
+                            subtitle:
+                                'Try a different title, category, amount, partner, or filter.',
+                            action: _controller.text.isEmpty
+                                ? null
+                                : TextButton.icon(
+                                    onPressed: _clearSearch,
+                                    icon: const Icon(Icons.clear_rounded),
+                                    label: const Text('Clear Search'),
+                                  ),
                           ),
                         )
                       : ListView.builder(
@@ -345,7 +339,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(expense.id)),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -500,7 +494,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(id)),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

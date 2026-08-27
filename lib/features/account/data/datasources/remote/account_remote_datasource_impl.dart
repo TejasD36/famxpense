@@ -80,9 +80,9 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       if (entryRef != null) {
         transaction.set(entryRef, {
           ...accountEntry!.toJson(),
-          'amount': effectiveDelta,
-          'previousBalance': remoteBalance,
-          'newBalance': targetBalance,
+          'amount': effectiveDelta.round(),
+          'previousBalance': remoteBalance.round(),
+          'newBalance': targetBalance.round(),
           'synced': true,
         });
       }
@@ -190,7 +190,7 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       'updatedAt': account.updatedAt.toIso8601String(),
       'isArchived': account.isArchived,
       'isSavings': account.isSavings,
-      'monthlySavingsGoal': account.monthlySavingsGoal,
+      'monthlySavingsGoal': account.monthlySavingsGoal.round(),
     };
   }
 
@@ -205,7 +205,7 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       'id': mutationId,
       'accountId': accountId,
       'userId': userId,
-      'delta': delta,
+      'delta': delta.round(),
       'createdAt': updatedAt.toIso8601String(),
     };
   }
@@ -216,12 +216,12 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       'userId': e.userId,
       'accountName': e.accountName,
       'accountType': e.accountType.name,
-      'currentBalance': e.currentBalance,
+      'currentBalance': e.currentBalance.round(),
       'createdAt': e.createdAt.toIso8601String(),
       'updatedAt': e.updatedAt.toIso8601String(),
       'isArchived': e.isArchived,
       'isSavings': e.isSavings,
-      'monthlySavingsGoal': e.monthlySavingsGoal,
+      'monthlySavingsGoal': e.monthlySavingsGoal.round(),
     };
   }
 

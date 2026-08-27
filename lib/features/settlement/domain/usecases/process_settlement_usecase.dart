@@ -6,6 +6,13 @@ import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../xcore.dart';
 
 class ProcessSettlementUsecase {
+  static const _refundPrefix = 'settlement-refund';
+  static const _legacyRefundPrefixes = [
+    'settlement-rejection-refund',
+    'settlement-cancel-refund',
+    'settlement-duplicate-refund',
+  ];
+
   final SettlementRepository _settlementRepository;
   final DebtLedgerRepository _debtLedgerRepository;
   final AccountRepository _accountRepository;
@@ -28,6 +35,32 @@ class ProcessSettlementUsecase {
     if (settlement == null) return;
     if (!await _isStillPending(settlement)) return;
 
+    final depositAccountId =
+        toAccountId ?? await _resolveDepositAccount(settlement.toUserId);
+    if (depositAccountId == null) {
+      throw StateError('A recipient account is required to confirm settlement');
+    }
+
+    final depositAccount = await _findOwnedAccount(
+      userId: settlement.toUserId,
+      accountId: depositAccountId,
+    );
+    if (depositAccount == null) {
+      throw StateError('Settlement receipt account does not belong to user');
+    }
+
+    final resolved = await _settlementRepository.resolveSettlement(
+      settlementId: settlementId,
+      status: SettlementStatus.confirmed,
+      resolvedAt: DateTime.now().toUtc(),
+      resolutionType: SettlementStatus.confirmed.name,
+      fromAccountId: settlement.fromAccountId ?? settlement.accountId,
+      toAccountId: depositAccountId,
+    );
+    if (resolved == null || resolved.status != SettlementStatus.confirmed) {
+      return;
+    }
+
     await _debtLedgerRepository.updateDebt(
       settlement.toUserId,
       settlement.fromUserId,
@@ -42,48 +75,31 @@ class ProcessSettlementUsecase {
       settlement.id,
     );
 
-    /// Determine deposit account: use provided accountId, or recipient's default/first account
-    final depositAccountId =
-        toAccountId ?? await _resolveDepositAccount(settlement.toUserId);
-    if (depositAccountId != null) {
-      try {
-        final accounts = await _accountRepository.getAccounts(
-          userId: settlement.toUserId,
-        );
-        final account = accounts
-            .where((a) => a.id == depositAccountId)
-            .firstOrNull;
-        if (account != null) {
-          final updatedAccount = await _accountRepository.adjustBalance(
+    try {
+      final updatedAccount = await _accountRepository.adjustBalance(
+        depositAccountId,
+        settlement.amount,
+        mutationId: 'settlement-receipt-${settlement.id}',
+      );
+      if (updatedAccount.isSavings) {
+        try {
+          await sl<SavingsRepository>().computeCurrentMonth(
             depositAccountId,
-            settlement.amount,
-            mutationId: 'settlement-receipt-${settlement.id}',
+            updatedAccount.currentBalance,
+            updatedAccount.monthlySavingsGoal,
           );
-          if (updatedAccount.isSavings) {
-            try {
-              await sl<SavingsRepository>().computeCurrentMonth(
-                depositAccountId,
-                updatedAccount.currentBalance,
-                updatedAccount.monthlySavingsGoal,
-              );
-            } catch (e, stackTrace) {
-              AppLogger.error(
-                'Savings snapshot update failed after deposit',
-                e,
-                stackTrace,
-              );
-            }
-          }
+        } catch (e, stackTrace) {
+          AppLogger.error(
+            'Savings snapshot update failed after deposit',
+            e,
+            stackTrace,
+          );
         }
-      } catch (e, stackTrace) {
-        AppLogger.error('Recipient deposit failed', e, stackTrace);
       }
+    } catch (e, stackTrace) {
+      AppLogger.error('Recipient deposit failed', e, stackTrace);
+      rethrow;
     }
-
-    await _settlementRepository.updateSettlementStatus(
-      settlementId,
-      SettlementStatus.confirmed,
-    );
 
     sl<SyncService>().syncAll(userId: settlement.toUserId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();
@@ -118,10 +134,11 @@ class ProcessSettlementUsecase {
                   .where((a) => a.id == s.accountId)
                   .firstOrNull;
               if (account != null) {
+                if (_hasAnyRefundMutation(account, s.id)) continue;
                 final updatedAccount = await _accountRepository.adjustBalance(
                   s.accountId!,
                   s.amount,
-                  mutationId: 'settlement-duplicate-refund-${s.id}',
+                  mutationId: _refundMutationId(s.id),
                 );
                 if (updatedAccount.isSavings) {
                   try {
@@ -149,9 +166,13 @@ class ProcessSettlementUsecase {
           }
         }
 
-        await _settlementRepository.updateSettlementStatus(
-          s.id,
-          SettlementStatus.rejected,
+        await _settlementRepository.resolveSettlement(
+          settlementId: s.id,
+          status: SettlementStatus.rejected,
+          resolvedAt: DateTime.now().toUtc(),
+          resolutionType: SettlementStatus.rejected.name,
+          fromAccountId: s.fromAccountId ?? s.accountId,
+          toAccountId: s.toAccountId,
         );
       }
     } catch (e, stackTrace) {
@@ -162,12 +183,7 @@ class ProcessSettlementUsecase {
   Future<String?> _resolveDepositAccount(String userId) async {
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
     final accounts = dtos
-        .where(
-          (account) =>
-              account.userId == userId &&
-              !account.isSavings &&
-              !account.isArchived,
-        )
+        .where((account) => account.userId == userId && !account.isArchived)
         .toList();
     final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
     final resolved =
@@ -189,6 +205,18 @@ class ProcessSettlementUsecase {
     if (settlement == null) return;
     if (!await _isStillPending(settlement)) return;
 
+    final resolved = await _settlementRepository.resolveSettlement(
+      settlementId: settlementId,
+      status: SettlementStatus.rejected,
+      resolvedAt: DateTime.now().toUtc(),
+      resolutionType: SettlementStatus.rejected.name,
+      fromAccountId: settlement.fromAccountId ?? settlement.accountId,
+      toAccountId: settlement.toAccountId,
+    );
+    if (resolved == null || resolved.status != SettlementStatus.rejected) {
+      return;
+    }
+
     /// Refund the payer's account ONLY on the payer's device. On the
     /// recipient's device this refund would mutate a foreign account that
     /// Firestore rules reject — the payer's own sync refunds idempotently.
@@ -203,10 +231,11 @@ class ProcessSettlementUsecase {
               .where((a) => a.id == settlement.accountId)
               .firstOrNull;
           if (account != null) {
+            if (_hasAnyRefundMutation(account, settlement.id)) return;
             final updatedAccount = await _accountRepository.adjustBalance(
               settlement.accountId!,
               settlement.amount,
-              mutationId: 'settlement-rejection-refund-${settlement.id}',
+              mutationId: _refundMutationId(settlement.id),
             );
             if (updatedAccount.isSavings) {
               try {
@@ -230,12 +259,33 @@ class ProcessSettlementUsecase {
       }
     }
 
-    await _settlementRepository.updateSettlementStatus(
-      settlementId,
-      SettlementStatus.rejected,
-    );
-
     sl<RefreshNotifier>().notifyDataChanged();
+  }
+
+  Future<AccountEntity?> _findOwnedAccount({
+    required String userId,
+    required String accountId,
+  }) async {
+    final accounts = await _accountRepository.getAccounts(userId: userId);
+    return accounts
+        .where((account) => account.id == accountId && !account.isArchived)
+        .firstOrNull;
+  }
+
+  String _refundMutationId(String settlementId) {
+    return '$_refundPrefix-$settlementId';
+  }
+
+  bool _hasAnyRefundMutation(AccountEntity account, String settlementId) {
+    final ids = [
+      _refundMutationId(settlementId),
+      for (final prefix in _legacyRefundPrefixes) '$prefix-$settlementId',
+    ];
+    return ids.any(
+      (id) =>
+          account.pendingBalanceMutations.containsKey(id) ||
+          account.appliedBalanceMutationIds.contains(id),
+    );
   }
 
   /// Guards against acting on a settlement another device already resolved:
@@ -243,8 +293,9 @@ class ProcessSettlementUsecase {
   Future<bool> _isStillPending(SettlementEntity settlement) async {
     if (settlement.status != SettlementStatus.pending) return false;
     try {
-      final remote = await sl<SettlementRemoteDatasource>()
-          .fetchSettlementById(settlement.id);
+      final remote = await sl<SettlementRemoteDatasource>().fetchSettlementById(
+        settlement.id,
+      );
       if (remote != null && remote.status != SettlementStatus.pending) {
         return false;
       }

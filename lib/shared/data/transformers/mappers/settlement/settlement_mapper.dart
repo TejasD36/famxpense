@@ -10,8 +10,12 @@ extension SettlementDtoMapper on SettlementDto {
       status: status,
       createdAt: createdAt,
       confirmedAt: confirmedAt,
+      resolvedAt: resolvedAt,
+      resolutionType: resolutionType,
       relatedExpenseIds: relatedExpenseIds,
       accountId: accountId,
+      fromAccountId: fromAccountId ?? accountId,
+      toAccountId: toAccountId,
     );
   }
 }
@@ -26,8 +30,12 @@ extension SettlementEntityMapper on SettlementEntity {
       status: status,
       createdAt: createdAt,
       confirmedAt: confirmedAt,
+      resolvedAt: resolvedAt,
+      resolutionType: resolutionType,
       relatedExpenseIds: relatedExpenseIds,
       accountId: accountId,
+      fromAccountId: fromAccountId ?? accountId,
+      toAccountId: toAccountId,
     );
   }
 }

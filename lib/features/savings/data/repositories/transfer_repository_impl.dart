@@ -29,6 +29,7 @@ class TransferRepositoryImpl implements TransferRepository {
         'Transfer amount must be finite and greater than zero',
       );
     }
+    _validateWholeRupees(transfer.amount, field: 'amount');
     if (transfer.fromAccountId == transfer.toAccountId) {
       throw ArgumentError('Source and destination accounts must be different');
     }
@@ -122,5 +123,11 @@ class TransferRepositoryImpl implements TransferRepository {
   @override
   Future<List<TransferDto>> getByAccount(String accountId) async {
     return _local.getByAccount(accountId);
+  }
+
+  void _validateWholeRupees(double amount, {required String field}) {
+    if ((amount - amount.round()).abs() > 0.000001) {
+      throw ArgumentError.value(amount, field, 'Amount must be whole rupees');
+    }
   }
 }

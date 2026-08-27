@@ -334,55 +334,73 @@ class _PartnerSettlementDetailScreenState
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Card(
-              elevation: 0,
-              color: Color.lerp(
-                (isOwed ? Colors.green : Colors.red).withValues(alpha: 0.08),
-                Colors.grey.withValues(alpha: 0.05),
-                _partnerBalance == 0 ? 1.0 : 0.0,
-              )!,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Icon(
-                      _partnerBalance == 0
-                          ? Icons.check_circle_outline_rounded
-                          : (isOwed
-                                ? Icons.call_received_rounded
-                                : Icons.send_rounded),
-                      size: 32,
-                      color: _partnerBalance == 0
-                          ? Colors.grey
-                          : (isOwed ? Colors.green : Colors.red),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _partnerBalance == 0
-                          ? 'All settled'
-                          : (isOwed
-                                ? '@${widget.partnerName} owes you'
-                                : 'You owe @${widget.partnerName}'),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: _partnerBalance == 0
-                            ? Colors.grey
-                            : (isOwed ? Colors.green : Colors.red),
+            child: GradientPatternPanel(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor:
+                            (_partnerBalance == 0
+                                    ? Colors.grey
+                                    : isOwed
+                                    ? Colors.green
+                                    : Colors.red)
+                                .withValues(alpha: 0.12),
+                        child: Icon(
+                          _partnerBalance == 0
+                              ? Icons.check_circle_outline_rounded
+                              : isOwed
+                              ? Icons.call_received_rounded
+                              : Icons.send_rounded,
+                          size: 20,
+                          color: _partnerBalance == 0
+                              ? Colors.grey
+                              : isOwed
+                              ? Colors.green
+                              : Colors.red,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatIndianRupee(absBalance),
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: _partnerBalance == 0
-                            ? Colors.grey
-                            : (isOwed ? Colors.green : Colors.red),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _partnerBalance == 0
+                                  ? 'All settled'
+                                  : isOwed
+                                  ? '@${widget.partnerName} owes you'
+                                  : 'You owe @${widget.partnerName}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              formatIndianRupee(absBalance),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: _partnerBalance == 0
+                                    ? Colors.grey
+                                    : isOwed
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                    ],
+                  ),
+                  if (owesPartner && !hasOutgoingPending) ...[
+                    const SizedBox(height: 12),
                     if (owesPartner && !hasOutgoingPending)
                       SizedBox(
                         width: double.infinity,
@@ -400,57 +418,58 @@ class _PartnerSettlementDetailScreenState
                           label: Text(_settling ? 'Sending...' : 'Settle'),
                         ),
                       ),
-                    if (hasOutgoingPending) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.hourglass_empty_rounded,
-                              size: 16,
+                  ],
+                  if (hasOutgoingPending) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.hourglass_empty_rounded,
+                            size: 16,
+                            color: Colors.orange.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Settlement pending',
+                            style: TextStyle(
+                              fontSize: 13,
                               color: Colors.orange.shade700,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Settlement pending',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.orange.shade700,
-                              ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            onPressed: _settling
+                                ? null
+                                : () => _handleCancel(outgoingPending.first),
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            label: const Text(
+                              'Cancel',
+                              style: TextStyle(fontSize: 13),
                             ),
-                            const SizedBox(width: 8),
-                            TextButton.icon(
-                              onPressed: _settling
-                                  ? null
-                                  : () => _handleCancel(outgoingPending.first),
-                              icon: const Icon(Icons.close_rounded, size: 16),
-                              label: const Text(
-                                'Cancel',
-                                style: TextStyle(fontSize: 13),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
                               ),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ),
@@ -463,9 +482,8 @@ class _PartnerSettlementDetailScreenState
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Text(
                 'Pending Request',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
                   color: theme.colorScheme.primary,
                 ),
               ),
@@ -479,7 +497,7 @@ class _PartnerSettlementDetailScreenState
                 elevation: 0,
                 color: Colors.orange.withValues(alpha: 0.05),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -572,9 +590,8 @@ class _PartnerSettlementDetailScreenState
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Text(
                 'Transactions',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
                   color: theme.colorScheme.primary,
                 ),
               ),
@@ -584,11 +601,11 @@ class _PartnerSettlementDetailScreenState
         /// Items
         if (items.isEmpty && !hasIncomingPending)
           SliverFillRemaining(
-            child: Center(
-              child: Text(
-                'No transactions with @${widget.partnerName}',
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-              ),
+            child: FinanceEmptyState(
+              icon: Icons.receipt_long_rounded,
+              title: 'No transactions yet',
+              subtitle:
+                  'Shared expenses and settlements with @${widget.partnerName} will appear here.',
             ),
           )
         else

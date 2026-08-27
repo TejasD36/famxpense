@@ -8,6 +8,14 @@ abstract interface class SettlementRepository {
     String settlementId,
     SettlementStatus status,
   );
+  Future<SettlementEntity?> resolveSettlement({
+    required String settlementId,
+    required SettlementStatus status,
+    required DateTime resolvedAt,
+    required String resolutionType,
+    required String? fromAccountId,
+    required String? toAccountId,
+  });
   Future<void> deleteSettlement(String settlementId);
   Future<bool> hasPendingSettlement(String fromUserId, String toUserId);
 }

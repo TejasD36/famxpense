@@ -24,33 +24,33 @@ class PartnerTile extends StatelessWidget {
 
       margin: EdgeInsets.zero,
 
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
 
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(6),
 
         onTap: onTap,
 
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
 
           child: Row(
             children: [
               /// AVATAR
               CircleAvatar(
-                radius: 26,
+                radius: 22,
 
                 child: Text(
                   nickname.isNotEmpty ? nickname[0].toUpperCase() : '?',
 
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 18,
                   ),
                 ),
               ),
 
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
 
               /// INFO
               Expanded(
@@ -61,12 +61,12 @@ class PartnerTile extends StatelessWidget {
                     Text(
                       '@$nickname',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
 
                     Text(
                       email,

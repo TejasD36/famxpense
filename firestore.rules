@@ -1,6 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isWholeRupee(value) {
+      return value is int;
+    }
+
+    function isParticipant(data) {
+      return data.participantIds != null
+        && data.participantIds.hasAny([request.auth.uid]);
+    }
+
+    function settlementIdentityUnchanged() {
+      return request.resource.data.id == resource.data.id
+        && request.resource.data.fromUserId == resource.data.fromUserId
+        && request.resource.data.toUserId == resource.data.toUserId
+        && request.resource.data.amount == resource.data.amount
+        && request.resource.data.participantIds == resource.data.participantIds
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.accountId == resource.data.accountId
+        && request.resource.data.fromAccountId == resource.data.fromAccountId
+        && request.resource.data.toAccountId == resource.data.toAccountId;
+    }
+
+    function validSettlementTransition() {
+      return resource.data.status == 'pending'
+        && request.resource.data.status in ['confirmed', 'rejected', 'cancelled']
+        && request.resource.data.resolvedAt is string
+        && request.resource.data.resolutionType == request.resource.data.status;
+    }
 
     // Users: any authenticated user can read all users (needed for search),
     // write only own document
@@ -21,17 +48,9 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.paidByUserId
         && request.resource.data.participantIds is list
         && request.resource.data.participantIds.hasAny([request.auth.uid])
-        && request.resource.data.amount is number
+        && isWholeRupee(request.resource.data.amount)
         && request.resource.data.amount > 0;
-      allow update: if request.auth != null
-        && request.auth.uid == resource.data.paidByUserId
-        && request.resource.data.paidByUserId == resource.data.paidByUserId
-        && request.resource.data.participantIds is list
-        && request.resource.data.participantIds.hasAny([request.auth.uid])
-        && request.resource.data.amount is number
-        && request.resource.data.amount > 0;
-      allow delete: if request.auth != null
-        && request.auth.uid == resource.data.paidByUserId;
+      allow update, delete: if false;
     }
 
     // Accounts: read/write own only
@@ -39,10 +58,14 @@ service cloud.firestore {
       allow read: if request.auth != null
         && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.userId;
+        && request.auth.uid == request.resource.data.userId
+        && isWholeRupee(request.resource.data.currentBalance)
+        && isWholeRupee(request.resource.data.monthlySavingsGoal);
       allow update: if request.auth != null
         && request.auth.uid == resource.data.userId
-        && request.resource.data.userId == resource.data.userId;
+        && request.resource.data.userId == resource.data.userId
+        && isWholeRupee(request.resource.data.currentBalance)
+        && isWholeRupee(request.resource.data.monthlySavingsGoal);
       allow delete: if request.auth != null
         && request.auth.uid == resource.data.userId;
     }
@@ -63,7 +86,7 @@ service cloud.firestore {
         && request.resource.data.id == mutationId
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.accountId is string
-        && request.resource.data.delta is number
+        && isWholeRupee(request.resource.data.delta)
         && getAfter(
           /databases/$(database)/documents/accounts/$(request.resource.data.accountId)
         ).data.userId == request.auth.uid;
@@ -79,9 +102,9 @@ service cloud.firestore {
         && request.resource.data.id == entryId
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.accountId is string
-        && request.resource.data.amount is number
-        && request.resource.data.previousBalance is number
-        && request.resource.data.newBalance is number
+        && isWholeRupee(request.resource.data.amount)
+        && isWholeRupee(request.resource.data.previousBalance)
+        && isWholeRupee(request.resource.data.newBalance)
         && request.resource.data.newBalance
           == request.resource.data.previousBalance + request.resource.data.amount
         && getAfter(
@@ -93,11 +116,20 @@ service cloud.firestore {
     // Settlements: read if participant, create/update if participant
     match /settlements/{settlementId} {
       allow read: if request.auth != null
-        && resource.data.participantIds != null
-        && resource.data.participantIds.hasAny([request.auth.uid]);
-      allow create: if request.auth.uid == request.resource.data.fromUserId;
-      allow update: if request.auth.uid == resource.data.fromUserId
-        || request.auth.uid == resource.data.toUserId;
+        && isParticipant(resource.data);
+      allow create: if request.auth.uid == request.resource.data.fromUserId
+        && request.resource.data.status == 'pending'
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.hasAll([
+          request.resource.data.fromUserId,
+          request.resource.data.toUserId
+        ])
+        && isWholeRupee(request.resource.data.amount)
+        && request.resource.data.amount > 0;
+      allow update: if request.auth != null
+        && isParticipant(resource.data)
+        && settlementIdentityUnchanged()
+        && validSettlementTransition();
       allow delete: if false;
     }
 
@@ -118,12 +150,12 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.userId
-        && request.resource.data.amount is number
+        && isWholeRupee(request.resource.data.amount)
         && request.resource.data.amount > 0;
       allow update: if request.auth != null
         && request.auth.uid == resource.data.userId
         && request.resource.data.userId == resource.data.userId
-        && request.resource.data.amount is number
+        && isWholeRupee(request.resource.data.amount)
         && request.resource.data.amount > 0;
       allow delete: if request.auth != null
         && request.auth.uid == resource.data.userId;
@@ -147,14 +179,14 @@ service cloud.firestore {
         && request.auth.uid == request.resource.data.fromUserId
         && request.resource.data.toUserId == request.auth.uid
         && request.resource.data.fromAccountId != request.resource.data.toAccountId
-        && request.resource.data.amount is number
+        && isWholeRupee(request.resource.data.amount)
         && request.resource.data.amount > 0;
       allow update: if request.auth != null
         && request.auth.uid == resource.data.fromUserId
         && request.resource.data.fromUserId == resource.data.fromUserId
         && request.resource.data.toUserId == resource.data.toUserId
         && request.resource.data.fromAccountId != request.resource.data.toAccountId
-        && request.resource.data.amount is number
+        && isWholeRupee(request.resource.data.amount)
         && request.resource.data.amount > 0;
       allow delete: if false;
     }
@@ -166,13 +198,21 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.userId
         && request.resource.data.month >= 1
-        && request.resource.data.month <= 12;
+        && request.resource.data.month <= 12
+        && isWholeRupee(request.resource.data.goalAmount)
+        && isWholeRupee(request.resource.data.savedAmount)
+        && isWholeRupee(request.resource.data.openingBalance)
+        && isWholeRupee(request.resource.data.closingBalance);
       allow update: if request.auth != null
         && request.auth.uid == resource.data.userId
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.accountId == resource.data.accountId
         && request.resource.data.year == resource.data.year
-        && request.resource.data.month == resource.data.month;
+        && request.resource.data.month == resource.data.month
+        && isWholeRupee(request.resource.data.goalAmount)
+        && isWholeRupee(request.resource.data.savedAmount)
+        && isWholeRupee(request.resource.data.openingBalance)
+        && isWholeRupee(request.resource.data.closingBalance);
       allow delete: if false;
     }
 
@@ -210,7 +250,7 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.id == mutationId
         && request.resource.data.ledgerId is string
-        && request.resource.data.delta is number
+        && isWholeRupee(request.resource.data.delta)
         && request.resource.data.participantIds is list
         && request.resource.data.participantIds.hasAny([request.auth.uid])
         && getAfter(

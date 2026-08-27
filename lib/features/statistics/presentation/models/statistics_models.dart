@@ -66,6 +66,36 @@ class SettlementTxn extends TransactionItem {
   });
 }
 
+class TransferTxn extends TransactionItem {
+  final String accountId;
+  final String linkedAccountId;
+  final bool isIncoming;
+  final String description;
+
+  const TransferTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.accountId,
+    required this.linkedAccountId,
+    required this.isIncoming,
+    required this.description,
+  });
+}
+
+class BalanceCorrectionTxn extends TransactionItem {
+  final String accountId;
+  final String description;
+
+  const BalanceCorrectionTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.accountId,
+    required this.description,
+  });
+}
+
 class AccountStat {
   final String accountId;
   final String accountName;

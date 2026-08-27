@@ -33,9 +33,12 @@ import '../../../shared/enums/settlement_status.dart';
 import '../../../shared/enums/sync_status.dart';
 import '../../../shared/enums/expense_type.dart';
 import '../../logger/app_logger.dart';
+import '../../local/settings/app_settings.dart';
 
 class SyncService {
-  bool _isSyncing = false;
+  Future<bool>? _activeSync;
+  bool _rerunRequested = false;
+  String? _activeUserId;
 
   final ExpenseLocalDatasource _expenseLocal;
   final ExpenseRemoteDatasource _expenseRemote;
@@ -103,12 +106,62 @@ class SyncService {
        _monthlySavingRemote = monthlySavingRemote,
        _savingsRepository = savingsRepository;
 
-  Future<bool> syncAll({required String userId}) async {
-    if (_isSyncing) {
-      AppLogger.sync('Sync already in progress, skipping');
-      return false;
+  Future<bool> syncAll({required String userId}) {
+    final activeSync = _activeSync;
+    if (activeSync != null) {
+      _rerunRequested = true;
+      _activeUserId = userId;
+      AppLogger.sync('Sync already in progress, joining and scheduling rerun');
+      return activeSync;
     }
-    _isSyncing = true;
+
+    _activeUserId = userId;
+    AppSettings.recordSyncAttempt(userId: userId).catchError((_) {});
+    _activeSync = _runSyncLoop();
+    return _activeSync!;
+  }
+
+  Future<bool> _runSyncLoop() async {
+    try {
+      var finalResult = false;
+      do {
+        _rerunRequested = false;
+        final userId = _activeUserId;
+        if (userId == null) {
+          AppLogger.warning('Full sync skipped because no user is active');
+          return false;
+        }
+        finalResult = await _runSingleSyncPass(userId);
+      } while (_rerunRequested);
+
+      try {
+        await AppSettings.recordSyncResult(
+          userId: _activeUserId ?? '',
+          success: finalResult,
+        );
+      } catch (_) {
+        // Sync health is best-effort and must never change sync semantics.
+      }
+      return finalResult;
+    } catch (e, stackTrace) {
+      AppLogger.error('Full sync failed', e, stackTrace);
+      final userId = _activeUserId;
+      if (userId != null) {
+        try {
+          await AppSettings.recordSyncResult(userId: userId, success: false);
+        } catch (_) {
+          // Sync health is best-effort and must never change sync semantics.
+        }
+      }
+      return false;
+    } finally {
+      _activeSync = null;
+      _activeUserId = null;
+      _rerunRequested = false;
+    }
+  }
+
+  Future<bool> _runSingleSyncPass(String userId) async {
     AppLogger.sync('Full sync started');
 
     try {
@@ -134,8 +187,6 @@ class SyncService {
     } catch (e, stackTrace) {
       AppLogger.error('Full sync failed', e, stackTrace);
       return false;
-    } finally {
-      _isSyncing = false;
     }
   }
 
@@ -849,34 +900,33 @@ class SyncService {
         }
 
         final localStatus = local?.status ?? remote.status;
-        if (remote.status == SettlementStatus.confirmed &&
-            localStatus == SettlementStatus.pending) {
-          await _settlementLocal.updateSettlementStatus(
-            remote.id,
-            SettlementStatus.confirmed,
-          );
-        } else if (remote.status == SettlementStatus.confirmed &&
-            localStatus == SettlementStatus.rejected) {
-          /// Money already moved on the recipient side — confirmed wins.
-          AppLogger.warning(
-            'Settlement ${remote.id}: local rejected but remote confirmed — '
-            'adopting confirmed',
-          );
-          await _settlementLocal.updateSettlementStatus(
-            remote.id,
-            SettlementStatus.confirmed,
-          );
-        } else if (remote.status == SettlementStatus.rejected &&
-            localStatus == SettlementStatus.pending) {
-          if (remote.fromUserId == userId && remote.accountId != null) {
+        if (_isTerminalSettlement(remote.status)) {
+          if (remote.status != localStatus) {
+            AppLogger.warning(
+              'Settlement ${remote.id}: adopting terminal remote status '
+              '${remote.status.name}',
+            );
+          }
+
+          if ((remote.status == SettlementStatus.rejected ||
+                  remote.status == SettlementStatus.cancelled) &&
+              localStatus == SettlementStatus.pending &&
+              remote.fromUserId == userId &&
+              remote.accountId != null) {
             try {
-              await _ensureAccountBalanceMutation(
+              if (!await _hasAnySettlementRefundMutation(
                 userId: userId,
                 accountId: remote.accountId!,
-                delta: remote.amount,
-                mutationId: 'settlement-rejection-refund-${remote.id}',
-                updatedAt: DateTime.now().toUtc(),
-              );
+                settlementId: remote.id,
+              )) {
+                await _ensureAccountBalanceMutation(
+                  userId: userId,
+                  accountId: remote.accountId!,
+                  delta: remote.amount,
+                  mutationId: _settlementRefundMutationId(remote.id),
+                  updatedAt: remote.resolvedAt ?? DateTime.now().toUtc(),
+                );
+              }
             } catch (e, stackTrace) {
               succeeded = false;
               AppLogger.error(
@@ -886,38 +936,21 @@ class SyncService {
               );
             }
           }
-          await _settlementLocal.updateSettlementStatus(
-            remote.id,
-            SettlementStatus.rejected,
-          );
-        } else if (remote.status == SettlementStatus.rejected &&
-            localStatus == SettlementStatus.confirmed) {
-          /// Local confirmation is authoritative here — keep pushing it so
-          /// both devices converge on the confirmed state.
-          AppLogger.warning(
-            'Settlement ${remote.id}: local confirmed but remote rejected — '
-            'keeping confirmed',
-          );
-          try {
-            await _settlementRemote.updateSettlementStatus(
-              remote.id,
-              SettlementStatus.confirmed,
-            );
-          } catch (e, stackTrace) {
-            succeeded = false;
-            AppLogger.warning(
-              'Failed syncing settlement status: ${remote.id}',
-            );
-            AppLogger.error('Settlement status sync error', e, stackTrace);
-          }
+          await _settlementLocal.saveResolvedSettlement(remote);
         } else if (remote.status == SettlementStatus.pending &&
             local != null &&
             local.status != SettlementStatus.pending) {
           try {
-            await _settlementRemote.updateSettlementStatus(
-              remote.id,
-              local.status,
+            final resolvedAt = local.resolvedAt ?? DateTime.now().toUtc();
+            final resolved = await _settlementRemote.resolveSettlement(
+              settlementId: remote.id,
+              status: local.status,
+              resolvedAt: resolvedAt,
+              resolutionType: local.resolutionType ?? local.status.name,
+              fromAccountId: local.fromAccountId ?? local.accountId,
+              toAccountId: local.toAccountId,
             );
+            await _settlementLocal.saveResolvedSettlement(resolved);
           } catch (e, stackTrace) {
             succeeded = false;
             AppLogger.warning('Failed syncing settlement status: ${remote.id}');
@@ -936,9 +969,7 @@ class SyncService {
             );
           } catch (e, stackTrace) {
             succeeded = false;
-            AppLogger.warning(
-              'Settlement reserve skipped for ${remote.id}',
-            );
+            AppLogger.warning('Settlement reserve skipped for ${remote.id}');
             AppLogger.error('Settlement reserve error', e, stackTrace);
           }
         }
@@ -1223,6 +1254,40 @@ class SyncService {
       AppLogger.error('Monthly savings sync failed', e, stackTrace);
       return false;
     }
+  }
+
+  bool _isTerminalSettlement(SettlementStatus status) {
+    return status == SettlementStatus.confirmed ||
+        status == SettlementStatus.rejected ||
+        status == SettlementStatus.cancelled;
+  }
+
+  String _settlementRefundMutationId(String settlementId) {
+    return 'settlement-refund-$settlementId';
+  }
+
+  Future<bool> _hasAnySettlementRefundMutation({
+    required String userId,
+    required String accountId,
+    required String settlementId,
+  }) async {
+    final accounts = await _accountLocal.getAccounts();
+    final account = accounts
+        .where((item) => item.id == accountId && item.userId == userId)
+        .firstOrNull;
+    if (account == null) return false;
+
+    final ids = [
+      _settlementRefundMutationId(settlementId),
+      'settlement-rejection-refund-$settlementId',
+      'settlement-cancel-refund-$settlementId',
+      'settlement-duplicate-refund-$settlementId',
+    ];
+    return ids.any(
+      (id) =>
+          account.pendingBalanceMutations.containsKey(id) ||
+          account.appliedBalanceMutationIds.contains(id),
+    );
   }
 
   Future<bool> syncNotifications({required String userId}) async {

@@ -42,10 +42,7 @@ class _PartnersScreenState extends State<PartnersScreen>
 
           child: Scaffold(
             appBar: AppBar(
-              title: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 13.0),
-                child: const Text('Partners'),
-              ),
+              title: const Text('Partners'),
 
               centerTitle: false,
 
@@ -228,7 +225,7 @@ class _ConnectedTabState extends State<_ConnectedTab> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
 
       itemBuilder: (_, index) {
         final partnership = widget.partners[index];
@@ -261,7 +258,7 @@ class _ConnectedTabState extends State<_ConnectedTab> {
         );
       },
 
-      separatorBuilder: (_, _) => const SizedBox(height: 14),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
 
       itemCount: widget.partners.length,
     );
@@ -293,22 +290,17 @@ class _RequestsTabState extends State<_RequestsTab> {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
 
       children: [
         /// INCOMING
         if (widget.incomingRequests.isNotEmpty) ...[
-          const Text(
-            'Incoming Requests',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(height: 14),
+          const CompactSectionHeader(title: 'Incoming Requests'),
 
           ...widget.incomingRequests.map((request) {
             final isProcessing = _processingIds.contains(request.id);
             return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: 8),
 
               child: PartnerTile(
                 nickname: request.senderNickname,
@@ -319,6 +311,7 @@ class _RequestsTabState extends State<_RequestsTab> {
 
                   children: [
                     IconButton(
+                      tooltip: 'Reject request',
                       onPressed: isProcessing
                           ? null
                           : () => _handleAction(context, request, reject: true),
@@ -331,6 +324,7 @@ class _RequestsTabState extends State<_RequestsTab> {
                           : const Icon(Icons.close_rounded),
                     ),
                     IconButton(
+                      tooltip: 'Accept request',
                       onPressed: isProcessing
                           ? null
                           : () =>
@@ -352,18 +346,13 @@ class _RequestsTabState extends State<_RequestsTab> {
 
         /// OUTGOING
         if (widget.outgoingRequests.isNotEmpty) ...[
-          const SizedBox(height: 28),
+          const SizedBox(height: 10),
 
-          const Text(
-            'Pending Requests',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(height: 14),
+          const CompactSectionHeader(title: 'Pending Requests'),
 
           ...widget.outgoingRequests.map((request) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: 8),
 
               child: PartnerTile(
                 nickname: request.receiverNickname,

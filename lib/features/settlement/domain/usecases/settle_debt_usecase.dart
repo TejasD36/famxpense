@@ -3,6 +3,13 @@ import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../xcore.dart';
 
 class SettleDebtUsecase {
+  static const _refundPrefix = 'settlement-refund';
+  static const _legacyRefundPrefixes = [
+    'settlement-rejection-refund',
+    'settlement-cancel-refund',
+    'settlement-duplicate-refund',
+  ];
+
   final SettlementRepository _settlementRepository;
   final AccountRepository _accountRepository;
 
@@ -36,6 +43,7 @@ class SettleDebtUsecase {
       status: SettlementStatus.pending,
       createdAt: now,
       accountId: fromAccountId,
+      fromAccountId: fromAccountId,
     );
 
     await _settlementRepository.createSettlement(settlement);
@@ -114,8 +122,9 @@ class SettleDebtUsecase {
 
     /// Remote terminal-state guard: the recipient may have already confirmed.
     try {
-      final remote = await sl<SettlementRemoteDatasource>()
-          .fetchSettlementById(settlementId);
+      final remote = await sl<SettlementRemoteDatasource>().fetchSettlementById(
+        settlementId,
+      );
       if (remote != null && remote.status != SettlementStatus.pending) return;
     } catch (e, stackTrace) {
       AppLogger.warning(
@@ -124,8 +133,19 @@ class SettleDebtUsecase {
       AppLogger.error('Settlement remote status check error', e, stackTrace);
     }
 
-    /// Refund payer's account FIRST before deleting the settlement record.
-    /// If refund fails, money would be lost if we delete first.
+    final resolved = await _settlementRepository.resolveSettlement(
+      settlementId: settlementId,
+      status: SettlementStatus.cancelled,
+      resolvedAt: DateTime.now().toUtc(),
+      resolutionType: SettlementStatus.cancelled.name,
+      fromAccountId: settlement.fromAccountId ?? settlement.accountId,
+      toAccountId: settlement.toAccountId,
+    );
+    if (resolved == null || resolved.status != SettlementStatus.cancelled) {
+      return;
+    }
+
+    /// Refund payer's account with the canonical settlement refund mutation.
     if (settlement.accountId != null) {
       try {
         final accounts = await _accountRepository.getAccounts(
@@ -135,10 +155,11 @@ class SettleDebtUsecase {
             .where((a) => a.id == settlement.accountId)
             .firstOrNull;
         if (account != null) {
+          if (_hasAnyRefundMutation(account, settlement.id)) return;
           final updatedAccount = await _accountRepository.adjustBalance(
             settlement.accountId!,
             settlement.amount,
-            mutationId: 'settlement-cancel-refund-${settlement.id}',
+            mutationId: _refundMutationId(settlement.id),
           );
           if (updatedAccount.isSavings) {
             try {
@@ -162,13 +183,24 @@ class SettleDebtUsecase {
       }
     }
 
-    await _settlementRepository.updateSettlementStatus(
-      settlementId,
-      SettlementStatus.rejected,
-    );
-
     sl<SyncService>().syncAll(userId: settlement.fromUserId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();
     });
+  }
+
+  String _refundMutationId(String settlementId) {
+    return '$_refundPrefix-$settlementId';
+  }
+
+  bool _hasAnyRefundMutation(AccountEntity account, String settlementId) {
+    final ids = [
+      _refundMutationId(settlementId),
+      for (final prefix in _legacyRefundPrefixes) '$prefix-$settlementId',
+    ];
+    return ids.any(
+      (id) =>
+          account.pendingBalanceMutations.containsKey(id) ||
+          account.appliedBalanceMutationIds.contains(id),
+    );
   }
 }

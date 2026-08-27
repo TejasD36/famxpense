@@ -58,6 +58,55 @@ class SettlementRepositoryImpl implements SettlementRepository {
   }
 
   @override
+  Future<SettlementEntity?> resolveSettlement({
+    required String settlementId,
+    required SettlementStatus status,
+    required DateTime resolvedAt,
+    required String resolutionType,
+    required String? fromAccountId,
+    required String? toAccountId,
+  }) async {
+    final local = await _localDatasource.getSettlementById(settlementId);
+    if (local != null && local.status != SettlementStatus.pending) {
+      return local.toEntity();
+    }
+
+    try {
+      final resolved = await _remoteDatasource.resolveSettlement(
+        settlementId: settlementId,
+        status: status,
+        resolvedAt: resolvedAt,
+        resolutionType: resolutionType,
+        fromAccountId: fromAccountId,
+        toAccountId: toAccountId,
+      );
+      await _localDatasource.saveResolvedSettlement(resolved);
+      return resolved;
+    } catch (e, stackTrace) {
+      if (local == null) {
+        AppLogger.warning('Settlement resolution unavailable');
+        AppLogger.error('Settlement resolution error', e, stackTrace);
+        return null;
+      }
+
+      final resolved = local.toEntity().copyWith(
+        status: status,
+        confirmedAt: status == SettlementStatus.confirmed
+            ? resolvedAt
+            : local.confirmedAt,
+        resolvedAt: resolvedAt,
+        resolutionType: resolutionType,
+        fromAccountId: fromAccountId ?? local.fromAccountId ?? local.accountId,
+        toAccountId: toAccountId ?? local.toAccountId,
+      );
+      await _localDatasource.saveResolvedSettlement(resolved);
+      AppLogger.warning('Settlement resolution queued for sync');
+      AppLogger.error('Settlement resolution remote error', e, stackTrace);
+      return resolved;
+    }
+  }
+
+  @override
   Future<void> deleteSettlement(String settlementId) async {
     await _localDatasource.deleteSettlement(settlementId);
     try {

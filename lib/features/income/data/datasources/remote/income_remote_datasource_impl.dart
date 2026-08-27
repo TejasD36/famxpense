@@ -10,10 +10,10 @@ class IncomeRemoteDatasourceImpl implements IncomeRemoteDatasource {
 
   @override
   Future<void> createIncome(IncomeDto income) async {
-    await _firestore
-        .collection(_collection)
-        .doc(income.id)
-        .set(income.toJson());
+    await _firestore.collection(_collection).doc(income.id).set({
+      ...income.toJson(),
+      'amount': income.amount.round(),
+    });
   }
 
   @override

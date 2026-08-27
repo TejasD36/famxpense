@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:famxpense/core/services/sync/sync_service.dart';
@@ -249,7 +251,7 @@ void main() {
   });
 
   group('syncAll', () {
-    test('returns false when sync is already in progress', () async {
+    void stubSuccessfulFullSync() {
       when(
         () => expenseLocal.getPendingExpenses(
           ownerUserId: any(named: 'ownerUserId'),
@@ -290,12 +292,121 @@ void main() {
         () =>
             notificationRemote.fetchNotifications(userId: any(named: 'userId')),
       ).thenAnswer((_) async => []);
+      when(() => accountLocal.getAccounts()).thenAnswer((_) async => []);
+      when(() => transferLocal.fetchAll()).thenAnswer((_) async => []);
+      when(
+        () => transferRemote.fetchTransfers(userId: any(named: 'userId')),
+      ).thenAnswer((_) async => []);
+      when(
+        () => monthlySavingLocal.getAllSnapshots(),
+      ).thenAnswer((_) async => []);
+      when(
+        () => monthlySavingRemote.fetchSnapshots(userId: any(named: 'userId')),
+      ).thenAnswer((_) async => []);
+    }
+
+    test('joins an in-progress sync instead of returning false', () async {
+      stubSuccessfulFullSync();
+      final fetchStarted = Completer<void>();
+      final releaseFetch = Completer<void>();
+      when(
+        () => expenseRemote.fetchExpenses(userId: any(named: 'userId')),
+      ).thenAnswer((_) async {
+        if (!fetchStarted.isCompleted) fetchStarted.complete();
+        await releaseFetch.future;
+        return [];
+      });
 
       final first = syncService.syncAll(userId: 'user-a');
-      final second = await syncService.syncAll(userId: 'user-a');
-      await first;
+      await fetchStarted.future;
+      final second = syncService.syncAll(userId: 'user-a');
+      releaseFetch.complete();
 
-      expect(second, false);
+      await expectLater(first, completion(true));
+      await expectLater(second, completion(true));
+      verify(() => expenseRemote.fetchExpenses(userId: 'user-a')).called(2);
+    });
+
+    test('runs one rerun pass when syncAll is called during a pass', () async {
+      stubSuccessfulFullSync();
+      final fetchStarted = Completer<void>();
+      final releaseFetch = Completer<void>();
+      when(
+        () => expenseRemote.fetchExpenses(userId: any(named: 'userId')),
+      ).thenAnswer((_) async {
+        if (!fetchStarted.isCompleted) {
+          fetchStarted.complete();
+          await releaseFetch.future;
+        }
+        return [];
+      });
+
+      final first = syncService.syncAll(userId: 'user-a');
+      await fetchStarted.future;
+      final second = syncService.syncAll(userId: 'user-a');
+      releaseFetch.complete();
+
+      await expectLater(first, completion(true));
+      await expectLater(second, completion(true));
+      verify(() => expenseRemote.fetchExpenses(userId: 'user-a')).called(2);
+    });
+
+    test(
+      'collapses multiple requests during one pass into one rerun',
+      () async {
+        stubSuccessfulFullSync();
+        final fetchStarted = Completer<void>();
+        final releaseFetch = Completer<void>();
+        when(
+          () => expenseRemote.fetchExpenses(userId: any(named: 'userId')),
+        ).thenAnswer((_) async {
+          if (!fetchStarted.isCompleted) {
+            fetchStarted.complete();
+            await releaseFetch.future;
+          }
+          return [];
+        });
+
+        final first = syncService.syncAll(userId: 'user-a');
+        await fetchStarted.future;
+        final second = syncService.syncAll(userId: 'user-a');
+        final third = syncService.syncAll(userId: 'user-a');
+        final fourth = syncService.syncAll(userId: 'user-a');
+        releaseFetch.complete();
+
+        await expectLater(first, completion(true));
+        await expectLater(second, completion(true));
+        await expectLater(third, completion(true));
+        await expectLater(fourth, completion(true));
+        verify(() => expenseRemote.fetchExpenses(userId: 'user-a')).called(2);
+      },
+    );
+
+    test('resolves false when the final rerun pass fails', () async {
+      stubSuccessfulFullSync();
+      final fetchStarted = Completer<void>();
+      final releaseFetch = Completer<void>();
+      var pass = 0;
+      when(
+        () => expenseRemote.fetchExpenses(userId: any(named: 'userId')),
+      ).thenAnswer((_) async {
+        pass += 1;
+        if (pass == 1) {
+          fetchStarted.complete();
+          await releaseFetch.future;
+          return [];
+        }
+        throw StateError('retryable fetch failure');
+      });
+
+      final first = syncService.syncAll(userId: 'user-a');
+      await fetchStarted.future;
+      final second = syncService.syncAll(userId: 'user-a');
+      releaseFetch.complete();
+
+      await expectLater(first, completion(false));
+      await expectLater(second, completion(false));
+      verify(() => expenseRemote.fetchExpenses(userId: 'user-a')).called(2);
     });
   });
 

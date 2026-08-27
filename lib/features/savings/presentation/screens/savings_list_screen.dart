@@ -95,9 +95,15 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _savingsAccounts.isEmpty
-          ? const Center(
-              child: Text(
-                'No savings accounts. Mark an account as savings first.',
+          ? FinanceEmptyState(
+              icon: Icons.savings_rounded,
+              title: 'No savings accounts yet',
+              subtitle:
+                  'Mark an account as savings to track monthly goals and progress.',
+              action: OutlinedButton.icon(
+                onPressed: () => context.pushNamed(AppRoute.addAccount.name),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Add Account'),
               ),
             )
           : RefreshIndicator(
@@ -106,7 +112,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _buildSummaryCard(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   ..._savingsAccounts.map(
                     (a) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -114,15 +120,8 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                     ),
                   ),
                   if (_timeline.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Monthly History',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
+                    const CompactSectionHeader(title: 'Monthly History'),
                     ..._timeline.map((m) => _buildTimelineCard(m)),
                   ],
                 ],
@@ -155,92 +154,59 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       barColor = Colors.green;
     }
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'This Month',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Goal',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatIndianRupee(totalGoal),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Saved',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatIndianRupee(totalSaved),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: barColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: totalGoal > 0
-                    ? (totalSaved / totalGoal).clamp(0.0, 1.0)
-                    : 0,
-                minHeight: 12,
-                backgroundColor: Theme.of(
+    return GradientPatternPanel(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.savings_rounded, color: barColor, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'This Month',
+                style: Theme.of(
                   context,
-                ).colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation(barColor),
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${percent.toStringAsFixed(1)}% achieved',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 13,
+              const Spacer(),
+              Text(
+                '${percent.toStringAsFixed(1)}%',
+                style: TextStyle(fontWeight: FontWeight.w700, color: barColor),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          MoneyMetricStrip(
+            metrics: [
+              MoneyMetric(
+                label: 'Goal',
+                value: formatIndianRupee(totalGoal),
+                icon: Icons.flag_rounded,
+              ),
+              MoneyMetric(
+                label: 'Saved',
+                value: formatIndianRupee(totalSaved),
+                color: barColor,
+                icon: Icons.trending_up_rounded,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: totalGoal > 0
+                  ? (totalSaved / totalGoal).clamp(0.0, 1.0)
+                  : 0,
+              minHeight: 8,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation(barColor),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -264,13 +230,13 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
 
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(6),
         onTap: () =>
             context.pushNamed(AppRoute.accountDetail.name, extra: account),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -324,7 +290,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
                     value: (saved / goal).clamp(0.0, 1.0),
-                    minHeight: 8,
+                    minHeight: 6,
                     backgroundColor: Theme.of(
                       context,
                     ).colorScheme.surfaceContainerHighest,
@@ -355,7 +321,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         side: isNegative
             ? BorderSide(color: Colors.red.shade200)
             : BorderSide.none,

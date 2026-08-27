@@ -4,8 +4,10 @@ import 'package:famxpense/features/account/data/datasources/manual_deposit_local
 import 'package:famxpense/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:famxpense/features/expenses/data/datasources/local/expense_local_datasource.dart';
 import 'package:famxpense/features/income/data/datasources/income_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/transfer_local_datasource.dart';
 import 'package:famxpense/features/settlement/data/datasources/settlement_local_datasource.dart';
 import 'package:famxpense/features/statistics/presentation/blocs/statistics_bloc.dart';
+import 'package:famxpense/core/services/reporting/reporting_ledger_service.dart';
 import 'package:famxpense/shared/data/transformers/dtos/account/manual_deposit_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
@@ -31,11 +33,14 @@ class _IncomeLocal extends Mock implements IncomeLocalDatasource {}
 
 class _AuthLocal extends Mock implements AuthLocalDatasource {}
 
+class _TransferLocal extends Mock implements TransferLocalDatasource {}
+
 void main() {
   late _ExpenseLocal expenses;
   late _DepositLocal deposits;
   late _SettlementLocal settlements;
   late _IncomeLocal incomes;
+  late _TransferLocal transfers;
 
   ExpenseDto expense(String id, DateTime date, double share) => ExpenseDto(
     id: id,
@@ -58,17 +63,30 @@ void main() {
     deposits = _DepositLocal();
     settlements = _SettlementLocal();
     incomes = _IncomeLocal();
+    transfers = _TransferLocal();
     final accounts = _AccountLocal();
     final auth = _AuthLocal();
     when(auth.getUserId).thenReturn('user-a');
     when(accounts.getAccounts).thenAnswer((_) async => []);
     when(incomes.fetchAll).thenAnswer((_) async => []);
+    when(transfers.fetchAll).thenAnswer((_) async => []);
     sl.registerSingleton<AuthLocalDatasource>(auth);
     sl.registerSingleton<ExpenseLocalDatasource>(expenses);
     sl.registerSingleton<AccountLocalDatasource>(accounts);
     sl.registerSingleton<ManualDepositLocalDatasource>(deposits);
     sl.registerSingleton<SettlementLocalDatasource>(settlements);
     sl.registerSingleton<IncomeLocalDatasource>(incomes);
+    sl.registerSingleton<TransferLocalDatasource>(transfers);
+    sl.registerSingleton(
+      ReportingLedgerService(
+        expenses: expenses,
+        incomes: incomes,
+        deposits: deposits,
+        settlements: settlements,
+        transfers: transfers,
+        accounts: accounts,
+      ),
+    );
   });
 
   test(
@@ -153,7 +171,7 @@ void main() {
           await bloc.stream.firstWhere((state) => state is StatisticsLoaded)
               as StatisticsLoaded;
       expect(state.totalSpent, 100);
-      expect(state.totalDeposited, 125);
+      expect(state.totalDeposited, 150);
       expect(state.expenseCount, 2);
       expect(state.depositCount, 3);
       expect(

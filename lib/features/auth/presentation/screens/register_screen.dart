@@ -21,6 +21,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -98,18 +100,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const AuthBrandPanel(
+                      title: 'Create Account',
+                      subtitle: 'Set up your expense circle in minutes.',
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
                     TextFormField(
                       controller: _nameController,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.name],
 
                       decoration: const InputDecoration(
                         labelText: 'Name',
@@ -131,6 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _nicknameController,
 
                       textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.nickname],
 
                       textCapitalization: TextCapitalization.none,
 
@@ -180,6 +182,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailController,
 
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
 
                       decoration: const InputDecoration(
                         labelText: 'Email',
@@ -204,11 +208,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _passwordController,
 
-                      obscureText: true,
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.newPassword],
 
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword
+                              ? 'Show password'
+                              : 'Hide password',
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_rounded
+                                : Icons.visibility_off_rounded,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        ),
                       ),
 
                       onChanged: (_) {
@@ -223,11 +242,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _confirmPasswordController,
 
-                      obscureText: true,
+                      obscureText: _obscureConfirmPassword,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.newPassword],
+                      onFieldSubmitted: (_) => _register(),
 
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Confirm Password',
                         border: OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          tooltip: _obscureConfirmPassword
+                              ? 'Show password'
+                              : 'Hide password',
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_rounded
+                                : Icons.visibility_off_rounded,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                          ),
+                        ),
                       ),
 
                       validator: (value) {
@@ -245,14 +281,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       builder: (context, state) {
                         final isLoading = state is AuthLoading;
 
-                        return ElevatedButton(
+                        return FilledButton(
                           onPressed: isLoading ? null : _register,
 
                           child: isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  ),
                                 )
                               : const Text('Register'),
                         );

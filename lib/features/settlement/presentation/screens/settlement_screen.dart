@@ -211,22 +211,19 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _SummaryCard(
-                              label: 'You\'re owed',
-                              amount: iAmOwed,
-                              color: Colors.green,
-                            ),
+                      child: MoneyMetricStrip(
+                        metrics: [
+                          MoneyMetric(
+                            label: 'You\'re owed',
+                            value: formatIndianRupee(iAmOwed),
+                            color: Colors.green,
+                            icon: Icons.call_received_rounded,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _SummaryCard(
-                              label: 'You owe',
-                              amount: iOwe,
-                              color: Colors.red,
-                            ),
+                          MoneyMetric(
+                            label: 'You owe',
+                            value: formatIndianRupee(iOwe),
+                            color: Colors.red,
+                            icon: Icons.send_rounded,
                           ),
                         ],
                       ),
@@ -239,13 +236,8 @@ class _SettlementScreenState extends State<SettlementScreen> {
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Text(
-                          'Pending Settlements',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.primary,
-                          ),
+                        child: const CompactSectionHeader(
+                          title: 'Pending Settlements',
                         ),
                       ),
                     ),
@@ -275,14 +267,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Text(
-                        'Partners',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
+                      child: const CompactSectionHeader(title: 'Partners'),
                     ),
                   ),
 
@@ -294,13 +279,11 @@ class _SettlementScreenState extends State<SettlementScreen> {
                           horizontal: 16,
                           vertical: 32,
                         ),
-                        child: Center(
-                          child: Text(
-                            'No outstanding balances',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                        child: const FinanceEmptyState(
+                          icon: Icons.check_circle_outline_rounded,
+                          title: 'No outstanding balances',
+                          subtitle:
+                              'Shared balances and settlement requests will appear here.',
                         ),
                       ),
                     )
@@ -324,50 +307,60 @@ class _SettlementScreenState extends State<SettlementScreen> {
         _selectedMonth.month == now.month && _selectedMonth.year == now.year;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (_dateRange != null)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: InputChip(
-                  label: Text(
-                    '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
-                    style: const TextStyle(fontSize: 13),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (_dateRange != null)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: InputChip(
+                      label: Text(
+                        '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      deleteIcon: const Icon(Icons.close_rounded, size: 18),
+                      onDeleted: _clearDateRange,
+                    ),
                   ),
-                  deleteIcon: const Icon(Icons.close_rounded, size: 18),
-                  onDeleted: _clearDateRange,
+                )
+              else ...[
+                IconButton(
+                  icon: const Icon(Icons.chevron_left_rounded),
+                  onPressed: _prevMonth,
                 ),
+                Text(
+                  DateFormat('MMM yyyy').format(_selectedMonth),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.chevron_right_rounded,
+                    color: isAtCurrentMonth
+                        ? Theme.of(context).disabledColor
+                        : null,
+                  ),
+                  onPressed: isAtCurrentMonth ? null : _nextMonth,
+                ),
+              ],
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.calendar_month_rounded),
+                onPressed: _pickDateRange,
+                tooltip: 'Pick date range',
               ),
-            )
-          else ...[
-            IconButton(
-              icon: const Icon(Icons.chevron_left_rounded),
-              onPressed: _prevMonth,
-            ),
-            Text(
-              DateFormat('MMM yyyy').format(_selectedMonth),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.chevron_right_rounded,
-                color: isAtCurrentMonth
-                    ? Theme.of(context).disabledColor
-                    : null,
-              ),
-              onPressed: isAtCurrentMonth ? null : _nextMonth,
-            ),
-          ],
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.calendar_month_rounded),
-            onPressed: _pickDateRange,
-            tooltip: 'Pick date range',
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -382,7 +375,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
     final absBalance = partner.balance.abs();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       child: Card(
         elevation: 0,
         child: ListTile(
@@ -465,11 +458,11 @@ class _SettlementScreenState extends State<SettlementScreen> {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
         child: Card(
           elevation: 0,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -593,51 +586,6 @@ class _SettlementScreenState extends State<SettlementScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color color;
-
-  const _SummaryCard({
-    required this.label,
-    required this.amount,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              formatIndianRupee(amount),
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: amount > 0
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
         ),
       ),
     );

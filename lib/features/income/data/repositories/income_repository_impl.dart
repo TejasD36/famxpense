@@ -34,6 +34,7 @@ class IncomeRepositoryImpl implements IncomeRepository {
         'Income amount must be finite and greater than zero',
       );
     }
+    _validateWholeRupees(income.amount, field: 'amount');
 
     final userId = _authLocalDatasource.getUserId();
     if (userId == null || userId != income.userId) {
@@ -121,6 +122,12 @@ class IncomeRepositoryImpl implements IncomeRepository {
       AppLogger.warning('Firebase sync failed — saved locally');
       AppLogger.error('Income remote save failed', e, stackTrace);
       _refreshNotifier.notifySyncError('Firebase sync failed — saved locally');
+    }
+  }
+
+  void _validateWholeRupees(double amount, {required String field}) {
+    if ((amount - amount.round()).abs() > 0.000001) {
+      throw ArgumentError.value(amount, field, 'Amount must be whole rupees');
     }
   }
 

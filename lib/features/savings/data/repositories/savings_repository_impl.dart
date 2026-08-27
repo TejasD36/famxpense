@@ -25,6 +25,8 @@ class SavingsRepositoryImpl implements SavingsRepository {
   ) async {
     final calendarNow = DateTime.now();
     final updatedAt = calendarNow.toUtc();
+    _validateWholeRupees(currentBalance, field: 'currentBalance');
+    _validateWholeRupees(goalAmount, field: 'goalAmount');
     final existing = await _local.getSnapshot(
       accountId,
       calendarNow.year,
@@ -200,12 +202,14 @@ class SavingsRepositoryImpl implements SavingsRepository {
       return _priorClosingBalance(remote, year, month);
     } catch (e, stackTrace) {
       AppLogger.warning('Opening balance remote fallback unavailable');
-      AppLogger.error(
-        'Remote savings opening balance error',
-        e,
-        stackTrace,
-      );
+      AppLogger.error('Remote savings opening balance error', e, stackTrace);
       return 0;
+    }
+  }
+
+  void _validateWholeRupees(double amount, {required String field}) {
+    if ((amount - amount.round()).abs() > 0.000001) {
+      throw ArgumentError.value(amount, field, 'Amount must be whole rupees');
     }
   }
 

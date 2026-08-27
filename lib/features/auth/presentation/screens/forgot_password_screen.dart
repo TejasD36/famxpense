@@ -67,12 +67,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    const Text(
-                      'Reset Password',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const AuthBrandPanel(
+                      title: 'Reset Password',
+                      subtitle: 'Get back to your expense records securely.',
                     ),
 
                     const SizedBox(height: 16),

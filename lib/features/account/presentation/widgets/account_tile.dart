@@ -10,11 +10,13 @@ class AccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ListTile(
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: CircleAvatar(
+          radius: 20,
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           child: account.isSavings
               ? const Icon(Icons.savings_rounded, color: Colors.amber)

@@ -99,8 +99,8 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       throw ArgumentError('Expense ID and title are required');
     }
 
-    final totalPaise = _validatedPaise(expense.amount, field: 'amount');
-    if (totalPaise <= 0) {
+    final totalRupees = _validatedRupees(expense.amount, field: 'amount');
+    if (totalRupees <= 0) {
       throw ArgumentError.value(
         expense.amount,
         'amount',
@@ -112,7 +112,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
 
     final participantIds = <String>{};
-    var participantTotalPaise = 0;
+    var participantTotalRupees = 0;
     for (final participant in expense.participants) {
       if (participant.userId.trim().isEmpty ||
           !participantIds.add(participant.userId)) {
@@ -120,20 +120,20 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
           'Expense participant IDs must be non-empty and unique',
         );
       }
-      final sharePaise = _validatedPaise(
+      final shareRupees = _validatedRupees(
         participant.amount,
         field: 'participant amount',
       );
-      if (sharePaise < 0) {
+      if (shareRupees < 0) {
         throw ArgumentError.value(
           participant.amount,
           'participant amount',
           'Participant shares cannot be negative',
         );
       }
-      participantTotalPaise += sharePaise;
+      participantTotalRupees += shareRupees;
     }
-    if (participantTotalPaise != totalPaise) {
+    if (participantTotalRupees != totalRupees) {
       throw ArgumentError(
         'Participant shares must exactly equal the expense amount',
       );
@@ -157,20 +157,15 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
   }
 
-  int _validatedPaise(double amount, {required String field}) {
+  int _validatedRupees(double amount, {required String field}) {
     if (!amount.isFinite) {
       throw ArgumentError.value(amount, field, 'Amount must be finite');
     }
-    final scaled = amount * 100;
-    final paise = scaled.round();
-    if ((scaled - paise).abs() > 0.000001) {
-      throw ArgumentError.value(
-        amount,
-        field,
-        'Amounts cannot have more than two decimal places',
-      );
+    final rupees = amount.round();
+    if ((amount - rupees).abs() > 0.000001) {
+      throw ArgumentError.value(amount, field, 'Amounts must be whole rupees');
     }
-    return paise;
+    return rupees;
   }
 
   Future<void> _applyAccountBalance(ExpenseEntity expense) async {

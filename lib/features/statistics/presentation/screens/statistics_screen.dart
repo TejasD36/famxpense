@@ -121,6 +121,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         IncomeTxn(:final accountId) => accountNames[accountId] ?? accountId,
         SettlementTxn(:final accountId, :final isIncoming) =>
           isIncoming ? '' : (accountNames[accountId] ?? accountId),
+        TransferTxn(:final accountId) => accountNames[accountId] ?? accountId,
+        BalanceCorrectionTxn(:final accountId) =>
+          accountNames[accountId] ?? accountId,
       };
       rows.add([
         switch (txn) {
@@ -129,6 +132,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           IncomeTxn _ => 'Income',
           SettlementTxn(:final isIncoming) =>
             isIncoming ? 'Settlement Received' : 'Settlement Paid',
+          TransferTxn(:final isIncoming) =>
+            isIncoming ? 'Transfer In' : 'Transfer Out',
+          BalanceCorrectionTxn _ => 'Balance Correction',
         },
         DateFormat('yyyy-MM-dd').format(txn.date),
         txn.amount.toStringAsFixed(2),
@@ -141,6 +147,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           IncomeTxn(:final description) => description,
           SettlementTxn(:final isIncoming) =>
             isIncoming ? 'Settlement received' : 'Settlement paid',
+          TransferTxn(:final description, :final linkedAccountId) =>
+            description.isNotEmpty
+                ? description
+                : 'Linked account $linkedAccountId',
+          BalanceCorrectionTxn(:final description) => description,
         },
         accountName,
       ]);
@@ -230,6 +241,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                 expenseCount: expenseCount,
                                 depositCount: depositCount,
                               ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Showing ${transactions.length} transactions',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                               if (accountStats.any(
                                 (a) => a.totalSpent > 0 || a.totalDeposited > 0,
                               )) ...[
@@ -256,10 +277,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                 const SizedBox(height: 20),
                                 _DailySection(dailyTotals: dailyTotals),
                               ],
-                              if (transactions.isNotEmpty) ...[
-                                const SizedBox(height: 20),
-                                _TransactionSection(transactions: transactions),
-                              ],
                               if (monthComparisons.isNotEmpty) ...[
                                 const SizedBox(height: 20),
                                 _ComparisonSection(
@@ -271,30 +288,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                               if (categoryTotals.isEmpty &&
                                   dailyTotals.isEmpty &&
                                   expenseTypeTotals.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 64),
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.bar_chart_rounded,
-                                          size: 64,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant
-                                              .withValues(alpha: 0.3),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'No data for this month',
-                                          style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 48),
+                                  child: FinanceEmptyState(
+                                    icon: Icons.bar_chart_rounded,
+                                    title: 'No data for this period',
+                                    subtitle:
+                                        'Add activity or choose another date range to see insights.',
                                   ),
                                 ),
                             ],
@@ -430,7 +430,7 @@ class _SummaryCards extends StatelessWidget {
             value: formatIndianRupee(totalSpent),
             icon: Icons.arrow_upward_rounded,
             color: theme.colorScheme.error,
-            subtext: '$expenseCount expenses',
+            subtext: '$expenseCount outflows',
           ),
         ),
         const SizedBox(width: 12),
@@ -440,7 +440,7 @@ class _SummaryCards extends StatelessWidget {
             value: formatIndianRupee(totalDeposited),
             icon: Icons.arrow_downward_rounded,
             color: Colors.green,
-            subtext: '$depositCount deposits',
+            subtext: '$depositCount inflows',
           ),
         ),
       ],
@@ -982,131 +982,6 @@ class _DailySection extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TransactionSection extends StatelessWidget {
-  final List<TransactionItem> transactions;
-
-  const _TransactionSection({required this.transactions});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final displayTxns = transactions.take(20).toList();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.receipt_long_rounded,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Recent Transactions',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                if (transactions.length > 20) ...[
-                  const Spacer(),
-                  Text(
-                    'Top 20',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...displayTxns.map((txn) {
-              final (icon, color, label, amountColor) = switch (txn) {
-                ExpenseTxn() => (
-                  Icons.shopping_bag_rounded,
-                  Colors.orange.shade100,
-                  txn.title,
-                  theme.colorScheme.error,
-                ),
-                DepositTxn() => (
-                  Icons.account_balance_rounded,
-                  Colors.green.shade100,
-                  txn.description,
-                  Colors.green,
-                ),
-                IncomeTxn() => (
-                  Icons.trending_up_rounded,
-                  Colors.green.shade100,
-                  txn.description,
-                  Colors.green,
-                ),
-                SettlementTxn(:final isIncoming) => (
-                  isIncoming
-                      ? Icons.call_received_rounded
-                      : Icons.call_made_rounded,
-                  isIncoming ? Colors.green.shade100 : Colors.red.shade100,
-                  isIncoming ? 'Settlement received' : 'Settlement paid',
-                  isIncoming ? Colors.green : theme.colorScheme.error,
-                ),
-              };
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(icon, size: 16, color: amountColor),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            DateFormat('MMM d, HH:mm').format(txn.date),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      formatIndianRupee(txn.amount),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: amountColor,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
           ],
         ),
       ),

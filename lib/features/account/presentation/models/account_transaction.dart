@@ -17,14 +17,14 @@ class ExpensePayment extends AccountTransaction {
 class SettlementPayment extends AccountTransaction {
   final SettlementEntity settlement;
   @override
-  DateTime get date => settlement.createdAt;
+  DateTime get date => settlement.resolvedAt ?? settlement.createdAt;
   SettlementPayment(this.settlement);
 }
 
 class SettlementDeposit extends AccountTransaction {
   final SettlementEntity settlement;
   @override
-  DateTime get date => settlement.createdAt;
+  DateTime get date => settlement.resolvedAt ?? settlement.createdAt;
   SettlementDeposit(this.settlement);
 }
 

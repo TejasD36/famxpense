@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
@@ -24,106 +26,156 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
   Widget build(BuildContext context) {
     final expense = widget.expense;
     final userId = sl<AuthLocalDatasource>().getUserId();
+    final theme = Theme.of(context);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        ),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(2),
+            const SheetGrabber(),
+            const SizedBox(height: 12),
+            GradientPatternPanel(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                        child: Icon(
+                          expense.expenseType == ExpenseType.shared
+                              ? Icons.groups_rounded
+                              : Icons.person_rounded,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          expense.title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        expense.syncStatus == SyncStatus.synced
+                            ? Icons.cloud_done_rounded
+                            : Icons.cloud_upload_rounded,
+                        color: expense.syncStatus == SyncStatus.synced
+                            ? Colors.green
+                            : theme.colorScheme.tertiary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      formatIndianRupee(expense.amount),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                child: Column(
+                  children: [
+                    _infoRow(context, 'Category', _categoryLabel(expense)),
+                    if (expense.note?.trim().isNotEmpty == true)
+                      _infoRow(context, 'Note', expense.note!.trim()),
+                    _infoRow(
+                      context,
+                      'Date',
+                      DateFormat(
+                        'dd MMM yyyy · h:mm a',
+                      ).format(expense.expenseDate),
+                    ),
+                    _infoRow(
+                      context,
+                      'Type',
+                      expense.expenseType == ExpenseType.personal
+                          ? 'Personal'
+                          : 'Shared',
+                    ),
+                    if (expense.accountId != null)
+                      _infoRow(
+                        context,
+                        'Account',
+                        _resolveAccountName(expense.accountId!),
+                      ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: Text(
-                expense.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                formatIndianRupee(expense.amount),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            _infoRow(context, 'Category', expense.category ?? '—'),
-            if (expense.note != null) _infoRow(context, 'Note', expense.note!),
-            _infoRow(
-              context,
-              'Date',
-              DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate),
-            ),
-            _infoRow(
-              context,
-              'Type',
-              expense.expenseType == ExpenseType.personal
-                  ? 'Personal'
-                  : 'Shared',
-            ),
-            if (expense.accountId != null)
-              _infoRow(
-                context,
-                'Account',
-                _resolveAccountName(expense.accountId!),
-              ),
-            _infoRow(
-              context,
-              'Status',
-              expense.syncStatus == SyncStatus.synced ? 'Synced' : 'Pending',
             ),
             const SizedBox(height: 12),
             _participantsSection(context, expense, userId),
             if (expense.latitude != null && expense.longitude != null) ...[
-              const SizedBox(height: 16),
-              const Text(
-                'Location',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 180,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(expense.latitude!, expense.longitude!),
-                      zoom: 15,
-                    ),
-                    markers: {
-                      Marker(
-                        markerId: const MarkerId('expense_location'),
-                        position: LatLng(expense.latitude!, expense.longitude!),
+              const SizedBox(height: 12),
+              Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+                      child: Text(
+                        'Location',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    },
-                    zoomControlsEnabled: false,
-                    scrollGesturesEnabled: false,
-                    zoomGesturesEnabled: false,
-                    onMapCreated: (controller) => _mapController = controller,
-                  ),
+                    ),
+                    SizedBox(
+                      height: 180,
+                      child: GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(expense.latitude!, expense.longitude!),
+                          zoom: 15,
+                        ),
+                        markers: {
+                          Marker(
+                            markerId: const MarkerId('expense_location'),
+                            position: LatLng(
+                              expense.latitude!,
+                              expense.longitude!,
+                            ),
+                          ),
+                        },
+                        zoomControlsEnabled: false,
+                        scrollGesturesEnabled: false,
+                        zoomGesturesEnabled: false,
+                        onMapCreated: (controller) =>
+                            _mapController = controller,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Center(
               child: Text(
                 'Expense ID: ${expense.id}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -131,6 +183,15 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
         ),
       ),
     );
+  }
+
+  String _categoryLabel(ExpenseEntity expense) {
+    return ExpenseCategory.values
+            .where((item) => item.name == expense.category)
+            .firstOrNull
+            ?.label ??
+        expense.category ??
+        '—';
   }
 
   Widget _infoRow(BuildContext context, String label, String value) {
@@ -149,7 +210,15 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
               ),
             ),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -196,7 +265,12 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    p.userId == userId ? 'You' : p.userId,
+                    p.userId == userId
+                        ? 'You'
+                        : sl<UserLocalDatasource>()
+                                  .getUser(p.userId)
+                                  ?.nickname ??
+                              p.userId.substring(0, min(8, p.userId.length)),
                     style: const TextStyle(fontSize: 13),
                   ),
                   const Spacer(),

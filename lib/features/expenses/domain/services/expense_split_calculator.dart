@@ -27,15 +27,23 @@ class ExpenseSplitCalculator {
       );
     }
 
-    final totalPaise = (totalAmount * 100).round();
-    final basePaise = totalPaise ~/ participantIds.length;
-    var remainder = totalPaise.remainder(participantIds.length);
+    final roundedTotal = totalAmount.round();
+    if ((totalAmount - roundedTotal).abs() > 0.000001) {
+      throw ArgumentError.value(
+        totalAmount,
+        'totalAmount',
+        'Total must be a whole rupee amount',
+      );
+    }
+
+    final baseRupees = roundedTotal ~/ participantIds.length;
+    final remainder = roundedTotal.remainder(participantIds.length);
     final result = <String, double>{};
 
-    for (final participantId in participantIds) {
-      final paise = basePaise + (remainder > 0 ? 1 : 0);
-      if (remainder > 0) remainder--;
-      result[participantId] = paise / 100;
+    for (var i = 0; i < participantIds.length; i++) {
+      final participantId = participantIds[i];
+      result[participantId] = (baseRupees + (i == 0 ? remainder : 0))
+          .toDouble();
     }
     return result;
   }

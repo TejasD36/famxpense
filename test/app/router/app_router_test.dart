@@ -39,18 +39,15 @@ void main() {
     );
   });
 
-  test(
-    'links to shell Activity replace location instead of pushing a page',
-    () {
-      for (final path in [
-        'lib/features/expenses/presentation/screens/home_screen.dart',
-        'lib/features/profile/presentation/screens/profile_screen.dart',
-      ]) {
-        final source = File(path).readAsStringSync();
-        expect(source, contains('goNamed(AppRoute.activity.name)'));
-        expect(source, isNot(contains('pushNamed(AppRoute.activity.name)')));
-        expect(source, isNot(contains('push(AppRoute.activity.path)')));
-      }
-    },
-  );
+  test('shell Activity is not pushed as a standalone page', () {
+    for (final path in [
+      'lib/features/expenses/presentation/screens/home_screen.dart',
+      'lib/features/profile/presentation/screens/profile_screen.dart',
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(source, isNot(contains('goNamed(AppRoute.activity.name)')));
+      expect(source, isNot(contains('pushNamed(AppRoute.activity.name)')));
+      expect(source, isNot(contains('push(AppRoute.activity.path)')));
+    }
+  });
 }

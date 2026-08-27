@@ -249,6 +249,18 @@ Future<void> initDependencies() async {
       savingsRepository: sl(),
     ),
   );
+  sl.registerLazySingleton(
+    () => ReconciliationService(
+      expenses: sl(),
+      income: sl(),
+      transfers: sl(),
+      settlements: sl(),
+      savings: sl(),
+      accounts: sl(),
+      deposits: sl(),
+      debts: sl(),
+    ),
+  );
   sl.registerLazySingleton(() => RefreshNotifier());
   sl.registerLazySingleton(() => ConnectivityService());
   sl.registerLazySingleton(() => LocationService());
@@ -319,6 +331,17 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => NotificationService(sl(), sl()));
   sl.registerLazySingleton(() => RealtimeNotificationService(sl(), sl()));
   sl.registerFactory(() => NotificationBloc(datasource: sl()));
+
+  sl.registerLazySingleton(
+    () => ReportingLedgerService(
+      expenses: sl(),
+      incomes: sl(),
+      deposits: sl(),
+      settlements: sl(),
+      transfers: sl(),
+      accounts: sl(),
+    ),
+  );
 
   /// INCOME
   sl.registerLazySingleton<IncomeLocalDatasource>(

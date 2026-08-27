@@ -230,142 +230,109 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                                   return e.senderId == searchedUser.id;
                                 });
 
+                            final action = isConnected
+                                ? OutlinedButton.icon(
+                                    onPressed: null,
+                                    icon: const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Connected'),
+                                  )
+                                : isPending
+                                ? OutlinedButton.icon(
+                                    onPressed: null,
+                                    icon: const Icon(
+                                      Icons.hourglass_empty_rounded,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Sent'),
+                                  )
+                                : FilledButton.icon(
+                                    onPressed: _isSending
+                                        ? null
+                                        : () {
+                                            setState(() => _isSending = true);
+                                            context.read<PartnerBloc>().add(
+                                              PartnerEvent.sendRequest(
+                                                user: searchedUser,
+                                              ),
+                                            );
+                                          },
+                                    icon: _isSending
+                                        ? const SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.person_add_alt_1_rounded,
+                                            size: 18,
+                                          ),
+                                    label: Text(_isSending ? 'Sending' : 'Add'),
+                                  );
+
                             return Card(
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
                                   children: [
                                     CircleAvatar(
-                                      radius: 40,
+                                      radius: 24,
                                       child: Text(
                                         searchedUser.nickname.isNotEmpty
                                             ? searchedUser.nickname[0]
                                                   .toUpperCase()
                                             : '?',
                                         style: const TextStyle(
-                                          fontSize: 32,
+                                          fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      searchedUser.name,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '@${searchedUser.nickname}',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      searchedUser.email,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: isConnected
-                                          ? OutlinedButton.icon(
-                                              onPressed: null,
-                                              icon: const Icon(
-                                                Icons.check_circle_rounded,
-                                              ),
-                                              label: const Text('Connected'),
-                                              style: OutlinedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 14,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(14),
-                                                ),
-                                              ),
-                                            )
-                                          : isPending
-                                          ? OutlinedButton.icon(
-                                              onPressed: null,
-                                              icon: const Icon(
-                                                Icons.hourglass_empty_rounded,
-                                              ),
-                                              label: const Text('Request Sent'),
-                                              style: OutlinedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 14,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(14),
-                                                ),
-                                              ),
-                                            )
-                                          : FilledButton.icon(
-                                              onPressed: _isSending
-                                                  ? null
-                                                  : () {
-                                                      setState(
-                                                        () => _isSending = true,
-                                                      );
-                                                      context
-                                                          .read<PartnerBloc>()
-                                                          .add(
-                                                            PartnerEvent.sendRequest(
-                                                              user:
-                                                                  searchedUser,
-                                                            ),
-                                                          );
-                                                    },
-                                              icon: _isSending
-                                                  ? const SizedBox(
-                                                      height: 20,
-                                                      width: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    )
-                                                  : const Icon(
-                                                      Icons
-                                                          .person_add_alt_1_rounded,
-                                                    ),
-                                              label: Text(
-                                                _isSending
-                                                    ? 'Sending...'
-                                                    : 'Add Partner',
-                                              ),
-                                              style: FilledButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 14,
-                                                    ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(14),
-                                                ),
-                                              ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            searchedUser.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
                                             ),
+                                          ),
+                                          Text(
+                                            '@${searchedUser.nickname}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                          Text(
+                                            searchedUser.email,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Flexible(child: action),
                                   ],
                                 ),
                               ),

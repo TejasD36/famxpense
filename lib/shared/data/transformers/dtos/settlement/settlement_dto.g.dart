@@ -26,13 +26,17 @@ class SettlementDtoAdapter extends TypeAdapter<SettlementDto> {
       confirmedAt: fields[6] as DateTime?,
       relatedExpenseIds: (fields[7] as List?)?.cast<String>(),
       accountId: fields[8] as String?,
+      resolvedAt: fields[9] as DateTime?,
+      resolutionType: fields[10] as String?,
+      fromAccountId: fields[11] as String?,
+      toAccountId: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, SettlementDto obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +54,15 @@ class SettlementDtoAdapter extends TypeAdapter<SettlementDto> {
       ..writeByte(7)
       ..write(obj.relatedExpenseIds)
       ..writeByte(8)
-      ..write(obj.accountId);
+      ..write(obj.accountId)
+      ..writeByte(9)
+      ..write(obj.resolvedAt)
+      ..writeByte(10)
+      ..write(obj.resolutionType)
+      ..writeByte(11)
+      ..write(obj.fromAccountId)
+      ..writeByte(12)
+      ..write(obj.toAccountId);
   }
 
   @override
@@ -83,6 +95,12 @@ _SettlementDto _$SettlementDtoFromJson(Map<String, dynamic> json) =>
           ?.map((e) => e as String)
           .toList(),
       accountId: json['accountId'] as String?,
+      resolvedAt: json['resolvedAt'] == null
+          ? null
+          : DateTime.parse(json['resolvedAt'] as String),
+      resolutionType: json['resolutionType'] as String?,
+      fromAccountId: json['fromAccountId'] as String?,
+      toAccountId: json['toAccountId'] as String?,
     );
 
 Map<String, dynamic> _$SettlementDtoToJson(_SettlementDto instance) =>
@@ -96,10 +114,15 @@ Map<String, dynamic> _$SettlementDtoToJson(_SettlementDto instance) =>
       'confirmedAt': instance.confirmedAt?.toIso8601String(),
       'relatedExpenseIds': instance.relatedExpenseIds,
       'accountId': instance.accountId,
+      'resolvedAt': instance.resolvedAt?.toIso8601String(),
+      'resolutionType': instance.resolutionType,
+      'fromAccountId': instance.fromAccountId,
+      'toAccountId': instance.toAccountId,
     };
 
 const _$SettlementStatusEnumMap = {
   SettlementStatus.pending: 'pending',
   SettlementStatus.confirmed: 'confirmed',
   SettlementStatus.rejected: 'rejected',
+  SettlementStatus.cancelled: 'cancelled',
 };

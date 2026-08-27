@@ -3,23 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ExpenseSplitCalculator.equal', () {
-    test('preserves every paise when the amount is not evenly divisible', () {
+    test('keeps whole rupees and assigns the remainder to the payer', () {
       final result = ExpenseSplitCalculator.equal(
         totalAmount: 100,
         participantIds: ['payer', 'partner-a', 'partner-b'],
       );
 
-      expect(result, {'payer': 33.34, 'partner-a': 33.33, 'partner-b': 33.33});
+      expect(result, {'payer': 34.0, 'partner-a': 33.0, 'partner-b': 33.0});
       expect(result.values.reduce((a, b) => a + b), closeTo(100, 0.0001));
     });
 
-    test('supports sub-rupee totals without losing value', () {
-      final result = ExpenseSplitCalculator.equal(
-        totalAmount: 0.05,
-        participantIds: ['payer', 'partner'],
+    test('rejects fractional rupee totals', () {
+      expect(
+        () => ExpenseSplitCalculator.equal(
+          totalAmount: 0.05,
+          participantIds: ['payer', 'partner'],
+        ),
+        throwsArgumentError,
       );
-
-      expect(result, {'payer': 0.03, 'partner': 0.02});
     });
 
     test('rejects duplicate participants', () {

@@ -45,3 +45,4 @@ export 'enums/partnership_status.dart';
 export 'enums/settlement_status.dart';
 export 'enums/split_type.dart';
 export 'enums/sync_status.dart';
+export 'presentation/widgets/famxpense_polish.dart';

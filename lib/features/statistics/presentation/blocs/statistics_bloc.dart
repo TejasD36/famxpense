@@ -1,10 +1,5 @@
 import '../../../../core.dart';
-import '../../../account/data/datasources/account_local_datasource.dart';
-import '../../../account/data/datasources/manual_deposit_local_datasource.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
-import '../../../expenses/data/datasources/local/expense_local_datasource.dart';
-import '../../../income/data/datasources/income_local_datasource.dart';
-import '../../../settlement/data/datasources/settlement_local_datasource.dart';
 import '../../presentation/models/statistics_models.dart';
 
 part 'statistics_event.dart';
@@ -31,192 +26,53 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       final now = event.month ?? DateTime.now();
       final year = now.year;
       final month = now.month;
-
-      final allExpenses = await sl<ExpenseLocalDatasource>().getExpenses(
-        ownerUserId: userId,
-      );
-      final accounts = await sl<AccountLocalDatasource>().getAccounts();
-      final deposits = await sl<ManualDepositLocalDatasource>().fetchAll();
-      final settlements = await sl<SettlementLocalDatasource>()
-          .getSettlements();
-      final allIncomes = (await sl<IncomeLocalDatasource>().fetchAll())
-          .where((i) => i.userId == userId && !i.isDeleted)
-          .toList();
-
       final hasRange = event.rangeStart != null && event.rangeEnd != null;
-      final rangeEndExclusive = hasRange
-          ? DateTime(
-              event.rangeEnd!.year,
-              event.rangeEnd!.month,
-              event.rangeEnd!.day + 1,
-            )
-          : null;
-      bool inPeriod(DateTime date) => hasRange
-          ? !date.isBefore(event.rangeStart!) &&
-                date.isBefore(rangeEndExclusive!)
-          : date.year == year && date.month == month;
+      final period = hasRange
+          ? ReportingPeriod.range(event.rangeStart!, event.rangeEnd!)
+          : ReportingPeriod.month(now);
 
-      final monthExpenses = allExpenses
-          .where((e) => inPeriod(e.expenseDate))
-          .toList();
-      final monthDeposits = deposits
-          .where((d) => inPeriod(d.createdAt))
-          .toList();
-      final monthIncomes = allIncomes
-          .where((i) => inPeriod(i.createdAt))
-          .toList();
-      final monthSettlements = settlements
-          .where(
-            (s) =>
-                inPeriod(s.createdAt) && s.status == SettlementStatus.confirmed,
-          )
-          .toList();
-
-      double totalSpent = 0;
-      double totalDeposited = 0;
+      final ledger = await sl<ReportingLedgerService>().load(
+        userId: userId,
+        period: period,
+      );
       final categoryTotals = <String, double>{};
       final dailyTotals = <int, double>{};
       final expenseTypeTotals = <String, double>{};
       final transactions = <TransactionItem>[];
-      final accountSpend = <String, double>{};
-      final accountDeposit = <String, double>{};
 
-      for (final expense in monthExpenses) {
-        ExpenseParticipantDto? participant;
-        for (final p in expense.participants) {
-          if (p.userId == userId) {
-            participant = p;
-            break;
-          }
-        }
-        if (participant == null) continue;
-
-        final userShare = participant.amount;
-        totalSpent += userShare;
-
-        final category = expense.category ?? ExpenseCategory.other.name;
-        categoryTotals.update(
-          category,
-          (v) => v + userShare,
-          ifAbsent: () => userShare,
-        );
-
-        final day = expense.expenseDate.day;
-        dailyTotals.update(
-          day,
-          (v) => v + userShare,
-          ifAbsent: () => userShare,
-        );
-
-        expenseTypeTotals.update(
-          expense.expenseType.name,
-          (v) => v + userShare,
-          ifAbsent: () => userShare,
-        );
-
-        if (expense.accountId != null) {
-          accountSpend.update(
-            expense.accountId!,
-            (v) => v + expense.amount,
-            ifAbsent: () => expense.amount,
+      for (final row in ledger.rows) {
+        if (row.type == ReportingLedgerRowType.expense && row.expense != null) {
+          final category = row.category ?? ExpenseCategory.other.name;
+          categoryTotals.update(
+            category,
+            (v) => v + row.amount,
+            ifAbsent: () => row.amount,
+          );
+          expenseTypeTotals.update(
+            row.expense!.expenseType.name,
+            (v) => v + row.amount,
+            ifAbsent: () => row.amount,
           );
         }
-
-        transactions.add(
-          ExpenseTxn(
-            id: expense.id,
-            amount: userShare,
-            date: expense.expenseDate,
-            title: expense.title,
-            category: category,
-            accountId: expense.accountId ?? '',
-            paidByUserId: expense.paidByUserId,
-          ),
-        );
-      }
-
-      for (final deposit in monthDeposits) {
-        totalDeposited += deposit.amount;
-        accountDeposit.update(
-          deposit.accountId,
-          (v) => v + deposit.amount,
-          ifAbsent: () => deposit.amount,
-        );
-        transactions.add(
-          DepositTxn(
-            id: deposit.id,
-            amount: deposit.amount,
-            date: deposit.createdAt,
-            description: deposit.description,
-            accountId: deposit.accountId,
-          ),
-        );
-      }
-
-      for (final income in monthIncomes) {
-        totalDeposited += income.amount;
-        accountDeposit.update(
-          income.accountId,
-          (v) => v + income.amount,
-          ifAbsent: () => income.amount,
-        );
-        transactions.add(
-          IncomeTxn(
-            id: income.id,
-            amount: income.amount,
-            date: income.createdAt,
-            description: income.description,
-            accountId: income.accountId,
-          ),
-        );
-      }
-
-      final seenSettlementIds = <String>{};
-      for (final settlement in monthSettlements) {
-        if (!seenSettlementIds.add(settlement.id)) continue;
-        final isIncoming = settlement.toUserId == userId;
-        if (settlement.accountId != null) {
-          if (isIncoming) {
-            accountDeposit.update(
-              settlement.accountId!,
-              (v) => v + settlement.amount,
-              ifAbsent: () => settlement.amount,
-            );
-            totalDeposited += settlement.amount;
-          } else {
-            accountSpend.update(
-              settlement.accountId!,
-              (v) => v + settlement.amount,
-              ifAbsent: () => settlement.amount,
-            );
-            totalSpent += settlement.amount;
-          }
+        if (row.isOutflow && !row.isAuditOnly) {
+          final day = row.date.toLocal().day;
+          dailyTotals.update(
+            day,
+            (v) => v + row.amount,
+            ifAbsent: () => row.amount,
+          );
         }
-        transactions.add(
-          SettlementTxn(
-            id: settlement.id,
-            amount: settlement.amount,
-            date: settlement.createdAt,
-            accountId: isIncoming ? '' : (settlement.accountId ?? ''),
-            isIncoming: isIncoming,
-          ),
-        );
+        transactions.add(_toTransaction(row));
       }
 
-      transactions.sort((a, b) => b.date.compareTo(a.date));
-
-      final myAccounts = accounts.where((a) => a.userId == userId).toList();
-
-      final accountStats = myAccounts.map((a) {
-        final spent = accountSpend[a.id] ?? 0.0;
-        final deposited = accountDeposit[a.id] ?? 0.0;
+      final accountStats = ledger.accountSummaries.values.map((summary) {
         return AccountStat(
-          accountId: a.id,
-          accountName: a.accountName,
-          endBalance: a.currentBalance,
-          startBalance: a.currentBalance - deposited + spent,
-          totalDeposited: deposited,
-          totalSpent: spent,
+          accountId: summary.account.id,
+          accountName: summary.account.accountName,
+          endBalance: summary.account.currentBalance,
+          startBalance: summary.account.currentBalance - summary.netChange,
+          totalDeposited: summary.inflowTotal,
+          totalSpent: summary.outflowTotal,
         );
       }).toList();
 
@@ -228,51 +84,16 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       final monthComparisons = <MonthComparison>[];
       for (int i = 1; i <= 3; i++) {
         final prev = DateTime(year, month - i, 1);
-        final prevExpenses = allExpenses
-            .where(
-              (e) =>
-                  e.expenseDate.year == prev.year &&
-                  e.expenseDate.month == prev.month,
-            )
-            .toList();
-        final prevDeposits = deposits
-            .where(
-              (d) =>
-                  d.createdAt.year == prev.year &&
-                  d.createdAt.month == prev.month,
-            )
-            .toList();
-        final prevIncomes = allIncomes
-            .where(
-              (i) =>
-                  i.createdAt.year == prev.year &&
-                  i.createdAt.month == prev.month,
-            )
-            .toList();
-        if (prevExpenses.isEmpty &&
-            prevDeposits.isEmpty &&
-            prevIncomes.isEmpty) {
-          continue;
-        }
-
-        double prevSpent = 0;
-        for (final e in prevExpenses) {
-          for (final p in e.participants) {
-            if (p.userId == userId) {
-              prevSpent += p.amount;
-              break;
-            }
-          }
-        }
-        final prevDeposited =
-            prevDeposits.fold<double>(0, (s, d) => s + d.amount) +
-            prevIncomes.fold<double>(0, (s, i) => s + i.amount);
-
+        final previousLedger = await sl<ReportingLedgerService>().load(
+          userId: userId,
+          period: ReportingPeriod.month(prev),
+        );
+        if (previousLedger.financialRows.isEmpty) continue;
         monthComparisons.add(
           MonthComparison(
             label: DateFormat('MMM yyyy').format(prev),
-            totalSpent: prevSpent,
-            totalDeposited: prevDeposited,
+            totalSpent: previousLedger.totalSpent,
+            totalDeposited: previousLedger.totalDeposited,
           ),
         );
       }
@@ -281,13 +102,10 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         StatisticsState.loaded(
           selectedYear: year,
           selectedMonth: month,
-          totalSpent: totalSpent,
-          totalDeposited: totalDeposited,
-          expenseCount: monthExpenses.length,
-          depositCount:
-              monthDeposits.length +
-              monthIncomes.length +
-              monthSettlements.where((s) => s.toUserId == userId).length,
+          totalSpent: ledger.totalSpent,
+          totalDeposited: ledger.totalDeposited,
+          expenseCount: ledger.spentCount,
+          depositCount: ledger.depositCount,
           categoryTotals: Map.fromEntries(sortedCategories),
           dailyTotals: Map.fromEntries(sortedDaily),
           expenseTypeTotals: expenseTypeTotals,
@@ -298,6 +116,66 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       );
     } catch (e) {
       emit(StatisticsState.error(e.toString()));
+    }
+  }
+
+  TransactionItem _toTransaction(ReportingLedgerRow row) {
+    switch (row.type) {
+      case ReportingLedgerRowType.expense:
+        final expense = row.expense!;
+        return ExpenseTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          title: expense.title,
+          category: row.category ?? ExpenseCategory.other.name,
+          accountId: expense.accountId ?? '',
+          paidByUserId: expense.paidByUserId,
+        );
+      case ReportingLedgerRowType.income:
+        return IncomeTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          description: row.description,
+          accountId: row.accountId ?? '',
+        );
+      case ReportingLedgerRowType.manualDeposit:
+        return DepositTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          description: row.description,
+          accountId: row.accountId ?? '',
+        );
+      case ReportingLedgerRowType.settlementIn ||
+          ReportingLedgerRowType.settlementOut:
+        return SettlementTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          accountId: row.accountId ?? '',
+          isIncoming: row.type == ReportingLedgerRowType.settlementIn,
+        );
+      case ReportingLedgerRowType.transferIn ||
+          ReportingLedgerRowType.transferOut:
+        return TransferTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          accountId: row.accountId ?? '',
+          linkedAccountId: row.transferAccountId ?? '',
+          isIncoming: row.type == ReportingLedgerRowType.transferIn,
+          description: row.description,
+        );
+      case ReportingLedgerRowType.balanceCorrection:
+        return BalanceCorrectionTxn(
+          id: row.id,
+          amount: row.amount,
+          date: row.date,
+          accountId: row.accountId ?? '',
+          description: row.description,
+        );
     }
   }
 }

@@ -1,8 +1,7 @@
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
-import '../../../statistics/presentation/blocs/statistics_bloc.dart';
 import '../../xcore.dart';
 
-enum _ActivityFilter { all, expenses, deposits, settlements }
+enum _ActivityFilter { all, expenses, deposits, settlements, transfers, audits }
 
 enum _ExpenseTypeFilter { all, personal, shared }
 
@@ -49,13 +48,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
         rangeEnd: _dateRange?.end,
       ),
     );
-    context.read<StatisticsBloc>().add(
-      StatisticsEvent.load(
-        month: _selectedMonth,
-        rangeStart: _dateRange?.start,
-        rangeEnd: _dateRange?.end,
-      ),
-    );
   }
 
   void _prevMonth() {
@@ -82,6 +74,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
       _dateRange = null;
       _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
       _load();
+    });
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _filter = _ActivityFilter.all;
+      _expenseTypeFilter = _ExpenseTypeFilter.all;
     });
   }
 
@@ -120,22 +119,104 @@ class _ActivityScreenState extends State<ActivityScreen> {
     return participant?.amount ?? 0;
   }
 
+  List<ActivityItem> _visibleItems(List<ActivityItem> items, String? userId) {
+    var filtered = items;
+    if (_filter == _ActivityFilter.expenses) {
+      filtered = items.whereType<ExpenseItem>().toList();
+    } else if (_filter == _ActivityFilter.deposits) {
+      filtered = items
+          .where(
+            (i) =>
+                (i is SettlementItem && i.settlement.toUserId == userId) ||
+                i is IncomeItem ||
+                i is ManualDepositItem,
+          )
+          .toList();
+    } else if (_filter == _ActivityFilter.settlements) {
+      filtered = items.whereType<SettlementItem>().toList();
+    } else if (_filter == _ActivityFilter.transfers) {
+      filtered = items.whereType<TransferActivityItem>().toList();
+    } else if (_filter == _ActivityFilter.audits) {
+      filtered = items.whereType<BalanceCorrectionItem>().toList();
+    }
+
+    if (_expenseTypeFilter != _ExpenseTypeFilter.all) {
+      filtered = filtered.where((item) {
+        if (item is! ExpenseItem) return true;
+        return item.expense.expenseType.name == _expenseTypeFilter.name;
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  ({double spent, double deposited, int spentCount, int depositCount})
+  _visibleTotals(List<ActivityItem> items, String? userId) {
+    var spent = 0.0;
+    var deposited = 0.0;
+    var spentCount = 0;
+    var depositCount = 0;
+
+    for (final item in items) {
+      switch (item) {
+        case ExpenseItem(:final expense):
+          spent += userId != null
+              ? _userShare(userId, expense)
+              : expense.amount;
+          spentCount += 1;
+        case SettlementItem(:final settlement):
+          if (settlement.toUserId == userId) {
+            deposited += settlement.amount;
+            depositCount += 1;
+          } else {
+            spent += settlement.amount;
+            spentCount += 1;
+          }
+        case IncomeItem(:final income):
+          deposited += income.amount;
+          depositCount += 1;
+        case ManualDepositItem(:final deposit):
+          deposited += deposit.amount;
+          depositCount += 1;
+        case TransferActivityItem(:final transfer, :final isIncoming):
+          if (isIncoming) {
+            deposited += transfer.amount;
+            depositCount += 1;
+          } else {
+            spent += transfer.amount;
+            spentCount += 1;
+          }
+        case BalanceCorrectionItem():
+          break;
+      }
+    }
+
+    return (
+      spent: spent,
+      deposited: deposited,
+      spentCount: spentCount,
+      depositCount: depositCount,
+    );
+  }
+
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SheetGrabber(),
+                const SizedBox(height: 12),
                 const Text(
                   'Filter',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 _filterOption(
                   label: 'All',
                   value: _ActivityFilter.all,
@@ -156,14 +237,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   value: _ActivityFilter.settlements,
                   icon: Icons.swap_horiz_rounded,
                 ),
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 8),
-                const Text(
-                  'Expense Type',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                _filterOption(
+                  label: 'Transfers only',
+                  value: _ActivityFilter.transfers,
+                  icon: Icons.compare_arrows_rounded,
+                ),
+                _filterOption(
+                  label: 'Audit entries',
+                  value: _ActivityFilter.audits,
+                  icon: Icons.fact_check_rounded,
                 ),
                 const SizedBox(height: 8),
+                const Divider(),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Expense type',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 _expenseTypeOption(
                   label: 'Both',
                   value: _ExpenseTypeFilter.all,
@@ -269,64 +364,32 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   initial: () => const SizedBox(),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  empty: () => const Center(child: Text('No expenses yet')),
-                  error: (message) => Center(child: Text(message)),
+                  empty: () => const FinanceEmptyState(
+                    icon: Icons.receipt_long_rounded,
+                    title: 'No activity yet',
+                    subtitle:
+                        'Your expenses, income, and settlements will appear here.',
+                  ),
+                  error: (message) => FinanceEmptyState(
+                    icon: Icons.cloud_off_rounded,
+                    title: 'Could not load activity',
+                    subtitle: message,
+                  ),
                   loaded: (items) {
                     final userId = sl<AuthLocalDatasource>().getUserId();
 
-                    var filtered = items;
-                    if (_filter == _ActivityFilter.expenses) {
-                      filtered = items.whereType<ExpenseItem>().toList();
-                    } else if (_filter == _ActivityFilter.deposits) {
-                      filtered = items
-                          .where(
-                            (i) =>
-                                (i is SettlementItem &&
-                                    (i).settlement.toUserId == userId) ||
-                                i is IncomeItem,
-                          )
-                          .toList();
-                    } else if (_filter == _ActivityFilter.settlements) {
-                      filtered = items
-                          .where(
-                            (i) =>
-                                i is SettlementItem &&
-                                (i).settlement.fromUserId == userId,
-                          )
-                          .toList();
-                    }
-
-                    if (_expenseTypeFilter != _ExpenseTypeFilter.all) {
-                      filtered = filtered.where((item) {
-                        if (item is! ExpenseItem) return true;
-                        return item.expense.expenseType.name ==
-                            _expenseTypeFilter.name;
-                      }).toList();
-                    }
+                    final filtered = _visibleItems(items, userId);
 
                     if (filtered.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.search_off_rounded,
-                              size: 48,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.4),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No matching transactions',
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+                      return FinanceEmptyState(
+                        icon: Icons.search_off_rounded,
+                        title: 'No matching transactions',
+                        subtitle:
+                            'Try another month or clear the active filters.',
+                        action: OutlinedButton.icon(
+                          onPressed: _clearFilters,
+                          icon: const Icon(Icons.filter_alt_off_rounded),
+                          label: const Text('Clear filters'),
                         ),
                       );
                     }
@@ -382,14 +445,48 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                 final card = switch (item) {
                                   ExpenseItem(:final expense) =>
                                     _buildExpenseCard(expense, userId),
-                                  SettlementItem(:final settlement, :final depositAccountName) =>
+                                  SettlementItem(
+                                    :final settlement,
+                                    :final depositAccountName,
+                                  ) =>
                                     _buildSettlementCard(
                                       settlement,
                                       depositAccountName,
                                       userId,
                                     ),
-                                  IncomeItem(:final income, :final accountName) =>
+                                  IncomeItem(
+                                    :final income,
+                                    :final accountName,
+                                  ) =>
                                     _buildIncomeCard(income, accountName),
+                                  ManualDepositItem(
+                                    :final deposit,
+                                    :final accountName,
+                                  ) =>
+                                    _buildManualDepositCard(
+                                      deposit,
+                                      accountName,
+                                    ),
+                                  TransferActivityItem(
+                                    :final transfer,
+                                    :final isIncoming,
+                                    :final accountName,
+                                    :final linkedAccountName,
+                                  ) =>
+                                    _buildTransferCard(
+                                      transfer,
+                                      isIncoming,
+                                      accountName,
+                                      linkedAccountName,
+                                    ),
+                                  BalanceCorrectionItem(
+                                    :final deposit,
+                                    :final accountName,
+                                  ) =>
+                                    _buildBalanceCorrectionCard(
+                                      deposit,
+                                      accountName,
+                                    ),
                                 };
                                 return Padding(
                                   padding: EdgeInsets.only(
@@ -479,61 +576,63 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   Widget _buildStatisticsSummary() {
-    return BlocBuilder<StatisticsBloc, StatisticsState>(
+    return BlocBuilder<ActivityBloc, ActivityState>(
       builder: (context, state) => state.maybeWhen(
-        loaded:
-            (
-              _,
-              _,
-              totalSpent,
-              totalDeposited,
-              expenseCount,
-              depositCount,
-              _,
-              _,
-              _,
-              _,
-              _,
-              _,
-            ) => Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActivityMetricCard(
-                          label: 'Total Spent',
-                          value: formatIndianRupee(totalSpent),
-                          subtext: '$expenseCount expenses',
-                          icon: Icons.arrow_upward_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+        loaded: (items) {
+          final userId = sl<AuthLocalDatasource>().getUserId();
+          final visible = _visibleItems(items, userId);
+          final totals = _visibleTotals(visible, userId);
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActivityMetricCard(
+                        label: 'Total Spent',
+                        value: formatIndianRupee(totals.spent),
+                        subtext: '${totals.spentCount} visible outflows',
+                        icon: Icons.arrow_upward_rounded,
+                        color: Theme.of(context).colorScheme.error,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _ActivityMetricCard(
-                          label: 'Deposited',
-                          value: formatIndianRupee(totalDeposited),
-                          subtext: '$depositCount deposits',
-                          icon: Icons.arrow_downward_rounded,
-                          color: Colors.green,
-                        ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ActivityMetricCard(
+                        label: 'Deposited',
+                        value: formatIndianRupee(totals.deposited),
+                        subtext: '${totals.depositCount} visible inflows',
+                        icon: Icons.arrow_downward_rounded,
+                        color: Colors.green,
                       ),
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          context.pushNamed(AppRoute.statistics.name),
-                      icon: const Icon(Icons.bar_chart_rounded, size: 18),
-                      label: const Text('View more stats'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Showing ${visible.length} transactions',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                ],
-              ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () =>
+                        context.pushNamed(AppRoute.statistics.name),
+                    icon: const Icon(Icons.bar_chart_rounded, size: 18),
+                    label: const Text('View more stats'),
+                  ),
+                ),
+              ],
             ),
+          );
+        },
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
           child: LinearProgressIndicator(),
@@ -708,7 +807,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 icon: Icons.swap_horiz_rounded,
                 iconColor: Colors.blue,
                 title: title,
-                date: s.createdAt,
+                date: s.resolvedAt ?? s.createdAt,
                 amount: s.amount,
                 badge: 'SETTLEMENT',
                 badgeColor: Colors.blue,
@@ -874,6 +973,202 @@ class _ActivityScreenState extends State<ActivityScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildManualDepositCard(
+    ManualDepositDto deposit,
+    String? accountName,
+  ) {
+    final isExpanded = _expandedIds.contains(deposit.id);
+
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _expandedIds.toggle(deposit.id)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _cardHeader(
+                icon: Icons.account_balance_wallet_rounded,
+                iconColor: Colors.green,
+                title: deposit.description.isEmpty
+                    ? 'Manual deposit'
+                    : deposit.description,
+                date: deposit.createdAt,
+                amount: deposit.amount,
+                badge: 'DEPOSIT',
+                badgeColor: Colors.green,
+                isExpanded: isExpanded,
+              ),
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _accountDetailLine(
+                    icon: Icons.account_balance_rounded,
+                    text: accountName == null
+                        ? 'Manual deposit'
+                        : 'Deposited to $accountName',
+                  ),
+                ),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransferCard(
+    TransferDto transfer,
+    bool isIncoming,
+    String? accountName,
+    String? linkedAccountName,
+  ) {
+    final id = '${transfer.id}:${isIncoming ? 'in' : 'out'}';
+    final isExpanded = _expandedIds.contains(id);
+    final title = isIncoming ? 'Transfer in' : 'Transfer out';
+    final detail = isIncoming
+        ? 'From ${linkedAccountName ?? 'another account'} to ${accountName ?? 'this account'}'
+        : 'From ${accountName ?? 'this account'} to ${linkedAccountName ?? 'another account'}';
+
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _expandedIds.toggle(id)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _cardHeader(
+                icon: isIncoming
+                    ? Icons.call_received_rounded
+                    : Icons.call_made_rounded,
+                iconColor: Colors.indigo,
+                title: transfer.description.isEmpty
+                    ? title
+                    : transfer.description,
+                date: transfer.createdAt,
+                amount: transfer.amount,
+                badge: isIncoming ? 'TRANSFER IN' : 'TRANSFER OUT',
+                badgeColor: Colors.indigo,
+                isExpanded: isExpanded,
+              ),
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _accountDetailLine(
+                    icon: Icons.compare_arrows_rounded,
+                    text: detail,
+                  ),
+                ),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceCorrectionCard(
+    ManualDepositDto deposit,
+    String? accountName,
+  ) {
+    final isExpanded = _expandedIds.contains(deposit.id);
+    final previous = deposit.previousBalance;
+    final updated = deposit.newBalance;
+
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => _expandedIds.toggle(deposit.id)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _cardHeader(
+                icon: Icons.fact_check_rounded,
+                iconColor: Colors.orange,
+                title: deposit.description.isEmpty
+                    ? 'Balance correction'
+                    : deposit.description,
+                date: deposit.createdAt,
+                amount: deposit.amount,
+                badge: 'AUDIT',
+                badgeColor: Colors.orange,
+                isExpanded: isExpanded,
+              ),
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    children: [
+                      _accountDetailLine(
+                        icon: Icons.account_balance_rounded,
+                        text: accountName == null
+                            ? 'Balance correction'
+                            : 'Corrected $accountName',
+                      ),
+                      if (previous != null && updated != null) ...[
+                        const SizedBox(height: 6),
+                        _accountDetailLine(
+                          icon: Icons.edit_note_rounded,
+                          text:
+                              '${formatIndianRupee(previous)} to ${formatIndianRupee(updated)}',
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _accountDetailLine({required IconData icon, required String text}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

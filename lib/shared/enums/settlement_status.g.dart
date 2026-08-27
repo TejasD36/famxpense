@@ -19,6 +19,8 @@ class SettlementStatusAdapter extends TypeAdapter<SettlementStatus> {
         return SettlementStatus.confirmed;
       case 2:
         return SettlementStatus.rejected;
+      case 3:
+        return SettlementStatus.cancelled;
       default:
         return SettlementStatus.pending;
     }
@@ -33,6 +35,8 @@ class SettlementStatusAdapter extends TypeAdapter<SettlementStatus> {
         writer.writeByte(1);
       case SettlementStatus.rejected:
         writer.writeByte(2);
+      case SettlementStatus.cancelled:
+        writer.writeByte(3);
     }
   }
 

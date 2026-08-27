@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettlementEntity implements DiagnosticableTreeMixin {
 
- String get id; String get fromUserId; String get toUserId; double get amount; SettlementStatus get status; DateTime get createdAt; DateTime? get confirmedAt; List<String>? get relatedExpenseIds; String? get accountId; List<String> get participantIds;
+ String get id; String get fromUserId; String get toUserId; double get amount; SettlementStatus get status; DateTime get createdAt; DateTime? get confirmedAt; DateTime? get resolvedAt; String? get resolutionType; List<String>? get relatedExpenseIds; String? get accountId; String? get fromAccountId; String? get toAccountId; List<String> get participantIds;
 /// Create a copy of SettlementEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,21 +29,21 @@ $SettlementEntityCopyWith<SettlementEntity> get copyWith => _$SettlementEntityCo
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettlementEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('participantIds', participantIds));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('resolvedAt', resolvedAt))..add(DiagnosticsProperty('resolutionType', resolutionType))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('fromAccountId', fromAccountId))..add(DiagnosticsProperty('toAccountId', toAccountId))..add(DiagnosticsProperty('participantIds', participantIds));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettlementEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other.relatedExpenseIds, relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&const DeepCollectionEquality().equals(other.participantIds, participantIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettlementEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.resolutionType, resolutionType) || other.resolutionType == resolutionType)&&const DeepCollectionEquality().equals(other.relatedExpenseIds, relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.fromAccountId, fromAccountId) || other.fromAccountId == fromAccountId)&&(identical(other.toAccountId, toAccountId) || other.toAccountId == toAccountId)&&const DeepCollectionEquality().equals(other.participantIds, participantIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(relatedExpenseIds),accountId,const DeepCollectionEquality().hash(participantIds));
+int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,resolvedAt,resolutionType,const DeepCollectionEquality().hash(relatedExpenseIds),accountId,fromAccountId,toAccountId,const DeepCollectionEquality().hash(participantIds));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettlementEntity(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId, participantIds: $participantIds)';
+  return 'SettlementEntity(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, resolvedAt: $resolvedAt, resolutionType: $resolutionType, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId, fromAccountId: $fromAccountId, toAccountId: $toAccountId, participantIds: $participantIds)';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $SettlementEntityCopyWith<$Res>  {
   factory $SettlementEntityCopyWith(SettlementEntity value, $Res Function(SettlementEntity) _then) = _$SettlementEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String fromUserId, String toUserId, double amount, SettlementStatus status, DateTime createdAt, DateTime? confirmedAt, List<String>? relatedExpenseIds, String? accountId, List<String> participantIds
+ String id, String fromUserId, String toUserId, double amount, SettlementStatus status, DateTime createdAt, DateTime? confirmedAt, DateTime? resolvedAt, String? resolutionType, List<String>? relatedExpenseIds, String? accountId, String? fromAccountId, String? toAccountId, List<String> participantIds
 });
 
 
@@ -71,7 +71,7 @@ class _$SettlementEntityCopyWithImpl<$Res>
 
 /// Create a copy of SettlementEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,Object? participantIds = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? resolvedAt = freezed,Object? resolutionType = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,Object? fromAccountId = freezed,Object? toAccountId = freezed,Object? participantIds = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fromUserId: null == fromUserId ? _self.fromUserId : fromUserId // ignore: cast_nullable_to_non_nullable
@@ -80,8 +80,12 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SettlementStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,relatedExpenseIds: freezed == relatedExpenseIds ? _self.relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
+as DateTime?,resolvedAt: freezed == resolvedAt ? _self.resolvedAt : resolvedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,resolutionType: freezed == resolutionType ? _self.resolutionType : resolutionType // ignore: cast_nullable_to_non_nullable
+as String?,relatedExpenseIds: freezed == relatedExpenseIds ? _self.relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,fromAccountId: freezed == fromAccountId ? _self.fromAccountId : fromAccountId // ignore: cast_nullable_to_non_nullable
+as String?,toAccountId: freezed == toAccountId ? _self.toAccountId : toAccountId // ignore: cast_nullable_to_non_nullable
 as String?,participantIds: null == participantIds ? _self.participantIds : participantIds // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
@@ -165,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  List<String>? relatedExpenseIds,  String? accountId,  List<String> participantIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  DateTime? resolvedAt,  String? resolutionType,  List<String>? relatedExpenseIds,  String? accountId,  String? fromAccountId,  String? toAccountId,  List<String> participantIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettlementEntity() when $default != null:
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId,_that.participantIds);case _:
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.resolvedAt,_that.resolutionType,_that.relatedExpenseIds,_that.accountId,_that.fromAccountId,_that.toAccountId,_that.participantIds);case _:
   return orElse();
 
 }
@@ -186,10 +190,10 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  List<String>? relatedExpenseIds,  String? accountId,  List<String> participantIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  DateTime? resolvedAt,  String? resolutionType,  List<String>? relatedExpenseIds,  String? accountId,  String? fromAccountId,  String? toAccountId,  List<String> participantIds)  $default,) {final _that = this;
 switch (_that) {
 case _SettlementEntity():
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId,_that.participantIds);}
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.resolvedAt,_that.resolutionType,_that.relatedExpenseIds,_that.accountId,_that.fromAccountId,_that.toAccountId,_that.participantIds);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +207,10 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  List<String>? relatedExpenseIds,  String? accountId,  List<String> participantIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fromUserId,  String toUserId,  double amount,  SettlementStatus status,  DateTime createdAt,  DateTime? confirmedAt,  DateTime? resolvedAt,  String? resolutionType,  List<String>? relatedExpenseIds,  String? accountId,  String? fromAccountId,  String? toAccountId,  List<String> participantIds)?  $default,) {final _that = this;
 switch (_that) {
 case _SettlementEntity() when $default != null:
-return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.relatedExpenseIds,_that.accountId,_that.participantIds);case _:
+return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.status,_that.createdAt,_that.confirmedAt,_that.resolvedAt,_that.resolutionType,_that.relatedExpenseIds,_that.accountId,_that.fromAccountId,_that.toAccountId,_that.participantIds);case _:
   return null;
 
 }
@@ -218,7 +222,7 @@ return $default(_that.id,_that.fromUserId,_that.toUserId,_that.amount,_that.stat
 @JsonSerializable()
 
 class _SettlementEntity with DiagnosticableTreeMixin implements SettlementEntity {
-  const _SettlementEntity({required this.id, required this.fromUserId, required this.toUserId, required this.amount, required this.status, required this.createdAt, this.confirmedAt, final  List<String>? relatedExpenseIds, this.accountId, final  List<String> participantIds = const []}): _relatedExpenseIds = relatedExpenseIds,_participantIds = participantIds;
+  const _SettlementEntity({required this.id, required this.fromUserId, required this.toUserId, required this.amount, required this.status, required this.createdAt, this.confirmedAt, this.resolvedAt, this.resolutionType, final  List<String>? relatedExpenseIds, this.accountId, this.fromAccountId, this.toAccountId, final  List<String> participantIds = const []}): _relatedExpenseIds = relatedExpenseIds,_participantIds = participantIds;
   factory _SettlementEntity.fromJson(Map<String, dynamic> json) => _$SettlementEntityFromJson(json);
 
 @override final  String id;
@@ -228,6 +232,8 @@ class _SettlementEntity with DiagnosticableTreeMixin implements SettlementEntity
 @override final  SettlementStatus status;
 @override final  DateTime createdAt;
 @override final  DateTime? confirmedAt;
+@override final  DateTime? resolvedAt;
+@override final  String? resolutionType;
  final  List<String>? _relatedExpenseIds;
 @override List<String>? get relatedExpenseIds {
   final value = _relatedExpenseIds;
@@ -238,6 +244,8 @@ class _SettlementEntity with DiagnosticableTreeMixin implements SettlementEntity
 }
 
 @override final  String? accountId;
+@override final  String? fromAccountId;
+@override final  String? toAccountId;
  final  List<String> _participantIds;
 @override@JsonKey() List<String> get participantIds {
   if (_participantIds is EqualUnmodifiableListView) return _participantIds;
@@ -260,21 +268,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SettlementEntity'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('participantIds', participantIds));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('fromUserId', fromUserId))..add(DiagnosticsProperty('toUserId', toUserId))..add(DiagnosticsProperty('amount', amount))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('confirmedAt', confirmedAt))..add(DiagnosticsProperty('resolvedAt', resolvedAt))..add(DiagnosticsProperty('resolutionType', resolutionType))..add(DiagnosticsProperty('relatedExpenseIds', relatedExpenseIds))..add(DiagnosticsProperty('accountId', accountId))..add(DiagnosticsProperty('fromAccountId', fromAccountId))..add(DiagnosticsProperty('toAccountId', toAccountId))..add(DiagnosticsProperty('participantIds', participantIds));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettlementEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&const DeepCollectionEquality().equals(other._relatedExpenseIds, _relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&const DeepCollectionEquality().equals(other._participantIds, _participantIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettlementEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.fromUserId, fromUserId) || other.fromUserId == fromUserId)&&(identical(other.toUserId, toUserId) || other.toUserId == toUserId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.confirmedAt, confirmedAt) || other.confirmedAt == confirmedAt)&&(identical(other.resolvedAt, resolvedAt) || other.resolvedAt == resolvedAt)&&(identical(other.resolutionType, resolutionType) || other.resolutionType == resolutionType)&&const DeepCollectionEquality().equals(other._relatedExpenseIds, _relatedExpenseIds)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.fromAccountId, fromAccountId) || other.fromAccountId == fromAccountId)&&(identical(other.toAccountId, toAccountId) || other.toAccountId == toAccountId)&&const DeepCollectionEquality().equals(other._participantIds, _participantIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,const DeepCollectionEquality().hash(_relatedExpenseIds),accountId,const DeepCollectionEquality().hash(_participantIds));
+int get hashCode => Object.hash(runtimeType,id,fromUserId,toUserId,amount,status,createdAt,confirmedAt,resolvedAt,resolutionType,const DeepCollectionEquality().hash(_relatedExpenseIds),accountId,fromAccountId,toAccountId,const DeepCollectionEquality().hash(_participantIds));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SettlementEntity(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId, participantIds: $participantIds)';
+  return 'SettlementEntity(id: $id, fromUserId: $fromUserId, toUserId: $toUserId, amount: $amount, status: $status, createdAt: $createdAt, confirmedAt: $confirmedAt, resolvedAt: $resolvedAt, resolutionType: $resolutionType, relatedExpenseIds: $relatedExpenseIds, accountId: $accountId, fromAccountId: $fromAccountId, toAccountId: $toAccountId, participantIds: $participantIds)';
 }
 
 
@@ -285,7 +293,7 @@ abstract mixin class _$SettlementEntityCopyWith<$Res> implements $SettlementEnti
   factory _$SettlementEntityCopyWith(_SettlementEntity value, $Res Function(_SettlementEntity) _then) = __$SettlementEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String fromUserId, String toUserId, double amount, SettlementStatus status, DateTime createdAt, DateTime? confirmedAt, List<String>? relatedExpenseIds, String? accountId, List<String> participantIds
+ String id, String fromUserId, String toUserId, double amount, SettlementStatus status, DateTime createdAt, DateTime? confirmedAt, DateTime? resolvedAt, String? resolutionType, List<String>? relatedExpenseIds, String? accountId, String? fromAccountId, String? toAccountId, List<String> participantIds
 });
 
 
@@ -302,7 +310,7 @@ class __$SettlementEntityCopyWithImpl<$Res>
 
 /// Create a copy of SettlementEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,Object? participantIds = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fromUserId = null,Object? toUserId = null,Object? amount = null,Object? status = null,Object? createdAt = null,Object? confirmedAt = freezed,Object? resolvedAt = freezed,Object? resolutionType = freezed,Object? relatedExpenseIds = freezed,Object? accountId = freezed,Object? fromAccountId = freezed,Object? toAccountId = freezed,Object? participantIds = null,}) {
   return _then(_SettlementEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fromUserId: null == fromUserId ? _self.fromUserId : fromUserId // ignore: cast_nullable_to_non_nullable
@@ -311,8 +319,12 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SettlementStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,confirmedAt: freezed == confirmedAt ? _self.confirmedAt : confirmedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,relatedExpenseIds: freezed == relatedExpenseIds ? _self._relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
+as DateTime?,resolvedAt: freezed == resolvedAt ? _self.resolvedAt : resolvedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,resolutionType: freezed == resolutionType ? _self.resolutionType : resolutionType // ignore: cast_nullable_to_non_nullable
+as String?,relatedExpenseIds: freezed == relatedExpenseIds ? _self._relatedExpenseIds : relatedExpenseIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,fromAccountId: freezed == fromAccountId ? _self.fromAccountId : fromAccountId // ignore: cast_nullable_to_non_nullable
+as String?,toAccountId: freezed == toAccountId ? _self.toAccountId : toAccountId // ignore: cast_nullable_to_non_nullable
 as String?,participantIds: null == participantIds ? _self._participantIds : participantIds // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));

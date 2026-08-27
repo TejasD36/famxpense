@@ -14,7 +14,7 @@ class MonthlySavingRemoteDatasourceImpl
     await _firestore
         .collection(_collection)
         .doc(snapshot.id)
-        .set(snapshot.toJson());
+        .set(_toFirestoreJson(snapshot));
   }
 
   @override
@@ -29,5 +29,15 @@ class MonthlySavingRemoteDatasourceImpl
     return snapshot.docs
         .map((doc) => MonthlySavingDto.fromJson(doc.data()))
         .toList();
+  }
+
+  Map<String, dynamic> _toFirestoreJson(MonthlySavingDto snapshot) {
+    return {
+      ...snapshot.toJson(),
+      'goalAmount': snapshot.goalAmount.round(),
+      'savedAmount': snapshot.savedAmount.round(),
+      'openingBalance': snapshot.openingBalance.round(),
+      'closingBalance': snapshot.closingBalance.round(),
+    };
   }
 }

@@ -76,9 +76,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         expenses.where((e) => e.expenseType == ExpenseType.shared),
       );
 
-      final pendingSyncCount = expenses
-          .where((e) => e.syncStatus == SyncStatus.pending)
-          .length;
+      final pendingSyncCount = userId == null
+          ? 0
+          : (await sl<ReconciliationService>().load(
+              userId: userId,
+            )).counts.total;
 
       emit(
         HomeState.loaded(

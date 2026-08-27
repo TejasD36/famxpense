@@ -1,17 +1,21 @@
 import 'dart:io';
 
 import 'package:famxpense/core/di/injection.dart';
+import 'package:famxpense/core/services/reporting/reporting_ledger_service.dart';
 import 'package:famxpense/features/account/data/datasources/account_local_datasource.dart';
+import 'package:famxpense/features/account/data/datasources/manual_deposit_local_datasource.dart';
 import 'package:famxpense/features/auth/data/datasources/local/auth_local_datasource.dart';
+import 'package:famxpense/features/expenses/data/datasources/local/expense_local_datasource.dart';
 import 'package:famxpense/features/expenses/domain/repositories/expense_repository.dart';
 import 'package:famxpense/features/expenses/presentation/blocs/activity/activity_bloc.dart';
 import 'package:famxpense/features/expenses/presentation/blocs/activity/activity_item.dart';
 import 'package:famxpense/features/income/data/datasources/income_local_datasource.dart';
+import 'package:famxpense/features/savings/data/datasources/transfer_local_datasource.dart';
 import 'package:famxpense/features/settlement/data/datasources/settlement_local_datasource.dart';
+import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
-import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
-import 'package:famxpense/shared/domain/entities/expense/expense_participant_entity.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/income_source.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
@@ -23,6 +27,8 @@ import 'package:mocktail/mocktail.dart';
 
 class _ExpenseRepository extends Mock implements ExpenseRepository {}
 
+class _ExpenseLocal extends Mock implements ExpenseLocalDatasource {}
+
 class _SettlementLocal extends Mock implements SettlementLocalDatasource {}
 
 class _AuthLocal extends Mock implements AuthLocalDatasource {}
@@ -31,13 +37,20 @@ class _AccountLocal extends Mock implements AccountLocalDatasource {}
 
 class _IncomeLocal extends Mock implements IncomeLocalDatasource {}
 
+class _DepositLocal extends Mock implements ManualDepositLocalDatasource {}
+
+class _TransferLocal extends Mock implements TransferLocalDatasource {}
+
 void main() {
   late Directory hiveDirectory;
   late _ExpenseRepository expenses;
+  late _ExpenseLocal expenseLocal;
   late _SettlementLocal settlements;
   late _IncomeLocal incomes;
+  late _DepositLocal deposits;
+  late _TransferLocal transfers;
 
-  ExpenseEntity expense(String id, DateTime date) => ExpenseEntity(
+  ExpenseDto expense(String id, DateTime date) => ExpenseDto(
     id: id,
     title: id,
     amount: 100,
@@ -45,9 +58,7 @@ void main() {
     ownerUserId: 'user-a',
     expenseType: ExpenseType.personal,
     splitType: SplitType.equal,
-    participants: const [
-      ExpenseParticipantEntity(userId: 'user-a', amount: 100),
-    ],
+    participants: const [ExpenseParticipantDto(userId: 'user-a', amount: 100)],
     expenseDate: date,
     createdAt: date,
     updatedAt: date,
@@ -64,16 +75,35 @@ void main() {
   setUp(() async {
     await sl.reset();
     expenses = _ExpenseRepository();
+    expenseLocal = _ExpenseLocal();
     settlements = _SettlementLocal();
     final auth = _AuthLocal();
     final accounts = _AccountLocal();
     incomes = _IncomeLocal();
+    deposits = _DepositLocal();
+    transfers = _TransferLocal();
     when(auth.getUserId).thenReturn('user-a');
     when(accounts.getAccounts).thenAnswer((_) async => []);
     when(incomes.fetchAll).thenAnswer((_) async => []);
+    when(deposits.fetchAll).thenAnswer((_) async => []);
+    when(transfers.fetchAll).thenAnswer((_) async => []);
     sl.registerSingleton<AuthLocalDatasource>(auth);
     sl.registerSingleton<AccountLocalDatasource>(accounts);
     sl.registerSingleton<IncomeLocalDatasource>(incomes);
+    sl.registerSingleton<ExpenseLocalDatasource>(expenseLocal);
+    sl.registerSingleton<SettlementLocalDatasource>(settlements);
+    sl.registerSingleton<ManualDepositLocalDatasource>(deposits);
+    sl.registerSingleton<TransferLocalDatasource>(transfers);
+    sl.registerSingleton(
+      ReportingLedgerService(
+        expenses: expenseLocal,
+        incomes: incomes,
+        deposits: deposits,
+        settlements: settlements,
+        transfers: transfers,
+        accounts: accounts,
+      ),
+    );
   });
 
   tearDownAll(() async {
@@ -84,7 +114,7 @@ void main() {
   test(
     'date range is inclusive and filters expenses and settlements',
     () async {
-      when(expenses.getExpenses).thenAnswer(
+      when(() => expenseLocal.getExpenses(ownerUserId: 'user-a')).thenAnswer(
         (_) async => [
           expense('before', DateTime(2026, 6, 30, 23, 59)),
           expense('start', DateTime(2026, 7, 1)),
@@ -137,7 +167,7 @@ void main() {
   );
 
   test('month filter excludes transactions from adjacent months', () async {
-    when(expenses.getExpenses).thenAnswer(
+    when(() => expenseLocal.getExpenses(ownerUserId: 'user-a')).thenAnswer(
       (_) async => [
         expense('july', DateTime(2026, 7, 31)),
         expense('august', DateTime(2026, 8, 1)),
@@ -159,7 +189,9 @@ void main() {
   });
 
   test('includes incomes for the selected month as IncomeItems', () async {
-    when(expenses.getExpenses).thenAnswer((_) async => []);
+    when(
+      () => expenseLocal.getExpenses(ownerUserId: 'user-a'),
+    ).thenAnswer((_) async => []);
     when(settlements.getSettlements).thenAnswer((_) async => []);
     when(incomes.fetchAll).thenAnswer(
       (_) async => [

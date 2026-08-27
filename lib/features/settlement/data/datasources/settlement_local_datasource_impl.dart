@@ -45,4 +45,9 @@ class SettlementLocalDatasourceImpl extends BaseHiveService<SettlementDto>
       );
     }
   }
+
+  @override
+  Future<void> saveResolvedSettlement(SettlementEntity settlement) async {
+    await saveSettlement(settlement.toDto());
+  }
 }
