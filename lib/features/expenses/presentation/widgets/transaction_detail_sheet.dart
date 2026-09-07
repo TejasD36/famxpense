@@ -27,6 +27,8 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
     final expense = widget.expense;
     final userId = sl<AuthLocalDatasource>().getUserId();
     final theme = Theme.of(context);
+    final policy = sl<ExpenseRepository>().canEditExpense(expense);
+    final canShowActions = policy.canEdit && userId == expense.paidByUserId;
 
     return SafeArea(
       child: ConstrainedBox(
@@ -38,6 +40,10 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
           children: [
             const SheetGrabber(),
             const SizedBox(height: 12),
+            if (canShowActions) ...[
+              _editActions(context, expense, policy),
+              const SizedBox(height: 12),
+            ],
             GradientPatternPanel(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
@@ -192,6 +198,145 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
             ?.label ??
         expense.category ??
         '—';
+  }
+
+  Widget _editActions(
+    BuildContext context,
+    ExpenseEntity expense,
+    ExpenseEditPolicyResult policy,
+  ) {
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  policy.canFullEdit
+                      ? Icons.edit_calendar_rounded
+                      : Icons.lock_outline_rounded,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    policy.message,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.pushNamed(
+                        AppRoute.addExpense.name,
+                        extra: expense,
+                      );
+                    },
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('Edit'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: policy.canDelete
+                        ? () => _confirmDelete(context, expense)
+                        : null,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    label: const Text('Delete'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    ExpenseEntity expense,
+  ) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SheetGrabber(),
+              const SizedBox(height: 12),
+              Text(
+                'Delete expense?',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This is only available inside the 1-hour correction window. The expense will be hidden and its balance/debt effects reversed.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetContext, false),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => Navigator.pop(sheetContext, true),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Delete'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      await sl<DeleteExpenseUsecase>()(expense);
+      sl<SyncService>().syncAll(userId: expense.paidByUserId).then((_) {
+        sl<RefreshNotifier>().notifyDataChanged();
+      });
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Expense deleted successfully')),
+      );
+      navigator.pop();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   Widget _infoRow(BuildContext context, String label, String value) {

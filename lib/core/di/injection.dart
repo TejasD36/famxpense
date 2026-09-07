@@ -46,7 +46,9 @@ import '../../features/expenses/data/datasources/remote/expense_remote_datasourc
 import '../../features/expenses/data/repositories/expense_repository_impl.dart';
 import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/expenses/domain/usecases/add_expense_usecase.dart';
+import '../../features/expenses/domain/usecases/delete_expense_usecase.dart';
 import '../../features/expenses/domain/usecases/get_current_month_expenses_usecase.dart';
+import '../../features/expenses/domain/usecases/update_expense_usecase.dart';
 import '../../features/expenses/presentation/blocs/activity/activity_bloc.dart';
 import '../../features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
 import '../../features/expenses/presentation/blocs/home/home_bloc.dart';
@@ -156,6 +158,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetCurrentUserUsecase(sl()));
 
   sl.registerLazySingleton(() => AddExpenseUsecase(sl()));
+  sl.registerLazySingleton(() => UpdateExpenseUsecase(sl()));
+  sl.registerLazySingleton(() => DeleteExpenseUsecase(sl()));
   sl.registerLazySingleton(() => GetCurrentMonthExpensesUsecase(sl()));
   sl.registerLazySingleton(() => SendPartnershipRequestUsecase(sl()));
 
@@ -175,7 +179,13 @@ Future<void> initDependencies() async {
     ),
   );
 
-  sl.registerFactory(() => AddExpenseBloc(addExpenseUsecase: sl()));
+  sl.registerFactory(
+    () => AddExpenseBloc(
+      addExpenseUsecase: sl(),
+      updateExpenseUsecase: sl(),
+      deleteExpenseUsecase: sl(),
+    ),
+  );
   sl.registerFactory(
     () => ActivityBloc(expenseRepository: sl(), settlementLocal: sl()),
   );

@@ -29,6 +29,7 @@ import '../../../shared/data/transformers/mappers/account/account_mapper.dart';
 import '../../../shared/data/transformers/mappers/debt_ledger/debt_ledger_mapper.dart';
 import '../../../shared/data/transformers/mappers/expense/expense_mapper.dart';
 import '../../../shared/data/transformers/mappers/settlement/settlement_mapper.dart';
+import '../../../shared/domain/entities/expense/expense_entity.dart';
 import '../../../shared/enums/settlement_status.dart';
 import '../../../shared/enums/sync_status.dart';
 import '../../../shared/enums/expense_type.dart';
@@ -204,7 +205,9 @@ class SyncService {
       for (final expense in pendingExpenses) {
         try {
           final entity = expense.toEntity();
-          if (entity.accountId != null) {
+          final shouldApplyAddEffects =
+              !entity.isDisabled && await _expenseNeedsAddEffects(entity);
+          if (shouldApplyAddEffects && entity.accountId != null) {
             await _ensureAccountBalanceMutation(
               userId: userId,
               accountId: entity.accountId!,
@@ -213,7 +216,8 @@ class SyncService {
               updatedAt: entity.updatedAt,
             );
           }
-          if (entity.expenseType == ExpenseType.shared) {
+          if (shouldApplyAddEffects &&
+              entity.expenseType == ExpenseType.shared) {
             for (final participant in entity.participants) {
               if (participant.userId == entity.paidByUserId) continue;
               await _ensureDebtMutation(
@@ -225,7 +229,7 @@ class SyncService {
               );
             }
           }
-          await _expenseRemote.createExpense(entity.toRemoteDto());
+          await _expenseRemote.updateExpense(entity.toRemoteDto());
 
           final syncedExpense = entity.copyWith(syncStatus: SyncStatus.synced);
           await _expenseLocal.saveExpense(syncedExpense.toDto());
@@ -261,6 +265,41 @@ class SyncService {
       AppLogger.error('Global sync failed', e, stackTrace);
       return false;
     }
+  }
+
+  Future<bool> _expenseNeedsAddEffects(ExpenseEntity expense) async {
+    if (expense.accountId != null) {
+      final accounts = await _accountLocal.getAccounts();
+      final account = accounts
+          .where((item) => item.id == expense.accountId)
+          .firstOrNull;
+      if (account != null) {
+        final mutationId = 'expense-balance-${expense.id}';
+        if (account.appliedBalanceMutationIds.contains(mutationId) ||
+            account.pendingBalanceMutations.containsKey(mutationId)) {
+          return false;
+        }
+      }
+    }
+
+    if (expense.expenseType == ExpenseType.shared) {
+      final ledgers = await _debtLedgerLocal.getLedgers();
+      for (final participant in expense.participants) {
+        if (participant.userId == expense.paidByUserId) continue;
+        final sorted = [expense.paidByUserId, participant.userId]..sort();
+        final ledgerId = '${sorted[0]}_${sorted[1]}';
+        final ledger = ledgers.where((item) => item.id == ledgerId).firstOrNull;
+        final mutationId = 'expense-debt-${expense.id}-${participant.userId}';
+        if (ledger == null ||
+            (!ledger.appliedMutationIds.contains(mutationId) &&
+                !ledger.pendingMutations.containsKey(mutationId))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return true;
   }
 
   Future<bool> syncAccounts({required String userId}) async {

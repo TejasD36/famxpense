@@ -17,6 +17,14 @@ class ExpenseRemoteDatasourceImpl implements ExpenseRemoteDatasource {
   }
 
   @override
+  Future<void> updateExpense(ExpenseRemoteDto expense) async {
+    await _firestore
+        .collection(_expensesCollection)
+        .doc(expense.id)
+        .set(_toFirestoreJson(expense));
+  }
+
+  @override
   Future<List<ExpenseRemoteDto>> fetchExpenses({required String userId}) async {
     final snapshot = await _firestore
         .collection(_expensesCollection)

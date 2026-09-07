@@ -143,10 +143,13 @@ class AppRouter {
         GoRoute(
           path: AppRoute.addExpense.path,
           name: AppRoute.addExpense.name,
-          builder: (_, _) {
+          builder: (_, state) {
+            final editExpense = state.extra is ExpenseEntity
+                ? state.extra! as ExpenseEntity
+                : null;
             return BlocProvider(
               create: (_) => sl<AddExpenseBloc>(),
-              child: const AddExpenseScreen(),
+              child: AddExpenseScreen(editExpense: editExpense),
             );
           },
         ),

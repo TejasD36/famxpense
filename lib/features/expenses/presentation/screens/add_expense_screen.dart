@@ -11,7 +11,9 @@ import '../../../partners/data/transformers/mappers/partnership_remote_mapper.da
 import '../../xcore.dart';
 
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+  final ExpenseEntity? editExpense;
+
+  const AddExpenseScreen({super.key, this.editExpense});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -40,10 +42,43 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   double? _latitude;
   double? _longitude;
 
+  bool get _isEditMode => widget.editExpense != null;
+
+  ExpenseEditPolicyResult? get _editPolicy {
+    final expense = widget.editExpense;
+    if (expense == null) return null;
+    return sl<ExpenseRepository>().canEditExpense(expense);
+  }
+
+  bool get _canEditFinancialFields =>
+      !_isEditMode || (_editPolicy?.canFullEdit ?? false);
+
   @override
   void initState() {
     super.initState();
+    _prefillEditExpense();
     _loadData();
+  }
+
+  void _prefillEditExpense() {
+    final expense = widget.editExpense;
+    if (expense == null) return;
+
+    _amountController.text = expense.amount.toStringAsFixed(0);
+    _titleController.text = expense.title;
+    _noteController.text = expense.note ?? '';
+    _selectedDate = expense.expenseDate;
+    _expenseType = expense.expenseType;
+    _splitType = expense.splitType;
+    _category = expense.category ?? ExpenseCategory.other.name;
+    _latitude = expense.latitude;
+    _longitude = expense.longitude;
+    for (final participant in expense.participants) {
+      _manualAmounts[participant.userId] = participant.amount;
+      _manualControllers[participant.userId] = TextEditingController(
+        text: participant.amount.toStringAsFixed(0),
+      );
+    }
   }
 
   Future<void> _loadData() async {
@@ -68,7 +103,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         .toList();
 
     AccountEntity? selected;
-    if (userAccounts.isNotEmpty) {
+    if (widget.editExpense?.accountId != null) {
+      selected = userAccounts
+          .where((account) => account.id == widget.editExpense!.accountId)
+          .firstOrNull;
+    }
+    if (selected == null && userAccounts.isNotEmpty) {
       final defaultId = await AppSettings.getDefaultAccountId(userId: userId);
       selected = defaultId != null
           ? userAccounts.where((a) => a.id == defaultId).firstOrNull ??
@@ -76,11 +116,24 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           : userAccounts.first;
     }
 
+    final editParticipantIds =
+        widget.editExpense?.participants
+            .map((participant) => participant.userId)
+            .where((participantId) => participantId != userId)
+            .toSet() ??
+        const <String>{};
+    final selectedPartners = connected.where((partner) {
+      return editParticipantIds.contains(_partnerUserId(partner, userId));
+    }).toList();
+
     if (mounted) {
       setState(() {
         _accounts = userAccounts;
         _connectedPartners = connected;
         _selectedAccount = selected;
+        if (_isEditMode) {
+          _selectedPartners = selectedPartners;
+        }
       });
     }
   }
@@ -97,6 +150,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _selectDate() async {
+    if (!_canEditFinancialFields) return;
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -120,6 +174,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _openMapPicker() async {
+    if (!_canEditFinancialFields) return;
     final position = await Navigator.push<LatLng>(
       context,
       MaterialPageRoute(
@@ -139,6 +194,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _clearLocation() {
+    if (!_canEditFinancialFields) return;
     setState(() {
       _latitude = null;
       _longitude = null;
@@ -178,6 +234,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             bottom: MediaQuery.of(context).size.height * 0.1,
           ),
         ),
+      );
+      return;
+    }
+
+    final original = widget.editExpense;
+    if (original != null && !_canEditFinancialFields) {
+      final edited = original.copyWith(
+        title: _titleController.text.trim(),
+        note: _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
+        updatedAt: DateTime.now().toUtc(),
+        syncStatus: SyncStatus.pending,
+      );
+      context.read<AddExpenseBloc>().add(
+        AddExpenseEvent.update(original: original, edited: edited),
       );
       return;
     }
@@ -306,7 +378,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }).toList();
 
     final expense = ExpenseEntity(
-      id: const Uuid().v4(),
+      id: original?.id ?? const Uuid().v4(),
       title: _titleController.text.trim(),
       note: _noteController.text.trim().isEmpty
           ? null
@@ -320,13 +392,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       accountId: _selectedAccount?.id,
       category: _category,
       expenseDate: _selectedDate,
-      createdAt: DateTime.now().toUtc(),
+      createdAt: original?.createdAt ?? DateTime.now().toUtc(),
       updatedAt: DateTime.now().toUtc(),
       syncStatus: SyncStatus.pending,
       latitude: _latitude,
       longitude: _longitude,
     );
-    context.read<AddExpenseBloc>().add(AddExpenseEvent.submit(expense));
+    if (original == null) {
+      context.read<AddExpenseBloc>().add(AddExpenseEvent.submit(expense));
+    } else {
+      context.read<AddExpenseBloc>().add(
+        AddExpenseEvent.update(original: original, edited: expense),
+      );
+    }
   }
 
   void _initManualAmounts() {
@@ -376,6 +454,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _showAccountPicker() {
+    if (!_canEditFinancialFields) return;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => AccountPickerSheet(
@@ -431,6 +510,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _showPartnerPicker() async {
+    if (!_canEditFinancialFields) return;
     FocusManager.instance.primaryFocus?.unfocus();
     await showModalBottomSheet(
       context: context,
@@ -557,13 +637,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           ),
         );
       }).toList(),
-      onChanged: (v) => setState(() => _category = v),
+      onChanged: _canEditFinancialFields
+          ? (v) => setState(() => _category = v)
+          : null,
     );
   }
 
   Widget _accountField() {
     return InkWell(
-      onTap: _showAccountPicker,
+      onTap: _canEditFinancialFields ? _showAccountPicker : null,
       borderRadius: BorderRadius.circular(6),
       child: InputDecorator(
         decoration: const InputDecoration(
@@ -618,7 +700,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   Widget _dateField() {
     return InkWell(
-      onTap: _selectDate,
+      onTap: _canEditFinancialFields ? _selectDate : null,
       borderRadius: BorderRadius.circular(6),
       child: InputDecorator(
         decoration: const InputDecoration(
@@ -643,7 +725,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       children: [
         Expanded(
           child: InkWell(
-            onTap: _openMapPicker,
+            onTap: _canEditFinancialFields ? _openMapPicker : null,
             borderRadius: BorderRadius.circular(6),
             child: InputDecorator(
               decoration: const InputDecoration(labelText: 'Location'),
@@ -674,7 +756,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: _clearLocation,
+            onPressed: _canEditFinancialFields ? _clearLocation : null,
             tooltip: 'Remove location',
           ),
         ],
@@ -684,13 +766,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final policy = _editPolicy;
     return BlocListener<AddExpenseBloc, AddExpenseState>(
       listener: (context, state) {
         state.whenOrNull(
           success: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Expense added successfully'),
+                content: Text(
+                  _isEditMode
+                      ? 'Expense updated successfully'
+                      : 'Expense added successfully',
+                ),
                 behavior: SnackBarBehavior.floating,
                 margin: EdgeInsets.only(
                   bottom: MediaQuery.of(context).size.height * 0.1,
@@ -713,7 +800,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         );
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Add Expense')),
+        appBar: AppBar(
+          title: Text(_isEditMode ? 'Edit Expense' : 'Add Expense'),
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
@@ -728,6 +817,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       _AmountComposer(
                         amountController: _amountController,
                         expenseType: _expenseType,
+                        enabled: _canEditFinancialFields,
+                        title: _isEditMode ? 'Edit expense' : 'New expense',
                         onAmountChanged: (_) {
                           _checkBalance();
                           if (_expenseType == ExpenseType.shared) {
@@ -735,6 +826,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           }
                         },
                         onTypeChanged: (value) {
+                          if (!_canEditFinancialFields) return;
                           setState(() {
                             _expenseType = value;
                             if (_expenseType != ExpenseType.shared) {
@@ -752,6 +844,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         ),
                       ],
                       const SizedBox(height: 16),
+                      if (policy != null) ...[
+                        _EditPolicyBanner(policy: policy),
+                        const SizedBox(height: 14),
+                      ],
                       _FormSection(
                         title: 'Basics',
                         icon: Icons.receipt_long_rounded,
@@ -788,6 +884,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                 splitType: _splitType,
                                 onPickPartners: _showPartnerPicker,
                                 onRemovePartner: (partner) {
+                                  if (!_canEditFinancialFields) return;
                                   setState(() {
                                     _selectedPartners.removeWhere(
                                       (sp) => sp.id == partner.id,
@@ -798,6 +895,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                   });
                                 },
                                 onSplitTypeChanged: (value) {
+                                  if (!_canEditFinancialFields) return;
                                   setState(() {
                                     _splitType = value;
                                     if (_splitType == SplitType.manual) {
@@ -809,6 +907,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                     ? const []
                                     : _buildSplitPreview(),
                                 nicknameFor: _partnerNickname,
+                                enabled: _canEditFinancialFields,
                               )
                             : const SizedBox.shrink(
                                 key: ValueKey('personal_split_section'),
@@ -843,7 +942,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: _SaveExpenseBar(onSubmit: _submit),
+        bottomNavigationBar: _SaveExpenseBar(
+          onSubmit: _submit,
+          label: _isEditMode ? 'Save Changes' : 'Save Expense',
+        ),
       ),
     );
   }
@@ -1020,12 +1122,16 @@ class _ResponsiveFieldRow extends StatelessWidget {
 class _AmountComposer extends StatelessWidget {
   final TextEditingController amountController;
   final ExpenseType expenseType;
+  final bool enabled;
+  final String title;
   final ValueChanged<String> onAmountChanged;
   final ValueChanged<ExpenseType> onTypeChanged;
 
   const _AmountComposer({
     required this.amountController,
     required this.expenseType,
+    required this.enabled,
+    required this.title,
     required this.onAmountChanged,
     required this.onTypeChanged,
   });
@@ -1061,7 +1167,7 @@ class _AmountComposer extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'New expense',
+                      title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -1083,6 +1189,7 @@ class _AmountComposer extends StatelessWidget {
           const SizedBox(height: 14),
           TextFormField(
             controller: amountController,
+            enabled: enabled,
             keyboardType: const TextInputType.numberWithOptions(decimal: false),
             style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
             decoration: const InputDecoration(
@@ -1110,7 +1217,9 @@ class _AmountComposer extends StatelessWidget {
             width: double.infinity,
             child: SegmentedButton<ExpenseType>(
               selected: {expenseType},
-              onSelectionChanged: (value) => onTypeChanged(value.first),
+              onSelectionChanged: enabled
+                  ? (value) => onTypeChanged(value.first)
+                  : null,
               segments: const [
                 ButtonSegment(
                   value: ExpenseType.personal,
@@ -1179,6 +1288,47 @@ class _BalanceWarning extends StatelessWidget {
   }
 }
 
+class _EditPolicyBanner extends StatelessWidget {
+  final ExpenseEditPolicyResult policy;
+
+  const _EditPolicyBanner({required this.policy});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              policy.canFullEdit
+                  ? Icons.edit_calendar_rounded
+                  : Icons.lock_outline_rounded,
+              color: theme.colorScheme.onSecondaryContainer,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                policy.message,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _FormSection extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -1232,6 +1382,7 @@ class _SharedSplitSection extends StatelessWidget {
   final ValueChanged<SplitType> onSplitTypeChanged;
   final List<Widget> splitPreview;
   final String Function(PartnershipEntity) nicknameFor;
+  final bool enabled;
 
   const _SharedSplitSection({
     super.key,
@@ -1242,6 +1393,7 @@ class _SharedSplitSection extends StatelessWidget {
     required this.onSplitTypeChanged,
     required this.splitPreview,
     required this.nicknameFor,
+    required this.enabled,
   });
 
   @override
@@ -1255,7 +1407,7 @@ class _SharedSplitSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: onPickPartners,
+            onTap: enabled ? onPickPartners : null,
             borderRadius: BorderRadius.circular(6),
             child: InputDecorator(
               decoration: const InputDecoration(
@@ -1296,7 +1448,7 @@ class _SharedSplitSection extends StatelessWidget {
                     ),
                   ),
                   label: Text('@$nickname'),
-                  onDeleted: () => onRemovePartner(partner),
+                  onDeleted: enabled ? () => onRemovePartner(partner) : null,
                 );
               }).toList(),
             ),
@@ -1306,7 +1458,9 @@ class _SharedSplitSection extends StatelessWidget {
             width: double.infinity,
             child: SegmentedButton<SplitType>(
               selected: {splitType},
-              onSelectionChanged: (value) => onSplitTypeChanged(value.first),
+              onSelectionChanged: enabled
+                  ? (value) => onSplitTypeChanged(value.first)
+                  : null,
               segments: const [
                 ButtonSegment(
                   value: SplitType.equal,
@@ -1354,8 +1508,9 @@ class _SharedSplitSection extends StatelessWidget {
 
 class _SaveExpenseBar extends StatelessWidget {
   final VoidCallback onSubmit;
+  final String label;
 
-  const _SaveExpenseBar({required this.onSubmit});
+  const _SaveExpenseBar({required this.onSubmit, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -1394,7 +1549,7 @@ class _SaveExpenseBar extends StatelessWidget {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.check_rounded),
-                    label: Text(isLoading ? 'Saving' : 'Save Expense'),
+                    label: Text(isLoading ? 'Saving' : label),
                   );
                 },
               ),

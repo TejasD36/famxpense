@@ -20,7 +20,8 @@ class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto>
   @override
   Future<List<ExpenseDto>> getExpenses({required String ownerUserId}) async {
     return box.values.where((expense) {
-      return expense.participants.any((p) => p.userId == ownerUserId);
+      return !expense.isDisabled &&
+          expense.participants.any((p) => p.userId == ownerUserId);
     }).toList();
   }
 
@@ -46,6 +47,7 @@ class ExpenseLocalDatasourceImpl extends BaseHiveService<ExpenseDto>
           expense.expenseDate.year == now.year;
 
       return expense.participants.any((p) => p.userId == ownerUserId) &&
+          !expense.isDisabled &&
           isCurrentMonth;
     }).toList();
   }

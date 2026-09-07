@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../../account/domain/repositories/account_repository.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
@@ -86,6 +88,100 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
       AppLogger.error('Expense upload error', e, stackTrace);
     }
+  }
+
+  @override
+  Future<void> updateExpense({
+    required ExpenseEntity original,
+    required ExpenseEntity edited,
+  }) async {
+    final policy = canEditExpense(original);
+    if (!policy.canEdit) {
+      throw StateError(policy.message);
+    }
+
+    if (original.id != edited.id) {
+      throw ArgumentError('Edited expense must preserve the original ID');
+    }
+
+    final metadataOnly = !ExpenseEditPolicy.hasFinancialChanges(
+      original,
+      edited,
+    );
+    if (!metadataOnly && !policy.canFullEdit) {
+      throw StateError('Only title and note can be changed.');
+    }
+
+    if (metadataOnly) {
+      await _saveExpenseUpdate(
+        edited.copyWith(
+          amount: original.amount,
+          paidByUserId: original.paidByUserId,
+          ownerUserId: original.ownerUserId,
+          expenseType: original.expenseType,
+          splitType: original.splitType,
+          participants: original.participants,
+          groupId: original.groupId,
+          accountId: original.accountId,
+          expenseDate: original.expenseDate,
+          createdAt: original.createdAt,
+          isDisabled: original.isDisabled,
+          category: original.category,
+          latitude: original.latitude,
+          longitude: original.longitude,
+          syncStatus: SyncStatus.pending,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      return;
+    }
+
+    _validateExpense(edited);
+
+    final disabledOriginal = original.copyWith(
+      isDisabled: true,
+      syncStatus: SyncStatus.pending,
+      updatedAt: DateTime.now().toUtc(),
+    );
+    await _reverseAccountBalance(original, mutationIdPrefix: 'expense-edit');
+    await _reverseDebtEffect(original, mutationIdPrefix: 'expense-edit');
+    await _localDatasource.saveExpense(disabledOriginal.toDto());
+    unawaited(_tryUpdateRemote(disabledOriginal));
+
+    final replacement = edited.copyWith(
+      id: const Uuid().v4(),
+      createdAt: original.createdAt,
+      updatedAt: DateTime.now().toUtc(),
+      syncStatus: SyncStatus.pending,
+      isDisabled: false,
+    );
+    await addExpense(replacement);
+  }
+
+  @override
+  Future<void> deleteExpense(ExpenseEntity expense) async {
+    final policy = canEditExpense(expense);
+    if (!policy.canDelete) {
+      throw StateError('Expense deletion is only available for 1 hour.');
+    }
+
+    final disabled = expense.copyWith(
+      isDisabled: true,
+      syncStatus: SyncStatus.pending,
+      updatedAt: DateTime.now().toUtc(),
+    );
+    await _reverseAccountBalance(expense, mutationIdPrefix: 'expense-delete');
+    await _reverseDebtEffect(expense, mutationIdPrefix: 'expense-delete');
+    await _localDatasource.saveExpense(disabled.toDto());
+    unawaited(_tryUpdateRemote(disabled));
+  }
+
+  @override
+  ExpenseEditPolicyResult canEditExpense(ExpenseEntity expense) {
+    return ExpenseEditPolicy.evaluate(
+      expense: expense,
+      currentUserId: _authLocalDatasource.getUserId(),
+    );
   }
 
   void _validateExpense(ExpenseEntity expense) {
@@ -199,6 +295,18 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
   }
 
+  Future<void> _reverseAccountBalance(
+    ExpenseEntity expense, {
+    required String mutationIdPrefix,
+  }) async {
+    if (expense.accountId == null) return;
+    await _accountRepository.adjustBalance(
+      expense.accountId!,
+      expense.amount,
+      mutationId: '$mutationIdPrefix-reverse-balance-${expense.id}',
+    );
+  }
+
   Future<void> _applyDebtEffect(ExpenseEntity expense) async {
     if (expense.expenseType != ExpenseType.shared) return;
 
@@ -241,6 +349,45 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     } catch (e, stackTrace) {
       AppLogger.error('Debt computation failed', e, stackTrace);
       Error.throwWithStackTrace(e, stackTrace);
+    }
+  }
+
+  Future<void> _reverseDebtEffect(
+    ExpenseEntity expense, {
+    required String mutationIdPrefix,
+  }) async {
+    if (expense.expenseType != ExpenseType.shared) return;
+
+    for (final participant in expense.participants) {
+      if (participant.userId == expense.paidByUserId) continue;
+      await _computeDebtUsecase(
+        paidByUserId: expense.paidByUserId,
+        participants: [
+          ExpenseParticipantEntity(
+            userId: participant.userId,
+            amount: -participant.amount,
+          ),
+        ],
+        totalAmount: -participant.amount,
+        mutationIdPrefix: '$mutationIdPrefix-reverse-debt-${expense.id}',
+      );
+    }
+  }
+
+  Future<void> _saveExpenseUpdate(ExpenseEntity expense) async {
+    await _localDatasource.saveExpense(expense.toDto());
+    unawaited(_tryUpdateRemote(expense));
+  }
+
+  Future<void> _tryUpdateRemote(ExpenseEntity expense) async {
+    try {
+      await _remoteDatasource.updateExpense(expense.toRemoteDto());
+      await _localDatasource.saveExpense(
+        expense.copyWith(syncStatus: SyncStatus.synced).toDto(),
+      );
+    } catch (e, stackTrace) {
+      AppLogger.warning('Expense update queued for sync');
+      AppLogger.error('Expense update remote error', e, stackTrace);
     }
   }
 

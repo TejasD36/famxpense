@@ -3,6 +3,8 @@ import 'package:famxpense/core/services/notification/notification_service.dart';
 import 'package:famxpense/core/services/refresh/refresh_notifier.dart';
 import 'package:famxpense/core/services/sync/sync_service.dart';
 import 'package:famxpense/features/expenses/domain/usecases/add_expense_usecase.dart';
+import 'package:famxpense/features/expenses/domain/usecases/delete_expense_usecase.dart';
+import 'package:famxpense/features/expenses/domain/usecases/update_expense_usecase.dart';
 import 'package:famxpense/features/expenses/presentation/blocs/add_expense/add_expense_bloc.dart';
 import 'package:famxpense/shared/data/datasources/local/user_local_datasource.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
@@ -34,9 +36,7 @@ void main() {
     ownerUserId: 'user-a',
     expenseType: ExpenseType.personal,
     splitType: SplitType.equal,
-    participants: [
-      ExpenseParticipantEntity(userId: 'user-a', amount: 50.0),
-    ],
+    participants: [ExpenseParticipantEntity(userId: 'user-a', amount: 50.0)],
     expenseDate: now,
     createdAt: now,
     updatedAt: now,
@@ -74,8 +74,9 @@ void main() {
     sl.registerSingleton<UserLocalDatasource>(mockUserDs);
     sl.registerSingleton<NotificationService>(mockNotificationService);
 
-    when(() => mockSyncService.syncAll(userId: any(named: 'userId')))
-        .thenAnswer((_) async => true);
+    when(
+      () => mockSyncService.syncAll(userId: any(named: 'userId')),
+    ).thenAnswer((_) async => true);
   });
 
   tearDown(() {
@@ -83,11 +84,19 @@ void main() {
   });
 
   group('AddExpenseBloc', () {
+    AddExpenseBloc buildBloc() {
+      return AddExpenseBloc(
+        addExpenseUsecase: AddExpenseUsecase(mockRepository),
+        updateExpenseUsecase: UpdateExpenseUsecase(mockRepository),
+        deleteExpenseUsecase: DeleteExpenseUsecase(mockRepository),
+      );
+    }
+
     blocTest<AddExpenseBloc, AddExpenseState>(
       'emits [loading, success] for personal expense',
       build: () {
         when(() => mockRepository.addExpense(any())).thenAnswer((_) async {});
-        return AddExpenseBloc(addExpenseUsecase: AddExpenseUsecase(mockRepository));
+        return buildBloc();
       },
       act: (bloc) => bloc.add(AddExpenseEvent.submit(personalExpense)),
       expect: () => [
@@ -101,15 +110,17 @@ void main() {
       build: () {
         when(() => mockRepository.addExpense(any())).thenAnswer((_) async {});
         when(() => mockUserDs.getUser(any())).thenReturn(null);
-        when(() => mockNotificationService.notifyExpenseAdded(
-          title: any(named: 'title'),
-          amount: any(named: 'amount'),
-          paidByUserId: any(named: 'paidByUserId'),
-          paidByNickname: any(named: 'paidByNickname'),
-          participantUserIds: any(named: 'participantUserIds'),
-          expenseId: any(named: 'expenseId'),
-        )).thenAnswer((_) async {});
-        return AddExpenseBloc(addExpenseUsecase: AddExpenseUsecase(mockRepository));
+        when(
+          () => mockNotificationService.notifyExpenseAdded(
+            title: any(named: 'title'),
+            amount: any(named: 'amount'),
+            paidByUserId: any(named: 'paidByUserId'),
+            paidByNickname: any(named: 'paidByNickname'),
+            participantUserIds: any(named: 'participantUserIds'),
+            expenseId: any(named: 'expenseId'),
+          ),
+        ).thenAnswer((_) async {});
+        return buildBloc();
       },
       act: (bloc) => bloc.add(AddExpenseEvent.submit(sharedExpense)),
       expect: () => [
@@ -121,9 +132,10 @@ void main() {
     blocTest<AddExpenseBloc, AddExpenseState>(
       'emits [loading, error] when repository throws',
       build: () {
-        when(() => mockRepository.addExpense(any()))
-            .thenThrow(Exception('Network error'));
-        return AddExpenseBloc(addExpenseUsecase: AddExpenseUsecase(mockRepository));
+        when(
+          () => mockRepository.addExpense(any()),
+        ).thenThrow(Exception('Network error'));
+        return buildBloc();
       },
       act: (bloc) => bloc.add(AddExpenseEvent.submit(personalExpense)),
       expect: () => [
@@ -134,7 +146,7 @@ void main() {
 
     test('initial state is initial', () {
       when(() => mockRepository.addExpense(any())).thenAnswer((_) async {});
-      final bloc = AddExpenseBloc(addExpenseUsecase: AddExpenseUsecase(mockRepository));
+      final bloc = buildBloc();
       expect(bloc.state, const AddExpenseState.initial());
       bloc.close();
     });

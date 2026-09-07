@@ -6,11 +6,20 @@ part 'add_expense_state.dart';
 
 class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
   final AddExpenseUsecase _addExpenseUsecase;
+  final UpdateExpenseUsecase _updateExpenseUsecase;
+  final DeleteExpenseUsecase _deleteExpenseUsecase;
 
-  AddExpenseBloc({required AddExpenseUsecase addExpenseUsecase})
-    : _addExpenseUsecase = addExpenseUsecase,
-      super(const AddExpenseState.initial()) {
+  AddExpenseBloc({
+    required AddExpenseUsecase addExpenseUsecase,
+    required UpdateExpenseUsecase updateExpenseUsecase,
+    required DeleteExpenseUsecase deleteExpenseUsecase,
+  }) : _addExpenseUsecase = addExpenseUsecase,
+       _updateExpenseUsecase = updateExpenseUsecase,
+       _deleteExpenseUsecase = deleteExpenseUsecase,
+       super(const AddExpenseState.initial()) {
     on<SubmitExpenseEvent>(_onSubmit);
+    on<UpdateExpenseEvent>(_onUpdate);
+    on<DeleteExpenseEvent>(_onDelete);
   }
 
   Future<void> _onSubmit(
@@ -35,8 +44,45 @@ class AddExpenseBloc extends Bloc<AddExpenseEvent, AddExpenseState> {
     }
   }
 
+  Future<void> _onUpdate(
+    UpdateExpenseEvent event,
+    Emitter<AddExpenseState> emit,
+  ) async {
+    emit(const AddExpenseState.loading());
+
+    try {
+      await _updateExpenseUsecase(
+        original: event.original,
+        edited: event.edited,
+      );
+      _syncAfterChange(event.original.paidByUserId);
+      emit(const AddExpenseState.success());
+    } catch (e) {
+      emit(AddExpenseState.error(e.toString()));
+    }
+  }
+
+  Future<void> _onDelete(
+    DeleteExpenseEvent event,
+    Emitter<AddExpenseState> emit,
+  ) async {
+    emit(const AddExpenseState.loading());
+
+    try {
+      await _deleteExpenseUsecase(event.expense);
+      _syncAfterChange(event.expense.paidByUserId);
+      emit(const AddExpenseState.success());
+    } catch (e) {
+      emit(AddExpenseState.error(e.toString()));
+    }
+  }
+
   void _syncAfterAdd(ExpenseEntity expense) {
-    sl<SyncService>().syncAll(userId: expense.paidByUserId).then((_) {
+    _syncAfterChange(expense.paidByUserId);
+  }
+
+  void _syncAfterChange(String userId) {
+    sl<SyncService>().syncAll(userId: userId).then((_) {
       sl<RefreshNotifier>().notifyDataChanged();
     });
   }
