@@ -201,9 +201,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               return state.when(
-                initial: () => const Center(child: CircularProgressIndicator()),
+                initial: () => const Center(child: FinanceLoadingIndicator()),
 
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: FinanceLoadingIndicator()),
 
                 unauthenticated: () => const SizedBox(),
 
@@ -576,7 +576,7 @@ class _AccountsSectionState extends State<_AccountsSection> {
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+                    child: FinanceLoadingIndicator(),
                   ),
                 )
               else if (accounts.isEmpty)

@@ -111,7 +111,7 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: FinanceLoadingIndicator(strokeWidth: 2),
                             )
                           : const Text('Search'),
                     );
@@ -139,7 +139,7 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
 
                       /// LOADING
                       loading: () {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: FinanceLoadingIndicator());
                       },
 
                       /// ERROR
@@ -263,7 +263,7 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                                         ? const SizedBox(
                                             height: 18,
                                             width: 18,
-                                            child: CircularProgressIndicator(
+                                            child: FinanceLoadingIndicator(
                                               strokeWidth: 2,
                                             ),
                                           )

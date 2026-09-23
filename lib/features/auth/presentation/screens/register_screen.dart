@@ -288,7 +288,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
+                                  child: FinanceLoadingIndicator(
                                     strokeWidth: 2,
                                     color: Theme.of(
                                       context,

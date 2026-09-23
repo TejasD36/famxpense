@@ -53,77 +53,75 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: Scaffold(
         appBar: AppBar(title: const Text('Forgot Password')),
 
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
 
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
 
-              child: Form(
-                key: _formKey,
+            child: Form(
+              key: _formKey,
 
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                  children: [
-                    const AuthBrandPanel(
-                      title: 'Reset Password',
-                      subtitle: 'Get back to your expense records securely.',
+                children: [
+                  const AuthBrandPanel(
+                    title: 'Reset Password',
+                    subtitle: 'Get back to your expense records securely.',
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    'Enter your email address and we will send you a password reset link.',
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  TextFormField(
+                    controller: _emailController,
+
+                    keyboardType: TextInputType.emailAddress,
+
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
                     ),
 
-                    const SizedBox(height: 16),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter email';
+                      }
+                      if (!RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                      ).hasMatch(value.trim())) {
+                        return 'Enter a valid email address';
+                      }
+                      return null;
+                    },
+                  ),
 
-                    const Text(
-                      'Enter your email address and we will send you a password reset link.',
-                    ),
+                  const SizedBox(height: 24),
 
-                    const SizedBox(height: 32),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state is AuthLoading;
 
-                    TextFormField(
-                      controller: _emailController,
+                      return ElevatedButton(
+                        onPressed: isLoading ? null : _submit,
 
-                      keyboardType: TextInputType.emailAddress,
-
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                      ),
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter email';
-                        }
-                        if (!RegExp(
-                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                        ).hasMatch(value.trim())) {
-                          return 'Enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        final isLoading = state is AuthLoading;
-
-                        return ElevatedButton(
-                          onPressed: isLoading ? null : _submit,
-
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(),
-                                )
-                              : const Text('Send Reset Link'),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: FinanceLoadingIndicator(),
+                              )
+                            : const Text('Send Reset Link'),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),

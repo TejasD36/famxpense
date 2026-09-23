@@ -93,7 +93,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Savings')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : _savingsAccounts.isEmpty
           ? FinanceEmptyState(
               icon: Icons.savings_rounded,

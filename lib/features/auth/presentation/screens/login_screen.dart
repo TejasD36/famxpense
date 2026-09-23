@@ -63,136 +63,134 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
 
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
 
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
 
-              child: Form(
-                key: _formKey,
+            child: Form(
+              key: _formKey,
 
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                  children: [
-                    const AuthBrandPanel(
-                      title: 'Welcome Back',
-                      subtitle: 'Track family spending without losing context.',
+                children: [
+                  const AuthBrandPanel(
+                    title: 'Welcome Back',
+                    subtitle: 'Track family spending without losing context.',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  TextFormField(
+                    controller: _emailController,
+
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [
+                      AutofillHints.username,
+                      AutofillHints.email,
+                    ],
+
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
                     ),
 
-                    const SizedBox(height: 24),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter email';
+                      }
+                      if (!RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                      ).hasMatch(value.trim())) {
+                        return 'Enter a valid email address';
+                      }
+                      return null;
+                    },
+                  ),
 
-                    TextFormField(
-                      controller: _emailController,
+                  const SizedBox(height: 16),
 
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [
-                        AutofillHints.username,
-                        AutofillHints.email,
-                      ],
+                  TextFormField(
+                    controller: _passwordController,
 
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                      ),
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [AutofillHints.password],
+                    onFieldSubmitted: (_) => _login(),
 
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter email';
-                        }
-                        if (!RegExp(
-                          r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                        ).hasMatch(value.trim())) {
-                          return 'Enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _passwordController,
-
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.password],
-                      onFieldSubmitted: (_) => _login(),
-
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          tooltip: _obscurePassword
-                              ? 'Show password'
-                              : 'Hide password',
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_rounded
-                                : Icons.visibility_off_rounded,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        tooltip: _obscurePassword
+                            ? 'Show password'
+                            : 'Hide password',
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
                         ),
                       ),
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter password';
-                        }
-
-                        return null;
-                      },
                     ),
 
-                    const SizedBox(height: 24),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter password';
+                      }
 
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        final isLoading = state is AuthLoading;
+                      return null;
+                    },
+                  ),
 
-                        return FilledButton(
-                          onPressed: isLoading ? null : _login,
+                  const SizedBox(height: 24),
 
-                          child: isLoading
-                              ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimary,
-                                  ),
-                                )
-                              : const Text('Login'),
-                        );
-                      },
-                    ),
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state is AuthLoading;
 
-                    const SizedBox(height: 8),
+                      return FilledButton(
+                        onPressed: isLoading ? null : _login,
 
-                    TextButton(
-                      onPressed: () {
-                        context.push(AppRoute.forgotPassword.path);
-                      },
-                      child: const Text('Forgot Password?'),
-                    ),
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: FinanceLoadingIndicator(
+                                  strokeWidth: 2,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                ),
+                              )
+                            : const Text('Login'),
+                      );
+                    },
+                  ),
 
-                    const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-                    TextButton(
-                      onPressed: () {
-                        context.go(AppRoute.register.path);
-                      },
-                      child: const Text('Create Account'),
-                    ),
-                  ],
-                ),
+                  TextButton(
+                    onPressed: () {
+                      context.push(AppRoute.forgotPassword.path);
+                    },
+                    child: const Text('Forgot Password?'),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  TextButton(
+                    onPressed: () {
+                      context.go(AppRoute.register.path);
+                    },
+                    child: const Text('Create Account'),
+                  ),
+                ],
               ),
             ),
           ),

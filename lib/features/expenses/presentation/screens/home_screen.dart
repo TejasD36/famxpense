@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, state) {
             return state.when(
               initial: () => const SizedBox(),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: FinanceLoadingIndicator()),
               empty: () {
                 return RefreshIndicator(
                   onRefresh: () async {
@@ -378,7 +378,6 @@ class _HomeInsightPanel extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
                 Text(
                   balanceLabel,
                   style: const TextStyle(fontWeight: FontWeight.w600),
@@ -387,7 +386,13 @@ class _HomeInsightPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const FinanceLottieAccent(size: 92),
+          Lottie.asset(
+            Assets.lottie.savings.path,
+            repeat: true,
+            fit: BoxFit.contain,
+            width: 150,
+            frameRate: FrameRate.max,
+          ),
         ],
       ),
     );
@@ -697,7 +702,7 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: FinanceLoadingIndicator(strokeWidth: 2),
                           )
                         : const Icon(
                             Icons.check_circle_rounded,
@@ -713,7 +718,7 @@ class _PendingConfirmationsState extends State<_PendingConfirmations> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: FinanceLoadingIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.cancel_rounded, color: Colors.red),
                     tooltip: 'Reject',
@@ -1174,7 +1179,7 @@ class _DebtSummaryCards extends StatelessWidget {
                         const Center(
                           child: Padding(
                             padding: EdgeInsets.all(8),
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: FinanceLoadingIndicator(strokeWidth: 2),
                           ),
                         )
                       else if (userAccounts.isEmpty)
@@ -1371,7 +1376,7 @@ class _DebtSummaryCards extends StatelessWidget {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: FinanceLoadingIndicator(strokeWidth: 2),
                             )
                           : const Text('Settle'),
                     ),

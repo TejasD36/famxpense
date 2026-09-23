@@ -211,7 +211,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: FinanceLoadingIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.check_rounded),
                 label: Text(_saving ? 'Saving' : 'Save Account'),

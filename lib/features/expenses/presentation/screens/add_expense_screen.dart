@@ -1546,7 +1546,7 @@ class _SaveExpenseBar extends StatelessWidget {
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: FinanceLoadingIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.check_rounded),
                     label: Text(isLoading ? 'Saving' : label),

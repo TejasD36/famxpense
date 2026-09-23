@@ -374,7 +374,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(
+                                    child: FinanceLoadingIndicator(
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -387,7 +387,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
 
                   if (_loading)
                     const SliverFillRemaining(
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: FinanceLoadingIndicator()),
                     )
                   else if (_transactions.isEmpty)
                     SliverToBoxAdapter(
@@ -1515,7 +1515,7 @@ class _SavingsProgressCardState extends State<_SavingsProgressCard> {
     if (_loading) {
       return const SizedBox(
         height: 60,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(child: FinanceLoadingIndicator(strokeWidth: 2)),
       );
     }
 

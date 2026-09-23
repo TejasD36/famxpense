@@ -287,7 +287,7 @@ class _PartnerSettlementDetailScreenState
     return Scaffold(
       appBar: AppBar(title: Text('@${widget.partnerName}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : RefreshIndicator(
               onRefresh: _loadData,
               child: _buildContent(context, userId, theme),
@@ -410,7 +410,7 @@ class _PartnerSettlementDetailScreenState
                               ? const SizedBox(
                                   height: 18,
                                   width: 18,
-                                  child: CircularProgressIndicator(
+                                  child: FinanceLoadingIndicator(
                                     strokeWidth: 2,
                                   ),
                                 )

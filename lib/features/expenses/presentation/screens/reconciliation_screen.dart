@@ -40,7 +40,7 @@ class _ReconciliationScreenState extends State<ReconciliationScreen> {
           future: _future,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: FinanceLoadingIndicator());
             }
             final health = snapshot.data!;
             final counts = health.counts;

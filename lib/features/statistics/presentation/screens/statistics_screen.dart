@@ -211,8 +211,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               builder: (context, state) {
                 return state.when(
                   initial: () => const SizedBox(),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: FinanceLoadingIndicator()),
                   loaded:
                       (
                         _,

@@ -24,7 +24,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         builder: (context, state) {
           return state.when(
             initial: () => const SizedBox(),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(child: FinanceLoadingIndicator()),
             error: (m) => Center(child: Text(m)),
             loaded: (notifications) {
               if (notifications.isEmpty) {

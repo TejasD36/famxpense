@@ -75,7 +75,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         child: const Icon(Icons.add_rounded),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : _error != null
           ? Center(
               child: Padding(
@@ -327,7 +327,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                     const SizedBox(height: 12),
 
                     if (!accountsLoaded)
-                      const LinearProgressIndicator()
+                      const Center(child: FinanceLoadingIndicator.compact())
                     else if (accountLoadError)
                       Text(
                         'Failed to load accounts',

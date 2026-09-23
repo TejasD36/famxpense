@@ -362,8 +362,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
               builder: (context, state) {
                 return state.when(
                   initial: () => const SizedBox(),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: FinanceLoadingIndicator()),
                   empty: () => const FinanceEmptyState(
                     icon: Icons.receipt_long_rounded,
                     title: 'No activity yet',
@@ -635,7 +634,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         },
         loading: () => const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
-          child: LinearProgressIndicator(),
+          child: Center(child: FinanceLoadingIndicator.compact(size: 36)),
         ),
         orElse: () => const SizedBox.shrink(),
       ),

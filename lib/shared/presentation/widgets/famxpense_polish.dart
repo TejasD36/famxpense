@@ -1,7 +1,7 @@
 import '../../../core.dart';
 
 class FamXpenseAssets {
-  static const walletLottie = 'assets/lottie/wallet_money_in_out.json';
+  static String get walletLottie => Assets.lottie.wallet.path;
 }
 
 class FinanceLottieAccent extends StatelessWidget {
@@ -12,15 +12,9 @@ class FinanceLottieAccent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion =
-        MediaQuery.maybeDisableAnimationsOf(context) ??
-        MediaQuery.disableAnimationsOf(context);
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? MediaQuery.disableAnimationsOf(context);
     if (reduceMotion) {
-      return Icon(
-        Icons.account_balance_wallet_rounded,
-        size: size * 0.56,
-        color: Theme.of(context).colorScheme.primary,
-      );
+      return Icon(Icons.account_balance_wallet_rounded, size: size * 0.56, color: Theme.of(context).colorScheme.primary);
     }
 
     return Lottie.asset(
@@ -30,6 +24,38 @@ class FinanceLottieAccent extends StatelessWidget {
       repeat: repeat,
       fit: BoxFit.contain,
       frameRate: FrameRate.max,
+    );
+  }
+}
+
+class FinanceLoadingIndicator extends StatelessWidget {
+  final double? strokeWidth;
+  final Color? color;
+  final double size;
+  final bool repeat;
+
+  const FinanceLoadingIndicator({super.key, this.strokeWidth, this.color, this.size = 80, this.repeat = true});
+
+  const FinanceLoadingIndicator.compact({super.key, this.strokeWidth, this.color, this.size = 40, this.repeat = true});
+
+  const FinanceLoadingIndicator.centered({super.key, this.strokeWidth, this.color, this.size = 64, this.repeat = true});
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? MediaQuery.disableAnimationsOf(context);
+
+    return Semantics(
+      label: 'Loading',
+      child: SizedBox.square(
+        dimension: size,
+        child: Lottie.asset(
+          Assets.lottie.loader.path,
+          repeat: repeat,
+          animate: !reduceMotion,
+          fit: BoxFit.contain,
+          frameRate: FrameRate.max,
+        ),
+      ),
     );
   }
 }
@@ -61,28 +87,16 @@ class GradientPatternPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [
-                  Color.alphaBlend(primary.withValues(alpha: 0.18), surface),
-                  Color.alphaBlend(secondary.withValues(alpha: 0.10), surface),
-                ]
-              : [
-                  Color.alphaBlend(primary.withValues(alpha: 0.10), surface),
-                  Color.alphaBlend(secondary.withValues(alpha: 0.08), surface),
-                ],
+              ? [Color.alphaBlend(primary.withValues(alpha: 0.18), surface), Color.alphaBlend(secondary.withValues(alpha: 0.10), surface)]
+              : [Color.alphaBlend(primary.withValues(alpha: 0.10), surface), Color.alphaBlend(secondary.withValues(alpha: 0.08), surface)],
         ),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45)),
       ),
       child: Stack(
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: _SoftPatternPainter(
-                color: theme.colorScheme.primary.withValues(
-                  alpha: isDark ? 0.08 : 0.06,
-                ),
-              ),
+              painter: _SoftPatternPainter(color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.08 : 0.06)),
             ),
           ),
           Padding(padding: padding, child: child),
@@ -133,15 +147,8 @@ class CompactInfoTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          subtitle,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12),
-        ),
-        trailing:
-            trailing ??
-            (onTap == null ? null : const Icon(Icons.chevron_right_rounded)),
+        subtitle: Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+        trailing: trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right_rounded)),
       ),
     );
   }
@@ -166,12 +173,7 @@ class MoneyMetricStrip extends StatelessWidget {
             for (var i = 0; i < metrics.length; i++) ...[
               Expanded(child: _MoneyMetricView(metric: metrics[i])),
               if (i != metrics.length - 1)
-                Container(
-                  width: 1,
-                  height: 34,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  color: theme.dividerColor,
-                ),
+                Container(width: 1, height: 34, margin: const EdgeInsets.symmetric(horizontal: 8), color: theme.dividerColor),
             ],
           ],
         ),
@@ -186,12 +188,7 @@ class MoneyMetric {
   final Color? color;
   final IconData? icon;
 
-  const MoneyMetric({
-    required this.label,
-    required this.value,
-    this.color,
-    this.icon,
-  });
+  const MoneyMetric({required this.label, required this.value, this.color, this.icon});
 }
 
 class _MoneyMetricView extends StatelessWidget {
@@ -210,10 +207,7 @@ class _MoneyMetricView extends StatelessWidget {
           Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.11),
-              borderRadius: BorderRadius.circular(6),
-            ),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.11), borderRadius: BorderRadius.circular(6)),
             child: Icon(metric.icon, color: color, size: 17),
           ),
           const SizedBox(width: 8),
@@ -227,11 +221,7 @@ class _MoneyMetricView extends StatelessWidget {
                 metric.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 2),
               FittedBox(
@@ -239,11 +229,7 @@ class _MoneyMetricView extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   metric.value,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -286,27 +272,20 @@ class FinanceEmptyState extends StatelessWidget {
               Container(
                 width: 58,
                 height: 58,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(6),
-                ),
+                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(6)),
                 child: Icon(icon, color: theme.colorScheme.primary, size: 28),
               ),
             const SizedBox(height: 14),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
@@ -325,10 +304,7 @@ class SheetGrabber extends StatelessWidget {
       child: Container(
         width: 40,
         height: 4,
-        decoration: BoxDecoration(
-          color: Theme.of(context).dividerColor,
-          borderRadius: BorderRadius.circular(2),
-        ),
+        decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(2)),
       ),
     );
   }
@@ -348,10 +324,9 @@ class CompactSectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary),
           ),
           const Spacer(),
           ?trailing,
@@ -365,43 +340,36 @@ class AuthBrandPanel extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const AuthBrandPanel({
-    super.key,
-    required this.title,
-    required this.subtitle,
-  });
+  const AuthBrandPanel({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
-    return GradientPatternPanel(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          const FinanceLottieAccent(size: 78),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        Stack(
+          children: [
+            Lottie.asset(Assets.lottie.auth.path, repeat: true, fit: BoxFit.cover, frameRate: FrameRate.max),
+            GradientPatternPanel(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              child: Row(
+                children: [
+                  const FinanceLottieAccent(size: 78),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -419,11 +387,7 @@ class _SoftPatternPainter extends CustomPainter {
       ..strokeWidth = 1;
     const gap = 28.0;
     for (var x = -size.height; x < size.width; x += gap) {
-      canvas.drawLine(
-        Offset(x, size.height),
-        Offset(x + size.height, 0),
-        paint,
-      );
+      canvas.drawLine(Offset(x, size.height), Offset(x + size.height, 0), paint);
     }
   }
 

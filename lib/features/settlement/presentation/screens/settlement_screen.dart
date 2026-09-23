@@ -199,7 +199,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Settlements')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : RefreshIndicator(
               onRefresh: _loadData,
               child: CustomScrollView(

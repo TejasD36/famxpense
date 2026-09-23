@@ -193,7 +193,7 @@ class _SearchActivityScreenState extends State<SearchActivityScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Search')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : Column(
               children: [
                 Padding(

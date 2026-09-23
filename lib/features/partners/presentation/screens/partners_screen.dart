@@ -105,8 +105,7 @@ class _PartnersScreenState extends State<PartnersScreen>
                       const TabBarView(children: [SizedBox(), SizedBox()]),
                 ),
                 state.maybeWhen(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: FinanceLoadingIndicator()),
                   initial: () => const Center(child: Text('Loading...')),
                   error: (message) => Center(child: Text(message)),
                   orElse: () => const SizedBox.shrink(),
@@ -247,7 +246,7 @@ class _ConnectedTabState extends State<_ConnectedTab> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: FinanceLoadingIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.person_remove_rounded, color: Colors.red),
             tooltip: 'Remove Partner',
@@ -319,7 +318,7 @@ class _RequestsTabState extends State<_RequestsTab> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: FinanceLoadingIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.close_rounded),
                     ),
@@ -333,7 +332,7 @@ class _RequestsTabState extends State<_RequestsTab> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: FinanceLoadingIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.check_rounded),
                     ),
