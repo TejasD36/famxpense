@@ -16,5 +16,6 @@ sealed class NotificationEntity with _$NotificationEntity {
     @Default(false) bool isRead,
   }) = _NotificationEntity;
 
-  factory NotificationEntity.fromJson(Map<String, dynamic> json) => _$NotificationEntityFromJson(json);
+  factory NotificationEntity.fromJson(Map<String, dynamic> json) =>
+      _$NotificationEntityFromJson(json);
 }

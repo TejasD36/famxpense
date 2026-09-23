@@ -13,10 +13,15 @@ sealed class SettlementEntity with _$SettlementEntity {
     required SettlementStatus status,
     required DateTime createdAt,
     DateTime? confirmedAt,
+    DateTime? resolvedAt,
+    String? resolutionType,
     List<String>? relatedExpenseIds,
     String? accountId,
+    String? fromAccountId,
+    String? toAccountId,
     @Default([]) List<String> participantIds,
   }) = _SettlementEntity;
 
-  factory SettlementEntity.fromJson(Map<String, dynamic> json) => _$SettlementEntityFromJson(json);
+  factory SettlementEntity.fromJson(Map<String, dynamic> json) =>
+      _$SettlementEntityFromJson(json);
 }

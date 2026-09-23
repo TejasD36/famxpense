@@ -6,7 +6,10 @@ class SearchUserUsecase {
 
   SearchUserUsecase(this._repository);
 
-  Future<UserEntity?> call({required String query, required String currentUserId}) async {
+  Future<UserEntity?> call({
+    required String query,
+    required String currentUserId,
+  }) async {
     return _repository.searchUser(query: query, currentUserId: currentUserId);
   }
 }

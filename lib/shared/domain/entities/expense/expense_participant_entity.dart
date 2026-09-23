@@ -12,5 +12,6 @@ sealed class ExpenseParticipantEntity with _$ExpenseParticipantEntity {
     DateTime? settledAt,
   }) = _ExpenseParticipantEntity;
 
-  factory ExpenseParticipantEntity.fromJson(Map<String, dynamic> json) => _$ExpenseParticipantEntityFromJson(json);
+  factory ExpenseParticipantEntity.fromJson(Map<String, dynamic> json) =>
+      _$ExpenseParticipantEntityFromJson(json);
 }

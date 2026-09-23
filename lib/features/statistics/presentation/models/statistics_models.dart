@@ -3,7 +3,11 @@ sealed class TransactionItem {
   final double amount;
   final DateTime date;
 
-  const TransactionItem({required this.id, required this.amount, required this.date});
+  const TransactionItem({
+    required this.id,
+    required this.amount,
+    required this.date,
+  });
 }
 
 class ExpenseTxn extends TransactionItem {
@@ -36,6 +40,19 @@ class DepositTxn extends TransactionItem {
   });
 }
 
+class IncomeTxn extends TransactionItem {
+  final String description;
+  final String accountId;
+
+  const IncomeTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.description,
+    required this.accountId,
+  });
+}
+
 class SettlementTxn extends TransactionItem {
   final String accountId;
   final bool isIncoming;
@@ -46,6 +63,36 @@ class SettlementTxn extends TransactionItem {
     required super.date,
     required this.accountId,
     required this.isIncoming,
+  });
+}
+
+class TransferTxn extends TransactionItem {
+  final String accountId;
+  final String linkedAccountId;
+  final bool isIncoming;
+  final String description;
+
+  const TransferTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.accountId,
+    required this.linkedAccountId,
+    required this.isIncoming,
+    required this.description,
+  });
+}
+
+class BalanceCorrectionTxn extends TransactionItem {
+  final String accountId;
+  final String description;
+
+  const BalanceCorrectionTxn({
+    required super.id,
+    required super.amount,
+    required super.date,
+    required this.accountId,
+    required this.description,
   });
 }
 

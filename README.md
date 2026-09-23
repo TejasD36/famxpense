@@ -1,23 +1,190 @@
-# famxpense
+# FamXpense
 
-Personal and shared expense tracking for families, friends, and groups.
+A cross-platform expense tracking app for families and friends, built with Flutter and Firebase. Track personal and shared expenses, settle debts, manage accounts, and stay in sync across devices — all with offline-first support.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Personal & Shared Expenses** — Log expenses as personal or shared with partners. Split equally or by custom amounts.
+- **Partner Management** — Send/accept/reject partnership requests, view connection status.
+- **Debt Tracking** — Automatic debt calculation per partner with real-time ledger updates.
+- **Settlements** — Settle up with partners; debts update automatically.
+- **Multi-Account** — Create and manage multiple bank accounts per user (savings, cash, etc.).
+- **Manual Account History** — Deposits and balance corrections are recorded with immutable, synchronized account entries.
+- **Income Tracking** — Log income entries (salary, freelance, investment, etc.) that credit account balances.
+- **Activity Dashboard** — Monthly or custom-range totals above the filterable expense and settlement timeline.
+- **Statistics** — Detailed spending, deposit, category, account, daily, and month-comparison reports with CSV export.
+- **Offline-First Sync** — Data is stored locally in Hive CE and synced to Firestore when online.
+- **Notifications** — Real-time notifications for partner requests and new shared expenses.
+- **Authentication** — Email/password via Firebase Auth with persistent session.
+- **Dark Mode** — Toggle between light and dark themes.
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+| Category       | Technology                                          |
+| -------------- | --------------------------------------------------- |
+| Framework      | Flutter (Android, iOS, Web)                         |
+| Language       | Dart 3.11                                           |
+| State Mgmt     | flutter_bloc 9.x (Cubit + BLoC)                     |
+| Routing        | go_router 17.x (StatefulShellRoute with bottom nav) |
+| DI             | get_it 9.x                                          |
+| Auth           | Firebase Authentication (email/password)            |
+| Database       | Firebase Firestore (remote) + Hive CE (local)       |
+| Codegen        | freezed + json_serializable + build_runner          |
+| Maps           | Google Maps Flutter                                 |
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Architecture
 
+Feature-first Clean Architecture with offline-first data flow:
 
+```
+Feature/
+  data/
+    datasources/
+      local/    (Hive CE)
+      remote/   (Firestore)
+    repositories/
+  domain/
+    entities/
+    repositories/
+    usecases/
+  presentation/
+    blocs/
+    screens/
+    widgets/
+```
 
-## Pending Bugs
+Data flows: **UI → Bloc → Usecase → Repository → Datasource (local + remote)**
 
-- Expense Settled from user B pending request is shown for user B but for user A there did not shown option to confirm request
+Sync is handled by `SyncService` which uploads new/modified local records to Firestore and downloads remote records not present locally, using a merge strategy.
+
+## Navigation and Financial Flow
+
+The bottom navigation order is:
+
+1. **Home** — current balances and shared-debt overview.
+2. **Activity** — the main transaction timeline with Total Spent and Deposited summary cards.
+3. **Partners** — connected partners and partnership requests.
+4. **Profile** — accounts, default account, preferences, income, and savings entry points.
+
+Activity defaults to the current month. Previous/next month controls and the custom date-range picker update both summary cards and the transaction list. Date ranges include the complete start and end dates. **View more stats** opens the standalone Statistics screen while preserving Activity's selected period and tab state when returning.
+
+Shared and personal expenses are immutable after creation. Amounts are whole rupees. Equal splits keep the remainder with the payer so participant shares always equal the expense total. A settlement debits the sender when created, credits the receiver when confirmed, and refunds the sender if rejected or cancelled.
+
+## Setup
+
+### Prerequisites
+
+- Flutter SDK >= 3.11
+- Firebase project with Auth, Firestore enabled
+- Google Maps API key
+
+### Configuration
+
+1. Clone the repo and install dependencies:
+   ```sh
+   flutter pub get
+   ```
+
+2. Create environment files:
+
+   **`env/dev.json`**
+   ```json
+   {
+     "API_KEY": "your-google-maps-api-key"
+   }
+   ```
+
+   **`env/prod.json`** — same format for production builds.
+
+3. Add Firebase config files:
+   - `lib/firebase_options.dart` (generated by `flutterfire configure`)
+
+4. Run code generation:
+   ```sh
+   flutter pub run build_runner build --delete-conflicting-outputs
+   ```
+
+5. Run the app:
+
+   Development (iOS/Android):
+   ```sh
+   flutter run --flavor dev --dart-define=FLAVOR=dev --dart-define-from-file=env/dev.json
+   ```
+
+   Production (Android/iOS):
+   ```sh
+   flutter run --flavor prod --dart-define=FLAVOR=prod --dart-define-from-file=env/prod.json
+   ```
+
+   Production (web, where native product flavors do not apply):
+   ```sh
+   flutter run -d chrome --dart-define=FLAVOR=prod --dart-define-from-file=env/prod.json
+   ```
+
+`FLAVOR` must match the native flavor. Omitting it defaults the Dart configuration to production Firebase.
+
+### Firestore Rules
+
+Rules are in `firestore.rules`. Required indexes are minimal — `userId`-based queries on each collection. Deploy after changing:
+
+```sh
+firebase deploy --only firestore:rules
+```
+
+## Codegen
+
+After modifying any `@freezed` or `@HiveType` model file:
+
+```sh
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+## Verification
+
+```sh
+flutter analyze lib/             # must pass with zero issues
+flutter test --reporter compact  # complete regression suite
+```
+
+The automated suite covers:
+
+- Whole-rupee equal/manual splits and payer remainder handling.
+- Expense persistence, ownership, offline retries, and idempotent debt mutations.
+- Account balance adjustments, transfers, deletion tombstones, and Firestore atomic operations.
+- Manual balance edits with exact before/after values and atomic, idempotent Firestore audit entries.
+- Settlement creation, confirmation, rejection, refunds, and remote serialization.
+- Activity month filtering and inclusive custom ranges across expenses and settlements.
+- Statistics totals for expenses, deposits, and confirmed settlements over custom ranges.
+- Sync conflict recovery for expenses, accounts, debt ledgers, settlements, income, savings, transfers, and notifications.
+- Partnership queries/mapping, notification behavior, entity serialization, and UI smoke coverage.
+
+When changing date logic, tests must not hardcode the current calendar month. The suite includes a regression for the month-boundary failure previously triggered when July changed to August.
+
+### Manual navigation regression
+
+Before a production build, verify this short device flow:
+
+1. Open Profile and select a default non-savings account.
+2. Open that account, try to mark it as savings, and choose **Go to Profile**.
+3. Confirm Profile replaces Account Detail without a duplicate-page-key assertion.
+4. Open Activity, change month, then select a range spanning two months.
+5. Confirm both cards and the transaction list change together and include transactions on the range's end date.
+6. Open **View more stats**, return, and confirm the Activity tab retains its filter and navigation state.
+7. Open Partners from the third tab and confirm add/accept/reject/pull-to-refresh flows still work.
+8. Edit an account balance, confirm its timeline shows the old and new values, then refresh the app in another browser and confirm the same entry and balance appear once.
+
+### Firestore rules regression
+
+Account and debt mutations are immutable idempotency documents. Their rules deliberately allow an authenticated transaction to `get` a missing mutation ID before creating it, while collection `list` access remains owner/participant scoped. This is required for the first income credit, savings transfer, expense debt adjustment, and retry-safe settlement mutation. Manual deposits and balance edits also create immutable `account_entries` documents in the same Firestore transaction as their balance mutation, preventing a balance change from being duplicated or separated from its audit trail.
+
+After changing `firestore.rules`, validate it locally and deploy it to the matching Firebase project:
+
+```sh
+firebase emulators:exec --only firestore "true"
+firebase use famxpense-tp-dev
+firebase deploy --only firestore:rules
+```
+
+Recent `firebase-tools` versions require JDK 21 or newer to start the Firestore emulator.
+
+Production rules must be deployed separately with the production Firebase project selected. **Deploy rules before deploying the web client.** A client release containing mutation-based balance changes or account history entries will otherwise queue them locally with `cloud_firestore/permission-denied` until the corrected rules are deployed.

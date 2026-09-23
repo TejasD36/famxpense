@@ -27,5 +27,6 @@ sealed class ExpenseEntity with _$ExpenseEntity {
     double? longitude,
   }) = _ExpenseEntity;
 
-  factory ExpenseEntity.fromJson(Map<String, dynamic> json) => _$ExpenseEntityFromJson(json);
+  factory ExpenseEntity.fromJson(Map<String, dynamic> json) =>
+      _$ExpenseEntityFromJson(json);
 }

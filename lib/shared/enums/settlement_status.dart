@@ -10,4 +10,6 @@ enum SettlementStatus {
   confirmed,
   @HiveField(2)
   rejected,
+  @HiveField(3)
+  cancelled,
 }

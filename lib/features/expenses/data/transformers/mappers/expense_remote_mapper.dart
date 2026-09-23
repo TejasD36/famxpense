@@ -44,14 +44,20 @@ extension ExpenseRemoteDtoMapper on ExpenseRemoteDto {
       amount: amount,
       paidByUserId: paidByUserId,
       ownerUserId: ownerUserId ?? paidByUserId,
-      expenseType: ExpenseType.values.where((e) => e.name == expenseType).firstOrNull ?? ExpenseType.personal,
-      splitType: SplitType.values.where((e) => e.name == splitType).firstOrNull ?? SplitType.equal,
+      expenseType:
+          ExpenseType.values.where((e) => e.name == expenseType).firstOrNull ??
+          ExpenseType.personal,
+      splitType:
+          SplitType.values.where((e) => e.name == splitType).firstOrNull ??
+          SplitType.equal,
       participants: participants.map((e) {
         return ExpenseParticipantEntity(
           userId: e['userId'] as String,
           amount: (e['amount'] as num).toDouble(),
           isSettled: (e['isSettled'] as bool?) ?? false,
-          settledAt: e['settledAt'] != null ? DateTime.tryParse(e['settledAt'] as String) : null,
+          settledAt: e['settledAt'] != null
+              ? DateTime.tryParse(e['settledAt'] as String)
+              : null,
         );
       }).toList(),
       groupId: groupId,

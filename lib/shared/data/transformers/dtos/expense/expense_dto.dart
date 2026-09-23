@@ -28,5 +28,6 @@ sealed class ExpenseDto with _$ExpenseDto {
     @HiveField(18) double? longitude,
   }) = _ExpenseDto;
 
-  factory ExpenseDto.fromJson(Map<String, dynamic> json) => _$ExpenseDtoFromJson(json);
+  factory ExpenseDto.fromJson(Map<String, dynamic> json) =>
+      _$ExpenseDtoFromJson(json);
 }

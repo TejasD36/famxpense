@@ -4,17 +4,27 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
 
-  AuthRemoteDatasourceImpl({required FirebaseAuth firebaseAuth, required FirebaseFirestore firestore})
-    : _firebaseAuth = firebaseAuth,
-      _firestore = firestore;
+  AuthRemoteDatasourceImpl({
+    required FirebaseAuth firebaseAuth,
+    required FirebaseFirestore firestore,
+  }) : _firebaseAuth = firebaseAuth,
+       _firestore = firestore;
 
   static const _usersCollection = 'users';
 
   @override
-  Future<UserDto> register({required String name, required String nickname, required String email, required String password}) async {
+  Future<UserDto> register({
+    required String name,
+    required String nickname,
+    required String email,
+    required String password,
+  }) async {
     /// CREATE AUTH ACCOUNT FIRST (no Firestore access needed)
 
-    final credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email.trim(), password: password);
+    final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
 
     final firebaseUser = credential.user;
     if (firebaseUser == null) {
@@ -25,7 +35,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     final nicknameQuery = await _firestore
         .collection(_usersCollection)
-        .where('nicknameLowercase', isEqualTo: nickname.trim().toLowerCase())
+        .where('nickname', isEqualTo: nickname.trim().toLowerCase())
         .limit(1)
         .get();
 
@@ -39,7 +49,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     final userDto = UserDto(
       id: firebaseUser.uid,
       name: name.trim(),
-      nickname: nickname.trim(),
+      nickname: nickname.trim().toLowerCase(),
       email: email.trim(),
       createdAt: now,
       updatedAt: now,
@@ -48,9 +58,10 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     /// STORE USER
 
     try {
-      final data = userDto.toJson();
-      data['nicknameLowercase'] = nickname.trim().toLowerCase();
-      await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(data);
+      await _firestore
+          .collection(_usersCollection)
+          .doc(firebaseUser.uid)
+          .set(userDto.toJson());
     } catch (e) {
       /// CLEANUP: remove Firebase Auth user if Firestore write fails
       await firebaseUser.delete();
@@ -61,15 +72,24 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<UserDto> login({required String email, required String password}) async {
-    final credential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+  Future<UserDto> login({
+    required String email,
+    required String password,
+  }) async {
+    final credential = await _firebaseAuth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
     final firebaseUser = credential.user;
     if (firebaseUser == null) {
       throw Exception('Login failed: no user returned from Firebase');
     }
 
-    final doc = await _firestore.collection(_usersCollection).doc(firebaseUser.uid).get();
+    final doc = await _firestore
+        .collection(_usersCollection)
+        .doc(firebaseUser.uid)
+        .get();
 
     final data = doc.data();
     if (data == null) {
@@ -95,7 +115,10 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     if (firebaseUser == null) return null;
 
-    final doc = await _firestore.collection(_usersCollection).doc(firebaseUser.uid).get();
+    final doc = await _firestore
+        .collection(_usersCollection)
+        .doc(firebaseUser.uid)
+        .get();
 
     if (!doc.exists) return null;
 

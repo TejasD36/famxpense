@@ -11,7 +11,9 @@ extension ExpenseDtoMapper on ExpenseDto {
       ownerUserId: ownerUserId,
       expenseType: expenseType,
       splitType: splitType,
-      participants: participants.map((participant) => participant.toEntity()).toList(),
+      participants: participants
+          .map((participant) => participant.toEntity())
+          .toList(),
       groupId: groupId,
       accountId: accountId,
       expenseDate: expenseDate,
@@ -37,7 +39,9 @@ extension ExpenseEntityMapper on ExpenseEntity {
       ownerUserId: ownerUserId,
       expenseType: expenseType,
       splitType: splitType,
-      participants: participants.map((participant) => participant.toDto()).toList(),
+      participants: participants
+          .map((participant) => participant.toDto())
+          .toList(),
       groupId: groupId,
       accountId: accountId,
       expenseDate: expenseDate,

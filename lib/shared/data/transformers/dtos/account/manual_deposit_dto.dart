@@ -12,7 +12,14 @@ sealed class ManualDepositDto with _$ManualDepositDto {
     @HiveField(2) required double amount,
     @HiveField(3) required String description,
     @HiveField(4) required DateTime createdAt,
+    @HiveField(5) @Default(true) bool balanceApplied,
+    @HiveField(6) @Default('') String userId,
+    @HiveField(7) double? previousBalance,
+    @HiveField(8) double? newBalance,
+    @HiveField(9) @Default(false) bool isBalanceEdit,
+    @HiveField(10) @Default(false) bool synced,
   }) = _ManualDepositDto;
 
-  factory ManualDepositDto.fromJson(Map<String, dynamic> json) => _$ManualDepositDtoFromJson(json);
+  factory ManualDepositDto.fromJson(Map<String, dynamic> json) =>
+      _$ManualDepositDtoFromJson(json);
 }

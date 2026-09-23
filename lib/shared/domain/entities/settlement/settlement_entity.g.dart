@@ -17,10 +17,16 @@ _SettlementEntity _$SettlementEntityFromJson(Map<String, dynamic> json) =>
       confirmedAt: json['confirmedAt'] == null
           ? null
           : DateTime.parse(json['confirmedAt'] as String),
+      resolvedAt: json['resolvedAt'] == null
+          ? null
+          : DateTime.parse(json['resolvedAt'] as String),
+      resolutionType: json['resolutionType'] as String?,
       relatedExpenseIds: (json['relatedExpenseIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
       accountId: json['accountId'] as String?,
+      fromAccountId: json['fromAccountId'] as String?,
+      toAccountId: json['toAccountId'] as String?,
       participantIds:
           (json['participantIds'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -37,8 +43,12 @@ Map<String, dynamic> _$SettlementEntityToJson(_SettlementEntity instance) =>
       'status': _$SettlementStatusEnumMap[instance.status]!,
       'createdAt': instance.createdAt.toIso8601String(),
       'confirmedAt': instance.confirmedAt?.toIso8601String(),
+      'resolvedAt': instance.resolvedAt?.toIso8601String(),
+      'resolutionType': instance.resolutionType,
       'relatedExpenseIds': instance.relatedExpenseIds,
       'accountId': instance.accountId,
+      'fromAccountId': instance.fromAccountId,
+      'toAccountId': instance.toAccountId,
       'participantIds': instance.participantIds,
     };
 
@@ -46,4 +56,5 @@ const _$SettlementStatusEnumMap = {
   SettlementStatus.pending: 'pending',
   SettlementStatus.confirmed: 'confirmed',
   SettlementStatus.rejected: 'rejected',
+  SettlementStatus.cancelled: 'cancelled',
 };

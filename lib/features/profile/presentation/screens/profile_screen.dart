@@ -9,8 +9,8 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
 import '../../../notification/presentation/blocs/notification_bloc.dart';
+import '../../../savings/domain/repositories/savings_repository.dart';
 import '../../../settlement/data/datasources/settlement_local_datasource.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -35,7 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _onRefresh() {
     if (mounted) {
       if (context.mounted) {
-        context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+        context.read<NotificationBloc>().add(
+          const NotificationEvent.loadNotifications(),
+        );
       }
     }
   }
@@ -53,7 +55,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
 
               children: [
-                const Text('Choose Theme', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Choose Theme',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
 
                 const SizedBox(height: 20),
 
@@ -121,11 +126,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             FilledButton(
               onPressed: () {
-                context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: email));
+                context.read<AuthBloc>().add(
+                  AuthEvent.forgotPassword(email: email),
+                );
 
                 context.pop();
 
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reset email sent')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Reset email sent')),
+                );
               },
 
               child: const Text('Send'),
@@ -183,15 +192,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       child: Scaffold(
         appBar: AppBar(
-          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Profile')),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13.0),
+            child: const Text('Profile'),
+          ),
         ),
         body: SafeArea(
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               return state.when(
-                initial: () => const Center(child: CircularProgressIndicator()),
+                initial: () => const Center(child: FinanceLoadingIndicator()),
 
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: FinanceLoadingIndicator()),
 
                 unauthenticated: () => const SizedBox(),
 
@@ -204,178 +216,238 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 authenticated: (user) {
                   return RefreshIndicator(
                     onRefresh: () async {
-                      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+                      final userId =
+                          sl<AuthLocalDatasource>().getUserId() ?? '';
                       if (userId.isNotEmpty) {
                         await sl<SyncService>().syncAll(userId: userId);
-                        if (context.mounted) context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
+                        if (context.mounted) {
+                          context.read<NotificationBloc>().add(
+                            const NotificationEvent.loadNotifications(),
+                          );
+                        }
                       }
                     },
                     child: ListView(
-                    padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
 
-                    children: [
-                      /// User Card
-                      Card(
-                        elevation: 0,
+                      children: [
+                        Card(
+                          elevation: 0,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            leading: CircleAvatar(
+                              radius: 24,
+                              child: Text(
+                                user.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              user.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '@${user.nickname} • ${user.email}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
 
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
+                        const SizedBox(height: 20),
 
+                        /// Accounts
+                        _AccountsSection(),
+
+                        const SizedBox(height: 28),
+
+                        /// Notifications
+                        BlocBuilder<NotificationBloc, NotificationState>(
+                          builder: (context, state) {
+                            final unread =
+                                state.whenOrNull(
+                                  loaded: (n) =>
+                                      n.where((n) => !n.isRead).length,
+                                ) ??
+                                0;
+                            return Card(
+                              elevation: 0,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.12),
+                                  child: const Icon(
+                                    Icons.notifications_outlined,
+                                  ),
+                                ),
+                                title: const Text(
+                                  'Notifications',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                trailing: unread > 0
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          unread > 99
+                                              ? '99+'
+                                              : unread.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      )
+                                    : const Icon(Icons.chevron_right_rounded),
+                                onTap: () => context.pushNamed(
+                                  AppRoute.notifications.name,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        /// Settlements Summary
+                        _SettlementsTile(),
+                        const SizedBox(height: 12),
+
+                        /// Income
+                        Card(
+                          elevation: 0,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.12),
+                              child: const Icon(Icons.account_balance_rounded),
+                            ),
+                            title: const Text(
+                              'Income',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            trailing: const Icon(Icons.chevron_right_rounded),
+                            onTap: () =>
+                                context.pushNamed(AppRoute.income.name),
+                          ),
+                        ),
+
+                        /// Savings
+                        _SavingsTile(),
+                        const SizedBox(height: 8),
+
+                        /// Settings Header
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        /// Default Account
+                        _DefaultAccountTile(),
+
+                        const SizedBox(height: 12),
+
+                        /// Theme
+                        _SettingTile(
+                          icon: Icons.palette_rounded,
+
+                          title: 'Theme',
+
+                          subtitle: 'Light, Dark or System',
+
+                          onTap: () {
+                            _showThemeBottomSheet(context);
+                          },
+                        ),
+
+                        /// Reset Password
+                        _SettingTile(
+                          icon: Icons.lock_reset_rounded,
+
+                          title: 'Reset Password',
+
+                          subtitle: 'Send password reset email',
+
+                          onTap: () {
+                            _showResetPasswordDialog(context, user.email);
+                          },
+                        ),
+
+                        /// Logout
+                        _SettingTile(
+                          icon: Icons.logout_rounded,
+
+                          title: 'Logout',
+
+                          subtitle: 'Logout from account',
+
+                          isDestructive: true,
+
+                          onTap: () {
+                            _showLogoutDialog(context);
+                          },
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        /// About
+                        Center(
                           child: Column(
                             children: [
-                              CircleAvatar(
-                                radius: 42,
-
-                                child: Text(
-                                  user.name.substring(0, 1).toUpperCase(),
-
-                                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                              Text(
+                                'FamXpense',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               ),
 
-                              const SizedBox(height: 16),
-
-                              Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-
                               const SizedBox(height: 4),
 
-                              Text('@${user.nickname}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-
-                              const SizedBox(height: 12),
-
-                              Text(user.email, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                              Text(
+                                'Version 1.0.0',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      /// Accounts
-                      _AccountsSection(),
-
-                      const SizedBox(height: 28),
-
-                      /// Notifications
-                      BlocBuilder<NotificationBloc, NotificationState>(
-                        builder: (context, state) {
-                          final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
-                          return Card(
-                            elevation: 0,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                                child: const Icon(Icons.notifications_outlined),
-                              ),
-                              title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w600)),
-                              trailing: unread > 0
-                                  ? Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.error,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        unread > 99 ? '99+' : unread.toString(),
-                                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                      ),
-                                    )
-                                  : const Icon(Icons.chevron_right_rounded),
-                              onTap: () => context.pushNamed(AppRoute.notifications.name),
-                            ),
-                          );
-                        },
-                      ),
-
-                      /// Settlements Summary
-                      _SettlementsTile(),
-                      const SizedBox(height: 12),
-
-                      /// Activity
-                      Card(
-                        elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                            child: const Icon(Icons.receipt_long_rounded),
-                          ),
-                          title: const Text('Activity', style: TextStyle(fontWeight: FontWeight.w600)),
-                          trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.pushNamed(AppRoute.activity.name),
-                        ),
-                      ),
-
-                      /// Settings Header
-                      const SizedBox(height: 8),
-                      const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-
-                      const SizedBox(height: 14),
-
-                      /// Default Account
-                      _DefaultAccountTile(),
-
-                      const SizedBox(height: 12),
-
-                      /// Theme
-                      _SettingTile(
-                        icon: Icons.palette_rounded,
-
-                        title: 'Theme',
-
-                        subtitle: 'Light, Dark or System',
-
-                        onTap: () {
-                          _showThemeBottomSheet(context);
-                        },
-                      ),
-
-                      /// Reset Password
-                      _SettingTile(
-                        icon: Icons.lock_reset_rounded,
-
-                        title: 'Reset Password',
-
-                        subtitle: 'Send password reset email',
-
-                        onTap: () {
-                          _showResetPasswordDialog(context, user.email);
-                        },
-                      ),
-
-                      /// Logout
-                      _SettingTile(
-                        icon: Icons.logout_rounded,
-
-                        title: 'Logout',
-
-                        subtitle: 'Logout from account',
-
-                        isDestructive: true,
-
-                        onTap: () {
-                          _showLogoutDialog(context);
-                        },
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      /// About
-                      Center(
-                        child: Column(
-                          children: [
-                            Text('FamXpense', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-
-                            const SizedBox(height: 4),
-
-                            Text('Version 1.0.0', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
+                      ],
+                    ),
+                  );
                 },
               );
             },
@@ -393,7 +465,13 @@ class _SettingTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool isDestructive;
 
-  const _SettingTile({required this.icon, required this.title, required this.subtitle, required this.onTap, this.isDestructive = false});
+  const _SettingTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.isDestructive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -412,13 +490,21 @@ class _SettingTile extends StatelessWidget {
               ? destructiveColor.withValues(alpha: 0.12)
               : Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
 
-          child: Icon(icon, color: isDestructive ? destructiveColor : Theme.of(context).colorScheme.primary),
+          child: Icon(
+            icon,
+            color: isDestructive
+                ? destructiveColor
+                : Theme.of(context).colorScheme.primary,
+          ),
         ),
 
         title: Text(
           title,
 
-          style: TextStyle(color: isDestructive ? destructiveColor : null, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: isDestructive ? destructiveColor : null,
+            fontWeight: FontWeight.w600,
+          ),
         ),
 
         subtitle: Text(subtitle),
@@ -461,16 +547,25 @@ class _AccountsSectionState extends State<_AccountsSection> {
       value: _accountBloc,
       child: BlocBuilder<AccountBloc, AccountState>(
         builder: (context, state) {
-          final accounts = state.maybeWhen(loaded: (a) => a, orElse: () => <AccountEntity>[]);
+          final accounts = state.maybeWhen(
+            loaded: (a) => a,
+            orElse: () => <AccountEntity>[],
+          );
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Text('Accounts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Accounts',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: () => context.pushNamed(AppRoute.addAccount.name),
+                    onPressed: () async {
+                      await context.pushNamed(AppRoute.addAccount.name);
+                      _refresh();
+                    },
                     icon: const Icon(Icons.add_rounded, size: 20),
                     label: const Text('Add'),
                   ),
@@ -478,19 +573,37 @@ class _AccountsSectionState extends State<_AccountsSection> {
               ),
               const SizedBox(height: 14),
               if (state.maybeWhen(loading: () => true, orElse: () => false))
-                const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: FinanceLoadingIndicator(),
+                  ),
+                )
               else if (accounts.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: Text('No accounts yet', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    child: Text(
+                      'No accounts yet',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
                 )
               else
-                ...accounts.map((account) => AccountTile(
-                  account: account,
-                  onTap: () => context.pushNamed(AppRoute.accountDetail.name, extra: account),
-                )),
+                ...accounts.map(
+                  (account) => AccountTile(
+                    account: account,
+                    onTap: () async {
+                      await context.pushNamed(
+                        AppRoute.accountDetail.name,
+                        extra: account,
+                      );
+                      _refresh();
+                    },
+                  ),
+                ),
             ],
           );
         },
@@ -512,11 +625,16 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   @override
   void initState() {
     super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _accountBoxSub = Hive.box<AccountDto>(
+      HiveBoxes.accounts,
+    ).watch().listen((_) => _load());
     _load();
   }
 
   @override
   void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
     _accountBoxSub?.cancel();
     super.dispose();
   }
@@ -524,29 +642,40 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   Future<void> _load() async {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
-    String? id = await AppSettings.getDefaultAccountId(userId: userId);
-    if (id == null) {
-      final dtos = await sl<AccountLocalDatasource>().getAccounts();
-      final first = dtos.where((d) => d.userId == userId).firstOrNull;
-      if (first != null) {
-        id = first.id;
-        await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
-      }
-    }
-    final name = id != null ? await _accountName(id) : null;
-    if (mounted) setState(() { _defaultAccountId = id; _defaultAccountName = name; });
-  }
-
-  Future<String?> _accountName(String id) async {
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    return dtos.where((a) => a.id == id).firstOrNull?.accountName;
+    final accounts = dtos
+        .where(
+          (account) =>
+              account.userId == userId &&
+              !account.isSavings &&
+              !account.isArchived,
+        )
+        .toList();
+    String? id = await AppSettings.getDefaultAccountId(userId: userId);
+    if (!accounts.any((account) => account.id == id)) {
+      id = accounts.firstOrNull?.id;
+      await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
+    }
+    final name = accounts
+        .where((account) => account.id == id)
+        .firstOrNull
+        ?.accountName;
+    if (mounted) {
+      setState(() {
+        _defaultAccountId = id;
+        _defaultAccountName = name;
+      });
+    }
   }
 
   Future<void> _pickAccount() async {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos.where((d) => d.userId == userId).map((d) => d.toEntity()).toList();
+    final accounts = dtos
+        .where((d) => d.userId == userId && !d.isSavings && !d.isArchived)
+        .map((d) => d.toEntity())
+        .toList();
 
     if (!mounted) return;
 
@@ -559,35 +688,58 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Default Account', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Default Account',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               const Text('Settlement amounts will be deposited here'),
               const SizedBox(height: 16),
               if (accounts.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: Text('No accounts yet. Create one first.')),
+                  child: Center(
+                    child: Text('No accounts yet. Create one first.'),
+                  ),
                 )
               else
-                ...accounts.map((a) => ListTile(
-                  leading: CircleAvatar(child: Icon(a.accountType == AccountType.cash ? Icons.money_rounded : Icons.account_balance_rounded)),
-                  title: Text(a.accountName),
-                  subtitle: Text(formatIndianRupee(a.currentBalance)),
-                  trailing: _defaultAccountId == a.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
-                  onTap: () async {
-                    await AppSettings.setDefaultAccountId(userId: userId, accountId: a.id);
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                    _load();
-                  },
-                )),
+                ...accounts.map(
+                  (a) => ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(
+                        a.accountType == AccountType.cash
+                            ? Icons.money_rounded
+                            : Icons.account_balance_rounded,
+                      ),
+                    ),
+                    title: Text(a.accountName),
+                    subtitle: Text(formatIndianRupee(a.currentBalance)),
+                    trailing: _defaultAccountId == a.id
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : null,
+                    onTap: () async {
+                      await AppSettings.setDefaultAccountId(
+                        userId: userId,
+                        accountId: a.id,
+                      );
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      _load();
+                    },
+                  ),
+                ),
               const Divider(),
               if (_defaultAccountId != null)
                 ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.remove_circle_outline_rounded)),
+                  leading: const CircleAvatar(
+                    child: Icon(Icons.remove_circle_outline_rounded),
+                  ),
                   title: const Text('None'),
                   onTap: () async {
-                    await AppSettings.setDefaultAccountId(userId: userId, accountId: null);
+                    await AppSettings.setDefaultAccountId(
+                      userId: userId,
+                      accountId: null,
+                    );
                     if (!mounted) return;
                     Navigator.pop(context);
                     _load();
@@ -611,73 +763,184 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   }
 }
 
-class _SettlementsTile extends StatelessWidget {
+class _SettlementsTile extends StatefulWidget {
+  @override
+  State<_SettlementsTile> createState() => _SettlementsTileState();
+}
+
+class _SettlementsTileState extends State<_SettlementsTile> {
+  List<SettlementDto> _settlementDtos = [];
+  List<DebtLedgerDto> _debtLedgerDtos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+    try {
+      final results = await Future.wait([
+        sl<SettlementLocalDatasource>().getSettlements(),
+        sl<DebtLedgerLocalDatasource>().getLedgers(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _settlementDtos = (results[0] as List<SettlementDto>)
+              .where((d) => d.fromUserId == userId || d.toUserId == userId)
+              .toList();
+          _debtLedgerDtos = results[1] as List<DebtLedgerDto>;
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
-    return FutureBuilder<Map<String, dynamic>>(
-      future: Future.wait([
-        sl<SettlementLocalDatasource>().getSettlements(),
-        sl<DebtLedgerLocalDatasource>().getLedgers(),
-      ]).then((results) => <String, dynamic>{
-        'settlements': (results[0] as List<SettlementDto>)
-            .where((d) => d.fromUserId == userId || d.toUserId == userId)
-            .map((d) => d.toEntity())
-            .toList(),
-        'debts': results[1] as List<DebtLedgerDto>,
-      }),
-      builder: (context, snapshot) {
-        final settlements = (snapshot.data?['settlements'] as List<SettlementEntity>?) ?? <SettlementEntity>[];
-        final debtDtos = (snapshot.data?['debts'] as List<DebtLedgerDto>?) ?? <DebtLedgerDto>[];
+    final settlements = _settlementDtos.map((d) => d.toEntity()).toList();
+    final debtDtos = _debtLedgerDtos;
 
-        final pendingIncoming = settlements.where((s) => s.toUserId == userId && s.status == SettlementStatus.pending).length;
-        final pendingOutgoing = settlements.where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending).length;
-        /// Compute debt summary from debt ledger
-        double iAmOwed = 0;
-        double iOwe = 0;
-        for (final d in debtDtos) {
-          if (d.userA == userId) {
-            if (d.netBalance < 0) {
-              iAmOwed += d.netBalance.abs();
-            } else {
-              iOwe += d.netBalance;
-            }
-          } else if (d.userB == userId) {
-            if (d.netBalance > 0) {
-              iAmOwed += d.netBalance;
-            } else {
-              iOwe += d.netBalance.abs();
-            }
-          }
+    final pendingIncoming = settlements
+        .where(
+          (s) => s.toUserId == userId && s.status == SettlementStatus.pending,
+        )
+        .length;
+    final pendingOutgoing = settlements
+        .where(
+          (s) => s.fromUserId == userId && s.status == SettlementStatus.pending,
+        )
+        .length;
+    double iAmOwed = 0;
+    double iOwe = 0;
+    for (final d in debtDtos) {
+      if (d.userA == userId) {
+        if (d.netBalance < 0) {
+          iAmOwed += d.netBalance.abs();
+        } else {
+          iOwe += d.netBalance;
         }
+      } else if (d.userB == userId) {
+        if (d.netBalance > 0) {
+          iAmOwed += d.netBalance;
+        } else {
+          iOwe += d.netBalance.abs();
+        }
+      }
+    }
 
-        final subtitleParts = <String>[];
-        if (pendingIncoming > 0) subtitleParts.add('$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}');
-        if (pendingOutgoing > 0) subtitleParts.add('$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}');
-        if (iAmOwed > 0) subtitleParts.add('${formatIndianRupee(iAmOwed)} owed to you');
-        if (iOwe > 0) subtitleParts.add('You owe ${formatIndianRupee(iOwe)}');
-        if (subtitleParts.isEmpty) subtitleParts.add('All settled up');
+    final subtitleParts = <String>[];
+    if (pendingIncoming > 0) {
+      subtitleParts.add(
+        '$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}',
+      );
+    }
+    if (pendingOutgoing > 0) {
+      subtitleParts.add(
+        '$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}',
+      );
+    }
+    if (iAmOwed > 0) {
+      subtitleParts.add('${formatIndianRupee(iAmOwed)} owed to you');
+    }
+    if (iOwe > 0) subtitleParts.add('You owe ${formatIndianRupee(iOwe)}');
+    if (subtitleParts.isEmpty) subtitleParts.add('All settled up');
 
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.green.withValues(alpha: 0.12),
-              child: const Icon(Icons.account_balance_rounded, color: Colors.green),
-            ),
-            title: const Text('Settlements & Balance', style: TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text(
-              subtitleParts.join(' • '),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.pushNamed(AppRoute.settlements.name),
-          ),
-        );
-      },
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.green.withValues(alpha: 0.12),
+          child: const Icon(Icons.account_balance_rounded, color: Colors.green),
+        ),
+        title: const Text(
+          'Settlements & Balance',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitleParts.join(' • '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => context.pushNamed(AppRoute.settlements.name),
+      ),
+    );
+  }
+}
+
+class _SavingsTile extends StatefulWidget {
+  @override
+  State<_SavingsTile> createState() => _SavingsTileState();
+}
+
+class _SavingsTileState extends State<_SavingsTile> {
+  double _currentMonthTotal = 0;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
+      final now = DateTime.now();
+      final total = await sl<SavingsRepository>().getTotalSavedForMonth(
+        userId,
+        now.year,
+        now.month,
+      );
+      if (mounted) {
+        setState(() {
+          _currentMonthTotal = total;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.amber.withValues(alpha: 0.12),
+          child: const Icon(Icons.savings_rounded, color: Colors.amber),
+        ),
+        title: const Text(
+          'Savings',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: _loading
+            ? const Text('Loading...')
+            : Text('This month: ${formatIndianRupee(_currentMonthTotal)}'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => context.pushNamed(AppRoute.savings.name),
+      ),
     );
   }
 }

@@ -33,6 +33,23 @@ class _SettlementScreenState extends State<SettlementScreen> {
   bool _initialized = false;
 
   @override
+  void initState() {
+    super.initState();
+    sl<RefreshNotifier>().addListener(_onRefresh);
+  }
+
+  @override
+  void dispose() {
+    sl<RefreshNotifier>().removeListener(_onRefresh);
+    super.dispose();
+  }
+
+  void _onRefresh() {
+    if (!_initialized) return;
+    _loadData();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
@@ -79,15 +96,24 @@ class _SettlementScreenState extends State<SettlementScreen> {
     }
 
     /// Pending settlements
-    final incomingPending = allSettlements
-        .where((s) => s.toUserId == userId && s.status == SettlementStatus.pending)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final incomingPending =
+        allSettlements
+            .where(
+              (s) =>
+                  s.toUserId == userId && s.status == SettlementStatus.pending,
+            )
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    final outgoingPending = allSettlements
-        .where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final outgoingPending =
+        allSettlements
+            .where(
+              (s) =>
+                  s.fromUserId == userId &&
+                  s.status == SettlementStatus.pending,
+            )
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     if (!mounted) return;
     setState(() {
@@ -121,12 +147,19 @@ class _SettlementScreenState extends State<SettlementScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: _dateRange ?? DateTimeRange(
-        start: _selectedMonth,
-        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now)
-            ? now
-            : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
-      ),
+      initialDateRange:
+          _dateRange ??
+          DateTimeRange(
+            start: _selectedMonth,
+            end:
+                DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month + 1,
+                  0,
+                ).isAfter(now)
+                ? now
+                : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
+          ),
     );
     if (picked != null) {
       setState(() {
@@ -166,36 +199,31 @@ class _SettlementScreenState extends State<SettlementScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Settlements')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: FinanceLoadingIndicator())
           : RefreshIndicator(
               onRefresh: _loadData,
               child: CustomScrollView(
                 slivers: [
                   /// Month bar
-                  SliverToBoxAdapter(
-                    child: _buildMonthBar(context),
-                  ),
+                  SliverToBoxAdapter(child: _buildMonthBar(context)),
 
                   /// Summary cards
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _SummaryCard(
-                              label: 'You\'re owed',
-                              amount: iAmOwed,
-                              color: Colors.green,
-                            ),
+                      child: MoneyMetricStrip(
+                        metrics: [
+                          MoneyMetric(
+                            label: 'You\'re owed',
+                            value: formatIndianRupee(iAmOwed),
+                            color: Colors.green,
+                            icon: Icons.call_received_rounded,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _SummaryCard(
-                              label: 'You owe',
-                              amount: iOwe,
-                              color: Colors.red,
-                            ),
+                          MoneyMetric(
+                            label: 'You owe',
+                            value: formatIndianRupee(iOwe),
+                            color: Colors.red,
+                            icon: Icons.send_rounded,
                           ),
                         ],
                       ),
@@ -203,18 +231,30 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   ),
 
                   /// Pending settlements section
-                  if (_incomingPending.isNotEmpty || _outgoingPending.isNotEmpty) ...[
+                  if (_incomingPending.isNotEmpty ||
+                      _outgoingPending.isNotEmpty) ...[
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Text(
-                          'Pending Settlements',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
+                        child: const CompactSectionHeader(
+                          title: 'Pending Settlements',
                         ),
                       ),
                     ),
-                    ..._incomingPending.map((s) => _buildPendingSettlementCard(context, s, isIncoming: true)),
-                    ..._outgoingPending.map((s) => _buildPendingSettlementCard(context, s, isIncoming: false)),
+                    ..._incomingPending.map(
+                      (s) => _buildPendingSettlementCard(
+                        context,
+                        s,
+                        isIncoming: true,
+                      ),
+                    ),
+                    ..._outgoingPending.map(
+                      (s) => _buildPendingSettlementCard(
+                        context,
+                        s,
+                        isIncoming: false,
+                      ),
+                    ),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -227,10 +267,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Text(
-                        'Partners',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
-                      ),
+                      child: const CompactSectionHeader(title: 'Partners'),
                     ),
                   ),
 
@@ -238,19 +275,23 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   if (_partners.isEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-                        child: Center(
-                          child: Text(
-                            'No outstanding balances',
-                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                          ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 32,
+                        ),
+                        child: const FinanceEmptyState(
+                          icon: Icons.check_circle_outline_rounded,
+                          title: 'No outstanding balances',
+                          subtitle:
+                              'Shared balances and settlement requests will appear here.',
                         ),
                       ),
                     )
                   else
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => _buildPartnerCard(context, _partners[index], theme),
+                        (context, index) =>
+                            _buildPartnerCard(context, _partners[index], theme),
                         childCount: _partners.length,
                       ),
                     ),
@@ -262,62 +303,95 @@ class _SettlementScreenState extends State<SettlementScreen> {
 
   Widget _buildMonthBar(BuildContext context) {
     final now = DateTime.now();
-    final isAtCurrentMonth = _selectedMonth.month == now.month && _selectedMonth.year == now.year;
+    final isAtCurrentMonth =
+        _selectedMonth.month == now.month && _selectedMonth.year == now.year;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (_dateRange != null)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: InputChip(
-                  label: Text(
-                    '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
-                    style: const TextStyle(fontSize: 13),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Card(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (_dateRange != null)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: InputChip(
+                      label: Text(
+                        '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      deleteIcon: const Icon(Icons.close_rounded, size: 18),
+                      onDeleted: _clearDateRange,
+                    ),
                   ),
-                  deleteIcon: const Icon(Icons.close_rounded, size: 18),
-                  onDeleted: _clearDateRange,
+                )
+              else ...[
+                IconButton(
+                  icon: const Icon(Icons.chevron_left_rounded),
+                  onPressed: _prevMonth,
                 ),
+                Text(
+                  DateFormat('MMM yyyy').format(_selectedMonth),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.chevron_right_rounded,
+                    color: isAtCurrentMonth
+                        ? Theme.of(context).disabledColor
+                        : null,
+                  ),
+                  onPressed: isAtCurrentMonth ? null : _nextMonth,
+                ),
+              ],
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.calendar_month_rounded),
+                onPressed: _pickDateRange,
+                tooltip: 'Pick date range',
               ),
-            )
-          else ...[
-            IconButton(icon: const Icon(Icons.chevron_left_rounded), onPressed: _prevMonth),
-            Text(DateFormat('MMM yyyy').format(_selectedMonth), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            IconButton(
-              icon: Icon(
-                Icons.chevron_right_rounded,
-                color: isAtCurrentMonth ? Theme.of(context).disabledColor : null,
-              ),
-              onPressed: isAtCurrentMonth ? null : _nextMonth,
-            ),
-          ],
-          const SizedBox(width: 8),
-          IconButton(icon: const Icon(Icons.calendar_month_rounded), onPressed: _pickDateRange, tooltip: 'Pick date range'),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildPartnerCard(BuildContext context, _PartnerData partner, ThemeData theme) {
+  Widget _buildPartnerCard(
+    BuildContext context,
+    _PartnerData partner,
+    ThemeData theme,
+  ) {
     final isSettled = partner.balance == 0;
     final isOwed = partner.balance < 0;
     final absBalance = partner.balance.abs();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       child: Card(
         elevation: 0,
         child: ListTile(
           leading: CircleAvatar(
             radius: 18,
-            backgroundColor: isSettled ? Colors.grey.withValues(alpha: 0.12) : (isOwed ? Colors.green : Colors.red).withValues(alpha: 0.12),
+            backgroundColor: isSettled
+                ? Colors.grey.withValues(alpha: 0.12)
+                : (isOwed ? Colors.green : Colors.red).withValues(alpha: 0.12),
             child: Icon(
-              isSettled ? Icons.check_circle_outline_rounded : (isOwed ? Icons.call_received_rounded : Icons.send_rounded),
+              isSettled
+                  ? Icons.check_circle_outline_rounded
+                  : (isOwed ? Icons.call_received_rounded : Icons.send_rounded),
               size: 18,
-              color: isSettled ? Colors.grey : (isOwed ? Colors.green : Colors.red),
+              color: isSettled
+                  ? Colors.grey
+                  : (isOwed ? Colors.green : Colors.red),
             ),
           ),
           title: Text(
@@ -326,7 +400,10 @@ class _SettlementScreenState extends State<SettlementScreen> {
           ),
           subtitle: Text(
             isSettled ? 'All settled' : (isOwed ? 'Owes you' : 'You owe'),
-            style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -341,25 +418,39 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   ),
                 ),
               ] else
-                Icon(Icons.check_circle_rounded, color: Colors.green.shade400, size: 20),
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.green.shade400,
+                  size: 20,
+                ),
               const SizedBox(width: 4),
-              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (_) => PartnerSettlementDetailScreen(
-                partnerId: partner.partnerId,
-                partnerName: partner.partnerName,
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PartnerSettlementDetailScreen(
+                  partnerId: partner.partnerId,
+                  partnerName: partner.partnerName,
+                ),
               ),
-            )).then((_) => _loadData());
+            ).then((_) => _loadData());
           },
         ),
       ),
     );
   }
 
-  Widget _buildPendingSettlementCard(BuildContext context, SettlementEntity s, {required bool isIncoming}) {
+  Widget _buildPendingSettlementCard(
+    BuildContext context,
+    SettlementEntity s, {
+    required bool isIncoming,
+  }) {
     final otherId = isIncoming ? s.fromUserId : s.toUserId;
     final otherName = _nickname(otherId) ?? otherId.substring(0, 6);
     final isConfirming = _confirmingIds.contains(s.id);
@@ -367,11 +458,11 @@ class _SettlementScreenState extends State<SettlementScreen> {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
         child: Card(
           elevation: 0,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -379,9 +470,13 @@ class _SettlementScreenState extends State<SettlementScreen> {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: isIncoming ? Colors.green.withValues(alpha: 0.12) : Colors.orange.withValues(alpha: 0.12),
+                      backgroundColor: isIncoming
+                          ? Colors.green.withValues(alpha: 0.12)
+                          : Colors.orange.withValues(alpha: 0.12),
                       child: Icon(
-                        isIncoming ? Icons.call_received_rounded : Icons.send_rounded,
+                        isIncoming
+                            ? Icons.call_received_rounded
+                            : Icons.send_rounded,
                         size: 18,
                         color: isIncoming ? Colors.green : Colors.orange,
                       ),
@@ -392,19 +487,35 @@ class _SettlementScreenState extends State<SettlementScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isIncoming ? 'Settlement from @$otherName' : 'Settlement to @$otherName',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                            isIncoming
+                                ? 'Settlement from @$otherName'
+                                : 'Settlement to @$otherName',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                           Text(
-                            DateFormat('dd MMM yyyy, HH:mm').format(s.createdAt),
-                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            DateFormat(
+                              'dd MMM yyyy, HH:mm',
+                            ).format(s.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     Text(
                       formatIndianRupee(s.amount),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isIncoming ? Colors.green : Colors.red),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: isIncoming ? Colors.green : Colors.red,
+                      ),
                     ),
                   ],
                 ),
@@ -420,16 +531,22 @@ class _SettlementScreenState extends State<SettlementScreen> {
                                 final messenger = ScaffoldMessenger.of(context);
                                 setState(() => _rejectingIds.add(s.id));
                                 try {
-                                  await sl<ProcessSettlementUsecase>().reject(settlementId: s.id);
+                                  await sl<ProcessSettlementUsecase>().reject(
+                                    settlementId: s.id,
+                                  );
                                   sl<RefreshNotifier>().notifyDataChanged();
                                   await _loadData();
                                 } catch (e) {
-                                  messenger.showSnackBar(SnackBar(
-                                    content: Text('Failed to reject: $e'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ));
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to reject: $e'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
                                 } finally {
-                                  if (mounted) setState(() => _rejectingIds.remove(s.id));
+                                  if (mounted) {
+                                    setState(() => _rejectingIds.remove(s.id));
+                                  }
                                 }
                               },
                         child: const Text('Reject'),
@@ -442,16 +559,23 @@ class _SettlementScreenState extends State<SettlementScreen> {
                                 final messenger = ScaffoldMessenger.of(context);
                                 setState(() => _confirmingIds.add(s.id));
                                 try {
-                                  await sl<ProcessSettlementUsecase>().confirm(settlementId: s.id, toAccountId: null);
+                                  await sl<ProcessSettlementUsecase>().confirm(
+                                    settlementId: s.id,
+                                    toAccountId: null,
+                                  );
                                   sl<RefreshNotifier>().notifyDataChanged();
                                   await _loadData();
                                 } catch (e) {
-                                  messenger.showSnackBar(SnackBar(
-                                    content: Text('Failed to confirm: $e'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ));
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to confirm: $e'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
                                 } finally {
-                                  if (mounted) setState(() => _confirmingIds.remove(s.id));
+                                  if (mounted) {
+                                    setState(() => _confirmingIds.remove(s.id));
+                                  }
                                 }
                               },
                         child: Text(isConfirming ? 'Confirming...' : 'Confirm'),
@@ -462,35 +586,6 @@ class _SettlementScreenState extends State<SettlementScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final double amount;
-  final Color color;
-
-  const _SummaryCard({required this.label, required this.amount, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 6),
-            Text(
-              formatIndianRupee(amount),
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: amount > 0 ? color : Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-          ],
         ),
       ),
     );

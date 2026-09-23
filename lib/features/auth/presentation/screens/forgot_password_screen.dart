@@ -22,7 +22,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: _emailController.text.trim()));
+    context.read<AuthBloc>().add(
+      AuthEvent.forgotPassword(email: _emailController.text.trim()),
+    );
   }
 
   @override
@@ -32,14 +34,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         state.whenOrNull(
           passwordResetSent: () {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Password reset email sent')),
+            );
 
-            Navigator.pop(context);
+            context.go(AppRoute.login.path);
           },
 
           error: (message) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           },
         );
       },
@@ -47,63 +53,75 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: Scaffold(
         appBar: AppBar(title: const Text('Forgot Password')),
 
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
 
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
 
-              child: Form(
-                key: _formKey,
+            child: Form(
+              key: _formKey,
 
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
 
-                  children: [
-                    const Text('Reset Password', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                children: [
+                  const AuthBrandPanel(
+                    title: 'Reset Password',
+                    subtitle: 'Get back to your expense records securely.',
+                  ),
 
-                    const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                    const Text('Enter your email address and we will send you a password reset link.'),
+                  const Text(
+                    'Enter your email address and we will send you a password reset link.',
+                  ),
 
-                    const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                    TextFormField(
-                      controller: _emailController,
+                  TextFormField(
+                    controller: _emailController,
 
-                      keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.emailAddress,
 
-                      decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter email';
-                        }
-                        if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
-                          return 'Enter a valid email address';
-                        }
-                        return null;
-                      },
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
                     ),
 
-                    const SizedBox(height: 24),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter email';
+                      }
+                      if (!RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                      ).hasMatch(value.trim())) {
+                        return 'Enter a valid email address';
+                      }
+                      return null;
+                    },
+                  ),
 
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        final isLoading = state is AuthLoading;
+                  const SizedBox(height: 24),
 
-                        return ElevatedButton(
-                          onPressed: isLoading ? null : _submit,
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state is AuthLoading;
 
-                          child: isLoading
-                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator())
-                              : const Text('Send Reset Link'),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                      return ElevatedButton(
+                        onPressed: isLoading ? null : _submit,
+
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: FinanceLoadingIndicator(),
+                              )
+                            : const Text('Send Reset Link'),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),

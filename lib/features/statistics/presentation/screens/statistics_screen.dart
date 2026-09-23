@@ -40,7 +40,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   void _load() {
-    context.read<StatisticsBloc>().add(StatisticsEvent.load(month: _selectedMonth));
+    context.read<StatisticsBloc>().add(
+      StatisticsEvent.load(
+        month: _selectedMonth,
+        rangeStart: _dateRange?.start,
+        rangeEnd: _dateRange?.end,
+      ),
+    );
   }
 
   void _prevMonth() {
@@ -68,12 +74,19 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: _dateRange ?? DateTimeRange(
-        start: _selectedMonth,
-        end: DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).isAfter(now)
-            ? now
-            : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
-      ),
+      initialDateRange:
+          _dateRange ??
+          DateTimeRange(
+            start: _selectedMonth,
+            end:
+                DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month + 1,
+                  0,
+                ).isAfter(now)
+                ? now
+                : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0),
+          ),
     );
     if (picked != null) {
       setState(() {
@@ -93,7 +106,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Future<void> _exportCsv(StatisticsLoaded state) async {
-    final accountNames = {for (final a in state.accountStats) a.accountId: a.accountName};
+    final accountNames = {
+      for (final a in state.accountStats) a.accountId: a.accountName,
+    };
 
     final rows = <List<String>>[
       ['Type', 'Date', 'Amount', 'Category / Description', 'Account'],
@@ -103,20 +118,40 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       final accountName = switch (txn) {
         ExpenseTxn(:final accountId) => accountNames[accountId] ?? accountId,
         DepositTxn(:final accountId) => accountNames[accountId] ?? accountId,
-        SettlementTxn(:final accountId, :final isIncoming) => isIncoming ? '' : (accountNames[accountId] ?? accountId),
+        IncomeTxn(:final accountId) => accountNames[accountId] ?? accountId,
+        SettlementTxn(:final accountId, :final isIncoming) =>
+          isIncoming ? '' : (accountNames[accountId] ?? accountId),
+        TransferTxn(:final accountId) => accountNames[accountId] ?? accountId,
+        BalanceCorrectionTxn(:final accountId) =>
+          accountNames[accountId] ?? accountId,
       };
       rows.add([
         switch (txn) {
           ExpenseTxn _ => 'Expense',
           DepositTxn _ => 'Deposit',
-          SettlementTxn(:final isIncoming) => isIncoming ? 'Settlement Received' : 'Settlement Paid',
+          IncomeTxn _ => 'Income',
+          SettlementTxn(:final isIncoming) =>
+            isIncoming ? 'Settlement Received' : 'Settlement Paid',
+          TransferTxn(:final isIncoming) =>
+            isIncoming ? 'Transfer In' : 'Transfer Out',
+          BalanceCorrectionTxn _ => 'Balance Correction',
         },
         DateFormat('yyyy-MM-dd').format(txn.date),
         txn.amount.toStringAsFixed(2),
         switch (txn) {
-          ExpenseTxn(:final title, :final category) => category.isNotEmpty && category != 'other' ? '$title ($category)' : title,
+          ExpenseTxn(:final title, :final category) =>
+            category.isNotEmpty && category != ExpenseCategory.other.name
+                ? '$title ($category)'
+                : title,
           DepositTxn(:final description) => description,
-          SettlementTxn(:final isIncoming) => isIncoming ? 'Settlement received' : 'Settlement paid',
+          IncomeTxn(:final description) => description,
+          SettlementTxn(:final isIncoming) =>
+            isIncoming ? 'Settlement received' : 'Settlement paid',
+          TransferTxn(:final description, :final linkedAccountId) =>
+            description.isNotEmpty
+                ? description
+                : 'Linked account $linkedAccountId',
+          BalanceCorrectionTxn(:final description) => description,
         },
         accountName,
       ]);
@@ -124,10 +159,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     final csv = const CsvEncoder().convert(rows);
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/famxpense_${_selectedMonth.year}_${_selectedMonth.month.toString().padLeft(2, '0')}.csv');
+    final file = File(
+      '${dir.path}/famxpense_${_selectedMonth.year}_${_selectedMonth.month.toString().padLeft(2, '0')}.csv',
+    );
     await file.writeAsString(csv);
     await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)], text: 'FamXpense Report ${DateFormat('MMM yyyy').format(_selectedMonth)}'),
+      ShareParams(
+        files: [XFile(file.path)],
+        text:
+            'FamXpense Report ${DateFormat('MMM yyyy').format(_selectedMonth)}',
+      ),
     );
   }
 
@@ -135,7 +176,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Statistics')),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13.0),
+          child: const Text('Statistics'),
+        ),
         centerTitle: false,
         actions: [
           BlocBuilder<StatisticsBloc, StatisticsState>(
@@ -154,13 +198,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       body: Column(
         children: [
-          _MonthBar(selectedMonth: _selectedMonth, onPrev: _prevMonth, onNext: _nextMonth, onCalendar: _pickDateRange, dateRange: _dateRange, onClearRange: _clearDateRange),
+          _MonthBar(
+            selectedMonth: _selectedMonth,
+            onPrev: _prevMonth,
+            onNext: _nextMonth,
+            onCalendar: _pickDateRange,
+            dateRange: _dateRange,
+            onClearRange: _clearDateRange,
+          ),
           Expanded(
             child: BlocBuilder<StatisticsBloc, StatisticsState>(
               builder: (context, state) {
                 return state.when(
                   initial: () => const SizedBox(),
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: FinanceLoadingIndicator()),
                   loaded:
                       (
                         _,
@@ -178,7 +229,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ) => RefreshIndicator(
                         onRefresh: () async => _load(),
                         child: SingleChildScrollView(
-                          physics: const ClampingScrollPhysics(),
+                          physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,20 +240,42 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                 expenseCount: expenseCount,
                                 depositCount: depositCount,
                               ),
-                              if (accountStats.any((a) => a.totalSpent > 0 || a.totalDeposited > 0)) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'Showing ${transactions.length} transactions',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              if (accountStats.any(
+                                (a) => a.totalSpent > 0 || a.totalDeposited > 0,
+                              )) ...[
                                 const SizedBox(height: 20),
-                                _AccountBalanceSection(accountStats: accountStats),
+                                _AccountBalanceSection(
+                                  accountStats: accountStats,
+                                ),
                               ],
                               if (expenseTypeTotals.isNotEmpty) ...[
                                 const SizedBox(height: 20),
-                                _ExpenseTypeChart(expenseTypeTotals: expenseTypeTotals, totalSpent: totalSpent),
+                                _ExpenseTypeChart(
+                                  expenseTypeTotals: expenseTypeTotals,
+                                  totalSpent: totalSpent,
+                                ),
                               ],
                               if (categoryTotals.isNotEmpty) ...[
                                 const SizedBox(height: 20),
-                                _CategorySection(categoryTotals: categoryTotals, totalSpent: totalSpent),
+                                _CategorySection(
+                                  categoryTotals: categoryTotals,
+                                  totalSpent: totalSpent,
+                                ),
                               ],
-                              if (dailyTotals.isNotEmpty) ...[const SizedBox(height: 20), _DailySection(dailyTotals: dailyTotals)],
-                              if (transactions.isNotEmpty) ...[const SizedBox(height: 20), _TransactionSection(transactions: transactions)],
+                              if (dailyTotals.isNotEmpty) ...[
+                                const SizedBox(height: 20),
+                                _DailySection(dailyTotals: dailyTotals),
+                              ],
                               if (monthComparisons.isNotEmpty) ...[
                                 const SizedBox(height: 20),
                                 _ComparisonSection(
@@ -211,24 +284,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                   currentDeposited: totalDeposited,
                                 ),
                               ],
-                              if (categoryTotals.isEmpty && dailyTotals.isEmpty && expenseTypeTotals.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 64),
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.bar_chart_rounded,
-                                          size: 64,
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'No data for this month',
-                                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                                        ),
-                                      ],
-                                    ),
+                              if (categoryTotals.isEmpty &&
+                                  dailyTotals.isEmpty &&
+                                  expenseTypeTotals.isEmpty)
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 48),
+                                  child: FinanceEmptyState(
+                                    icon: Icons.bar_chart_rounded,
+                                    title: 'No data for this period',
+                                    subtitle:
+                                        'Add activity or choose another date range to see insights.',
                                   ),
                                 ),
                             ],
@@ -246,7 +311,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             padding: const EdgeInsets.all(32),
                             child: Text(
                               message,
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -272,7 +339,14 @@ class _MonthBar extends StatelessWidget {
   final DateTimeRange? dateRange;
   final VoidCallback? onClearRange;
 
-  const _MonthBar({required this.selectedMonth, required this.onPrev, required this.onNext, required this.onCalendar, this.dateRange, this.onClearRange});
+  const _MonthBar({
+    required this.selectedMonth,
+    required this.onPrev,
+    required this.onNext,
+    required this.onCalendar,
+    this.dateRange,
+    this.onClearRange,
+  });
 
   bool get _isAtCurrentMonth {
     final now = DateTime.now();
@@ -301,15 +375,30 @@ class _MonthBar extends StatelessWidget {
               ),
             )
           else ...[
-            IconButton(icon: const Icon(Icons.chevron_left_rounded), onPressed: onPrev),
-            Text(DateFormat('MMM yyyy').format(selectedMonth), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             IconButton(
-              icon: Icon(Icons.chevron_right_rounded, color: _isAtCurrentMonth ? Theme.of(context).disabledColor : null),
+              icon: const Icon(Icons.chevron_left_rounded),
+              onPressed: onPrev,
+            ),
+            Text(
+              DateFormat('MMM yyyy').format(selectedMonth),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.chevron_right_rounded,
+                color: _isAtCurrentMonth
+                    ? Theme.of(context).disabledColor
+                    : null,
+              ),
               onPressed: _isAtCurrentMonth ? null : onNext,
             ),
           ],
           const SizedBox(width: 8),
-          IconButton(icon: const Icon(Icons.calendar_month_rounded), onPressed: onCalendar, tooltip: 'Pick date range'),
+          IconButton(
+            icon: const Icon(Icons.calendar_month_rounded),
+            onPressed: onCalendar,
+            tooltip: 'Pick date range',
+          ),
         ],
       ),
     );
@@ -322,7 +411,12 @@ class _SummaryCards extends StatelessWidget {
   final int expenseCount;
   final int depositCount;
 
-  const _SummaryCards({required this.totalSpent, required this.totalDeposited, required this.expenseCount, required this.depositCount});
+  const _SummaryCards({
+    required this.totalSpent,
+    required this.totalDeposited,
+    required this.expenseCount,
+    required this.depositCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +429,7 @@ class _SummaryCards extends StatelessWidget {
             value: formatIndianRupee(totalSpent),
             icon: Icons.arrow_upward_rounded,
             color: theme.colorScheme.error,
-            subtext: '$expenseCount expenses',
+            subtext: '$expenseCount outflows',
           ),
         ),
         const SizedBox(width: 12),
@@ -345,7 +439,7 @@ class _SummaryCards extends StatelessWidget {
             value: formatIndianRupee(totalDeposited),
             icon: Icons.arrow_downward_rounded,
             color: Colors.green,
-            subtext: '$depositCount deposits',
+            subtext: '$depositCount inflows',
           ),
         ),
       ],
@@ -360,7 +454,13 @@ class _MetricCard extends StatelessWidget {
   final Color color;
   final String subtext;
 
-  const _MetricCard({required this.label, required this.value, required this.icon, required this.color, required this.subtext});
+  const _MetricCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.subtext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -375,16 +475,32 @@ class _MetricCard extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: color),
                 const SizedBox(width: 6),
-                Text(label, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               value,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
             const SizedBox(height: 4),
-            Text(subtext, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              subtext,
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -400,7 +516,10 @@ class _AccountBalanceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final totalBalance = accountStats.fold<double>(0, (s, a) => s + a.endBalance);
+    final totalBalance = accountStats.fold<double>(
+      0,
+      (s, a) => s + a.endBalance,
+    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -409,63 +528,118 @@ class _AccountBalanceSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.account_balance_rounded, size: 20, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.account_balance_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('Account Balance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(
+                  'Account Balance',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
                 const Spacer(),
-                  Text(formatIndianRupee(totalBalance), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  formatIndianRupee(totalBalance),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            ...accountStats.where((a) => a.endBalance > 0 || a.totalDeposited > 0 || a.totalSpent > 0).map((a) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(a.accountName, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Start: ${formatIndianRupee(a.startBalance)}  →  End: ${formatIndianRupee(a.endBalance)}',
-                            style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
+            ...accountStats
+                .where(
+                  (a) =>
+                      a.endBalance > 0 ||
+                      a.totalDeposited > 0 ||
+                      a.totalSpent > 0,
+                )
+                .map((a) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.arrow_downward_rounded, size: 12, color: Colors.green),
-                              const SizedBox(width: 2),
-                              Text(formatIndianRupee(a.totalDeposited), style: TextStyle(fontSize: 12, color: Colors.green)),
-                              const SizedBox(width: 12),
-                              Icon(Icons.arrow_upward_rounded, size: 12, color: theme.colorScheme.error),
-                              const SizedBox(width: 2),
-                              Text(formatIndianRupee(a.totalSpent), style: TextStyle(fontSize: 12, color: theme.colorScheme.error)),
+                              Text(
+                                a.accountName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Start: ${formatIndianRupee(a.startBalance)}  →  End: ${formatIndianRupee(a.endBalance)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.arrow_downward_rounded,
+                                    size: 12,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    formatIndianRupee(a.totalDeposited),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Icon(
+                                    Icons.arrow_upward_rounded,
+                                    size: 12,
+                                    color: theme.colorScheme.error,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    formatIndianRupee(a.totalSpent),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.colorScheme.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: a.netChange >= 0 ? Colors.green.withValues(alpha: 0.12) : theme.colorScheme.error.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        formatIndianRupeeSigned(a.netChange),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: a.netChange >= 0 ? Colors.green.shade700 : theme.colorScheme.error,
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: a.netChange >= 0
+                                ? Colors.green.withValues(alpha: 0.12)
+                                : theme.colorScheme.error.withValues(
+                                    alpha: 0.12,
+                                  ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            formatIndianRupeeSigned(a.netChange),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: a.netChange >= 0
+                                  ? Colors.green.shade700
+                                  : theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            }),
+                  );
+                }),
           ],
         ),
       ),
@@ -477,13 +651,20 @@ class _ExpenseTypeChart extends StatelessWidget {
   final Map<String, double> expenseTypeTotals;
   final double totalSpent;
 
-  const _ExpenseTypeChart({required this.expenseTypeTotals, required this.totalSpent});
+  const _ExpenseTypeChart({
+    required this.expenseTypeTotals,
+    required this.totalSpent,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final colors = <String, Color>{'personal': Colors.blue, 'shared': Colors.orange, 'group': Colors.purple};
+    final colors = <String, Color>{
+      'personal': Colors.blue,
+      'shared': Colors.orange,
+      'group': Colors.purple,
+    };
 
     return Card(
       child: Padding(
@@ -493,9 +674,16 @@ class _ExpenseTypeChart extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.pie_chart_rounded, size: 20, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.pie_chart_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('Expense Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(
+                  'Expense Type',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -510,9 +698,18 @@ class _ExpenseTypeChart extends StatelessWidget {
                             .map(
                               (e) => PieChartSectionData(
                                 value: e.value,
-                                color: colors[e.key] ?? (isDark ? Colors.grey.shade500 : Colors.grey.shade600),
-                                title: '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
-                                titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                                color:
+                                    colors[e.key] ??
+                                    (isDark
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade600),
+                                title:
+                                    '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
+                                titleStyle: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                                 radius: 60,
                               ),
                             )
@@ -527,7 +724,9 @@ class _ExpenseTypeChart extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: expenseTypeTotals.entries.map((e) {
-                      final pct = totalSpent > 0 ? e.value / totalSpent * 100 : 0;
+                      final pct = totalSpent > 0
+                          ? e.value / totalSpent * 100
+                          : 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
@@ -537,7 +736,11 @@ class _ExpenseTypeChart extends StatelessWidget {
                               width: 10,
                               height: 10,
                               decoration: BoxDecoration(
-                                color: colors[e.key] ?? (isDark ? Colors.grey.shade500 : Colors.grey.shade600),
+                                color:
+                                    colors[e.key] ??
+                                    (isDark
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade600),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -574,7 +777,10 @@ class _CategorySection extends StatelessWidget {
   final Map<String, double> categoryTotals;
   final double totalSpent;
 
-  const _CategorySection({required this.categoryTotals, required this.totalSpent});
+  const _CategorySection({
+    required this.categoryTotals,
+    required this.totalSpent,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -589,9 +795,16 @@ class _CategorySection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.category_rounded, size: 20, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.category_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('Category Breakdown', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(
+                  'Category Breakdown',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -604,8 +817,13 @@ class _CategorySection extends StatelessWidget {
                         (e) => PieChartSectionData(
                           value: e.value,
                           color: categoryColor(e.key, isDark),
-                          title: '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
-                          titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                          title:
+                              '${((totalSpent > 0 ? e.value / totalSpent * 100 : 0)).toStringAsFixed(0)}%',
+                          titleStyle: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                           radius: 70,
                         ),
                       )
@@ -627,7 +845,10 @@ class _CategorySection extends StatelessWidget {
                     Container(
                       width: 10,
                       height: 10,
-                      decoration: BoxDecoration(color: categoryColor(e.key, isDark), shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: categoryColor(e.key, isDark),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -665,9 +886,16 @@ class _DailySection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.bar_chart_rounded, size: 20, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.bar_chart_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('Daily Spending', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(
+                  'Daily Spending',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -693,10 +921,15 @@ class _DailySection extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          if (value.toInt() % 5 != 0 && value.toInt() != 1) return const SizedBox.shrink();
+                          if (value.toInt() % 5 != 0 && value.toInt() != 1) {
+                            return const SizedBox.shrink();
+                          }
                           return Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text('${value.toInt()}', style: const TextStyle(fontSize: 10)),
+                            child: Text(
+                              '${value.toInt()}',
+                              style: const TextStyle(fontSize: 10),
+                            ),
                           );
                         },
                         reservedSize: 22,
@@ -706,13 +939,24 @@ class _DailySection extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 42,
-                        getTitlesWidget: (value, meta) => Text(formatIndianRupee(value.toDouble()), style: const TextStyle(fontSize: 9)),
+                        getTitlesWidget: (value, meta) => Text(
+                          formatIndianRupee(value.toDouble()),
+                          style: const TextStyle(fontSize: 9),
+                        ),
                       ),
                     ),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
-                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: maxY * 1.2 / 4),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: maxY * 1.2 / 4,
+                  ),
                   borderData: FlBorderData(show: false),
                   barGroups: entries
                       .map(
@@ -721,9 +965,14 @@ class _DailySection extends StatelessWidget {
                           barRods: [
                             BarChartRodData(
                               toY: e.value,
-                              color: isDark ? Colors.amber.shade300 : Colors.blue.shade600,
+                              color: isDark
+                                  ? Colors.amber.shade300
+                                  : Colors.blue.shade600,
                               width: 12,
-                              borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4),
+                              ),
                             ),
                           ],
                         ),
@@ -739,102 +988,34 @@ class _DailySection extends StatelessWidget {
   }
 }
 
-class _TransactionSection extends StatelessWidget {
-  final List<TransactionItem> transactions;
-
-  const _TransactionSection({required this.transactions});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final displayTxns = transactions.take(20).toList();
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.receipt_long_rounded, size: 20, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Recent Transactions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                if (transactions.length > 20) ...[
-                  const Spacer(),
-                  Text('Top 20', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...displayTxns.map((txn) {
-              final (icon, color, label, amountColor) = switch (txn) {
-                ExpenseTxn() => (Icons.shopping_bag_rounded, Colors.orange.shade100, txn.title, theme.colorScheme.error),
-                DepositTxn() => (Icons.account_balance_rounded, Colors.green.shade100, txn.description, Colors.green),
-                SettlementTxn(:final isIncoming) => (
-                  isIncoming ? Icons.call_received_rounded : Icons.call_made_rounded,
-                  isIncoming ? Colors.green.shade100 : Colors.red.shade100,
-                  isIncoming ? 'Settlement received' : 'Settlement paid',
-                  isIncoming ? Colors.green : theme.colorScheme.error,
-                ),
-              };
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-                      child: Icon(icon, size: 16, color: amountColor),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            DateFormat('MMM d, HH:mm').format(txn.date),
-                            style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      formatIndianRupee(txn.amount),
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: amountColor),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _ComparisonSection extends StatelessWidget {
   final List<MonthComparison> monthComparisons;
   final double currentSpent;
   final double currentDeposited;
 
-  const _ComparisonSection({required this.monthComparisons, required this.currentSpent, required this.currentDeposited});
+  const _ComparisonSection({
+    required this.monthComparisons,
+    required this.currentSpent,
+    required this.currentDeposited,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final allMonths = [
       ...monthComparisons,
-      MonthComparison(label: DateFormat('MMM yyyy').format(DateTime.now()), totalSpent: currentSpent, totalDeposited: currentDeposited),
+      MonthComparison(
+        label: DateFormat('MMM yyyy').format(DateTime.now()),
+        totalSpent: currentSpent,
+        totalDeposited: currentDeposited,
+      ),
     ];
-    final maxVal = allMonths.fold<double>(0, (s, m) => m.totalSpent > s ? m.totalSpent : (m.totalDeposited > s ? m.totalDeposited : s));
+    final maxVal = allMonths.fold<double>(
+      0,
+      (s, m) => m.totalSpent > s
+          ? m.totalSpent
+          : (m.totalDeposited > s ? m.totalDeposited : s),
+    );
 
     return Card(
       child: Padding(
@@ -844,9 +1025,16 @@ class _ComparisonSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.trending_up_rounded, size: 20, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.trending_up_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('Monthly Comparison', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(
+                  'Monthly Comparison',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -875,11 +1063,16 @@ class _ComparisonSection extends StatelessWidget {
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
                           final i = value.toInt();
-                          if (i < 0 || i >= allMonths.length) return const SizedBox.shrink();
+                          if (i < 0 || i >= allMonths.length) {
+                            return const SizedBox.shrink();
+                          }
                           final parts = allMonths[i].label.split(' ');
                           return Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text(parts.isNotEmpty ? parts[0] : '', style: const TextStyle(fontSize: 10)),
+                            child: Text(
+                              parts.isNotEmpty ? parts[0] : '',
+                              style: const TextStyle(fontSize: 10),
+                            ),
                           );
                         },
                         reservedSize: 22,
@@ -889,13 +1082,24 @@ class _ComparisonSection extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 42,
-                        getTitlesWidget: (value, meta) => Text(formatIndianRupee(value.toDouble()), style: const TextStyle(fontSize: 9)),
+                        getTitlesWidget: (value, meta) => Text(
+                          formatIndianRupee(value.toDouble()),
+                          style: const TextStyle(fontSize: 9),
+                        ),
                       ),
                     ),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
-                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: maxVal * 1.3 / 4),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: maxVal * 1.3 / 4,
+                  ),
                   borderData: FlBorderData(show: false),
                   barGroups: List.generate(allMonths.length, (i) {
                     final m = allMonths[i];
@@ -906,13 +1110,19 @@ class _ComparisonSection extends StatelessWidget {
                           toY: m.totalSpent,
                           color: theme.colorScheme.error,
                           width: 10,
-                          borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(4),
+                            topRight: Radius.circular(4),
+                          ),
                         ),
                         BarChartRodData(
                           toY: m.totalDeposited,
                           color: Colors.green,
                           width: 10,
-                          borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(4),
+                            topRight: Radius.circular(4),
+                          ),
                         ),
                       ],
                       barsSpace: 4,

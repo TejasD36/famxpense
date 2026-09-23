@@ -1,7 +1,7 @@
 import 'package:share_plus/share_plus.dart';
 
-import '../../xcore.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
+import '../../xcore.dart';
 import '../blocs/partner_bloc.dart';
 
 class AddPartnerScreen extends StatefulWidget {
@@ -56,79 +56,80 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
           );
         },
         child: Padding(
-        padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
 
-        child: Column(
-          children: [
-            /// SEARCH FIELD
-            TextField(
-              controller: _searchController,
+          child: Column(
+            children: [
+              /// SEARCH FIELD
+              TextField(
+                controller: _searchController,
 
-              textInputAction: TextInputAction.search,
+                textInputAction: TextInputAction.search,
 
-              onSubmitted: (_) => _searchUser(),
+                onSubmitted: (_) => _searchUser(),
 
-              decoration: InputDecoration(
-                hintText: 'Search by nickname or email',
+                decoration: InputDecoration(
+                  hintText: 'Search by nickname or email',
 
-                prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: const Icon(Icons.search_rounded),
 
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          _searchController.clear();
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            _searchController.clear();
 
-                          context.read<PartnerBloc>().add(const PartnerEvent.clearSearch());
-                        },
+                            context.read<PartnerBloc>().add(const PartnerEvent.clearSearch());
+                          },
 
-                        icon: const Icon(Icons.close_rounded),
-                      )
-                    : null,
+                          icon: const Icon(Icons.close_rounded),
+                        )
+                      : null,
 
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 18),
+              const SizedBox(height: 18),
 
-            /// SEARCH BUTTON
-            SizedBox(
-              width: double.infinity,
+              /// SEARCH BUTTON
+              SizedBox(
+                width: double.infinity,
 
-              child: BlocBuilder<PartnerBloc, PartnerState>(
-                builder: (context, state) {
-                  final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
-                  return FilledButton(
-                    onPressed: isLoading ? null : _searchUser,
-                    child: isLoading
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Search'),
-                  );
-                },
+                child: BlocBuilder<PartnerBloc, PartnerState>(
+                  builder: (context, state) {
+                    final isLoading = state.maybeWhen(loading: () => true, orElse: () => false);
+                    return FilledButton(
+                      onPressed: isLoading ? null : _searchUser,
+                      child: isLoading
+                          ? const SizedBox(height: 20, width: 20, child: FinanceLoadingIndicator(strokeWidth: 2))
+                          : const Text('Search'),
+                    );
+                  },
+                ),
               ),
-            ),
 
-            const SizedBox(height: 28),
+              const SizedBox(height: 28),
 
-            /// RESULTS
-            Expanded(
-              child: BlocBuilder<PartnerBloc, PartnerState>(
+              /// RESULTS
+              BlocBuilder<PartnerBloc, PartnerState>(
                 builder: (context, state) {
                   return state.when(
                     /// INITIAL
                     initial: () {
-                      return const PartnerEmptyView(
-                        title: 'Search Partners',
+                      return Expanded(
+                        child: const PartnerEmptyView(
+                          title: 'Search Partners',
 
-                        subtitle:
-                            'Search using nickname '
-                            'or email to connect.',
+                          subtitle:
+                              'Search using nickname '
+                              'or email to connect.',
+                        ),
                       );
                     },
 
                     /// LOADING
                     loading: () {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: FinanceLoadingIndicator());
                     },
 
                     /// ERROR
@@ -172,7 +173,8 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                                 final userId = sl<AuthLocalDatasource>().getUserId();
                                 final user = userId != null ? sl<UserLocalDatasource>().getUser(userId) : null;
                                 final nickname = user?.nickname ?? 'Someone';
-                                final message = 'Join me on FamXpense to track shared expenses!\n\n'
+                                final message =
+                                    'Join me on FamXpense to track shared expenses!\n\n'
                                     '$nickname is already using it to manage expenses with friends and family.\n\n'
                                     'Download: https://famxpense-web.vercel.app/';
                                 SharePlus.instance.share(ShareParams(text: message));
@@ -192,82 +194,80 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                         return e.senderId == searchedUser.id || e.receiverId == searchedUser.id;
                       });
 
-                      final isPending = outgoingRequests.any((e) {
-                        return e.receiverId == searchedUser.id;
-                      }) || incomingRequests.any((e) {
-                        return e.senderId == searchedUser.id;
-                      });
+                      final isPending =
+                          outgoingRequests.any((e) {
+                            return e.receiverId == searchedUser.id;
+                          }) ||
+                          incomingRequests.any((e) {
+                            return e.senderId == searchedUser.id;
+                          });
+
+                      final action = isConnected
+                          ? OutlinedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.check_circle_rounded, size: 18),
+                              label: const Text('Connected'),
+                            )
+                          : isPending
+                          ? OutlinedButton.icon(
+                              onPressed: null,
+                              icon: const Icon(Icons.hourglass_empty_rounded, size: 18),
+                              label: const Text('Sent'),
+                            )
+                          : FilledButton.icon(
+                              onPressed: _isSending
+                                  ? null
+                                  : () {
+                                      setState(() => _isSending = true);
+                                      context.read<PartnerBloc>().add(PartnerEvent.sendRequest(user: searchedUser));
+                                    },
+                              icon: _isSending
+                                  ? const SizedBox(height: 18, width: 18, child: FinanceLoadingIndicator(strokeWidth: 2))
+                                  : const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                              label: Text(_isSending ? 'Sending' : 'Add'),
+                            );
 
                       return Card(
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
                             children: [
                               CircleAvatar(
-                                radius: 40,
+                                radius: 24,
                                 child: Text(
                                   searchedUser.nickname.isNotEmpty ? searchedUser.nickname[0].toUpperCase() : '?',
-                                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                searchedUser.name,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      searchedUser.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      '@${searchedUser.nickname}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                    ),
+                                    Text(
+                                      searchedUser.email,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '@${searchedUser.nickname}',
-                                style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                searchedUser.email,
-                                style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                              ),
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: double.infinity,
-                                child: isConnected
-                                    ? OutlinedButton.icon(
-                                        onPressed: null,
-                                        icon: const Icon(Icons.check_circle_rounded),
-                                        label: const Text('Connected'),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 14),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                        ),
-                                      )
-                                    : isPending
-                                    ? OutlinedButton.icon(
-                                        onPressed: null,
-                                        icon: const Icon(Icons.hourglass_empty_rounded),
-                                        label: const Text('Request Sent'),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 14),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                        ),
-                                      )
-                                    : FilledButton.icon(
-                                        onPressed: _isSending
-                                            ? null
-                                            : () {
-                                                setState(() => _isSending = true);
-                                                context.read<PartnerBloc>().add(PartnerEvent.sendRequest(user: searchedUser));
-                                              },
-                                        icon: _isSending
-                                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                            : const Icon(Icons.person_add_alt_1_rounded),
-                                        label: Text(_isSending ? 'Sending...' : 'Add Partner'),
-                                        style: FilledButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 14),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                        ),
-                                      ),
-                              ),
+                              const SizedBox(width: 12),
+                              action,
                             ],
                           ),
                         ),
@@ -276,10 +276,9 @@ class _AddPartnerScreenState extends State<AddPartnerScreen> {
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

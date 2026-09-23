@@ -14,76 +14,36 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AddExpenseEvent implements DiagnosticableTreeMixin {
 
- ExpenseEntity get expense;
-/// Create a copy of AddExpenseEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$AddExpenseEventCopyWith<AddExpenseEvent> get copyWith => _$AddExpenseEventCopyWithImpl<AddExpenseEvent>(this as AddExpenseEvent, _$identity);
+
 
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'AddExpenseEvent'))
-    ..add(DiagnosticsProperty('expense', expense));
+    ;
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AddExpenseEvent&&(identical(other.expense, expense) || other.expense == expense));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AddExpenseEvent);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,expense);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'AddExpenseEvent(expense: $expense)';
+  return 'AddExpenseEvent()';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $AddExpenseEventCopyWith<$Res>  {
-  factory $AddExpenseEventCopyWith(AddExpenseEvent value, $Res Function(AddExpenseEvent) _then) = _$AddExpenseEventCopyWithImpl;
-@useResult
-$Res call({
- ExpenseEntity expense
-});
-
-
-$ExpenseEntityCopyWith<$Res> get expense;
-
-}
-/// @nodoc
-class _$AddExpenseEventCopyWithImpl<$Res>
-    implements $AddExpenseEventCopyWith<$Res> {
-  _$AddExpenseEventCopyWithImpl(this._self, this._then);
-
-  final AddExpenseEvent _self;
-  final $Res Function(AddExpenseEvent) _then;
-
-/// Create a copy of AddExpenseEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? expense = null,}) {
-  return _then(_self.copyWith(
-expense: null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
-as ExpenseEntity,
-  ));
-}
-/// Create a copy of AddExpenseEvent
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$ExpenseEntityCopyWith<$Res> get expense {
-  
-  return $ExpenseEntityCopyWith<$Res>(_self.expense, (value) {
-    return _then(_self.copyWith(expense: value));
-  });
-}
+class $AddExpenseEventCopyWith<$Res>  {
+$AddExpenseEventCopyWith(AddExpenseEvent _, $Res Function(AddExpenseEvent) __);
 }
 
 
@@ -101,11 +61,13 @@ extension AddExpenseEventPatterns on AddExpenseEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( SubmitExpenseEvent value)?  submit,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( SubmitExpenseEvent value)?  submit,TResult Function( UpdateExpenseEvent value)?  update,TResult Function( DeleteExpenseEvent value)?  delete,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case SubmitExpenseEvent() when submit != null:
-return submit(_that);case _:
+return submit(_that);case UpdateExpenseEvent() when update != null:
+return update(_that);case DeleteExpenseEvent() when delete != null:
+return delete(_that);case _:
   return orElse();
 
 }
@@ -123,11 +85,13 @@ return submit(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( SubmitExpenseEvent value)  submit,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( SubmitExpenseEvent value)  submit,required TResult Function( UpdateExpenseEvent value)  update,required TResult Function( DeleteExpenseEvent value)  delete,}){
 final _that = this;
 switch (_that) {
 case SubmitExpenseEvent():
-return submit(_that);}
+return submit(_that);case UpdateExpenseEvent():
+return update(_that);case DeleteExpenseEvent():
+return delete(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -141,11 +105,13 @@ return submit(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( SubmitExpenseEvent value)?  submit,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( SubmitExpenseEvent value)?  submit,TResult? Function( UpdateExpenseEvent value)?  update,TResult? Function( DeleteExpenseEvent value)?  delete,}){
 final _that = this;
 switch (_that) {
 case SubmitExpenseEvent() when submit != null:
-return submit(_that);case _:
+return submit(_that);case UpdateExpenseEvent() when update != null:
+return update(_that);case DeleteExpenseEvent() when delete != null:
+return delete(_that);case _:
   return null;
 
 }
@@ -162,10 +128,12 @@ return submit(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( ExpenseEntity expense)?  submit,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( ExpenseEntity expense)?  submit,TResult Function( ExpenseEntity original,  ExpenseEntity edited)?  update,TResult Function( ExpenseEntity expense)?  delete,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case SubmitExpenseEvent() when submit != null:
-return submit(_that.expense);case _:
+return submit(_that.expense);case UpdateExpenseEvent() when update != null:
+return update(_that.original,_that.edited);case DeleteExpenseEvent() when delete != null:
+return delete(_that.expense);case _:
   return orElse();
 
 }
@@ -183,10 +151,12 @@ return submit(_that.expense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( ExpenseEntity expense)  submit,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( ExpenseEntity expense)  submit,required TResult Function( ExpenseEntity original,  ExpenseEntity edited)  update,required TResult Function( ExpenseEntity expense)  delete,}) {final _that = this;
 switch (_that) {
 case SubmitExpenseEvent():
-return submit(_that.expense);}
+return submit(_that.expense);case UpdateExpenseEvent():
+return update(_that.original,_that.edited);case DeleteExpenseEvent():
+return delete(_that.expense);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +170,12 @@ return submit(_that.expense);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( ExpenseEntity expense)?  submit,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( ExpenseEntity expense)?  submit,TResult? Function( ExpenseEntity original,  ExpenseEntity edited)?  update,TResult? Function( ExpenseEntity expense)?  delete,}) {final _that = this;
 switch (_that) {
 case SubmitExpenseEvent() when submit != null:
-return submit(_that.expense);case _:
+return submit(_that.expense);case UpdateExpenseEvent() when update != null:
+return update(_that.original,_that.edited);case DeleteExpenseEvent() when delete != null:
+return delete(_that.expense);case _:
   return null;
 
 }
@@ -216,13 +188,13 @@ return submit(_that.expense);case _:
 
 class SubmitExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
   const SubmitExpenseEvent(this.expense);
-  
 
-@override final  ExpenseEntity expense;
+
+ final  ExpenseEntity expense;
 
 /// Create a copy of AddExpenseEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
+@JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $SubmitExpenseEventCopyWith<SubmitExpenseEvent> get copyWith => _$SubmitExpenseEventCopyWithImpl<SubmitExpenseEvent>(this, _$identity);
 
@@ -254,13 +226,13 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 /// @nodoc
 abstract mixin class $SubmitExpenseEventCopyWith<$Res> implements $AddExpenseEventCopyWith<$Res> {
   factory $SubmitExpenseEventCopyWith(SubmitExpenseEvent value, $Res Function(SubmitExpenseEvent) _then) = _$SubmitExpenseEventCopyWithImpl;
-@override @useResult
+@useResult
 $Res call({
  ExpenseEntity expense
 });
 
 
-@override $ExpenseEntityCopyWith<$Res> get expense;
+$ExpenseEntityCopyWith<$Res> get expense;
 
 }
 /// @nodoc
@@ -273,7 +245,7 @@ class _$SubmitExpenseEventCopyWithImpl<$Res>
 
 /// Create a copy of AddExpenseEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? expense = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? expense = null,}) {
   return _then(SubmitExpenseEvent(
 null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
 as ExpenseEntity,
@@ -285,7 +257,180 @@ as ExpenseEntity,
 @override
 @pragma('vm:prefer-inline')
 $ExpenseEntityCopyWith<$Res> get expense {
-  
+
+  return $ExpenseEntityCopyWith<$Res>(_self.expense, (value) {
+    return _then(_self.copyWith(expense: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class UpdateExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
+  const UpdateExpenseEvent({required this.original, required this.edited});
+
+
+ final  ExpenseEntity original;
+ final  ExpenseEntity edited;
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UpdateExpenseEventCopyWith<UpdateExpenseEvent> get copyWith => _$UpdateExpenseEventCopyWithImpl<UpdateExpenseEvent>(this, _$identity);
+
+
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AddExpenseEvent.update'))
+    ..add(DiagnosticsProperty('original', original))..add(DiagnosticsProperty('edited', edited));
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateExpenseEvent&&(identical(other.original, original) || other.original == original)&&(identical(other.edited, edited) || other.edited == edited));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,original,edited);
+
+@override
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'AddExpenseEvent.update(original: $original, edited: $edited)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UpdateExpenseEventCopyWith<$Res> implements $AddExpenseEventCopyWith<$Res> {
+  factory $UpdateExpenseEventCopyWith(UpdateExpenseEvent value, $Res Function(UpdateExpenseEvent) _then) = _$UpdateExpenseEventCopyWithImpl;
+@useResult
+$Res call({
+ ExpenseEntity original, ExpenseEntity edited
+});
+
+
+$ExpenseEntityCopyWith<$Res> get original;$ExpenseEntityCopyWith<$Res> get edited;
+
+}
+/// @nodoc
+class _$UpdateExpenseEventCopyWithImpl<$Res>
+    implements $UpdateExpenseEventCopyWith<$Res> {
+  _$UpdateExpenseEventCopyWithImpl(this._self, this._then);
+
+  final UpdateExpenseEvent _self;
+  final $Res Function(UpdateExpenseEvent) _then;
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? original = null,Object? edited = null,}) {
+  return _then(UpdateExpenseEvent(
+original: null == original ? _self.original : original // ignore: cast_nullable_to_non_nullable
+as ExpenseEntity,edited: null == edited ? _self.edited : edited // ignore: cast_nullable_to_non_nullable
+as ExpenseEntity,
+  ));
+}
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExpenseEntityCopyWith<$Res> get original {
+
+  return $ExpenseEntityCopyWith<$Res>(_self.original, (value) {
+    return _then(_self.copyWith(original: value));
+  });
+}/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExpenseEntityCopyWith<$Res> get edited {
+
+  return $ExpenseEntityCopyWith<$Res>(_self.edited, (value) {
+    return _then(_self.copyWith(edited: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class DeleteExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
+  const DeleteExpenseEvent(this.expense);
+
+
+ final  ExpenseEntity expense;
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DeleteExpenseEventCopyWith<DeleteExpenseEvent> get copyWith => _$DeleteExpenseEventCopyWithImpl<DeleteExpenseEvent>(this, _$identity);
+
+
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'AddExpenseEvent.delete'))
+    ..add(DiagnosticsProperty('expense', expense));
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeleteExpenseEvent&&(identical(other.expense, expense) || other.expense == expense));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,expense);
+
+@override
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'AddExpenseEvent.delete(expense: $expense)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DeleteExpenseEventCopyWith<$Res> implements $AddExpenseEventCopyWith<$Res> {
+  factory $DeleteExpenseEventCopyWith(DeleteExpenseEvent value, $Res Function(DeleteExpenseEvent) _then) = _$DeleteExpenseEventCopyWithImpl;
+@useResult
+$Res call({
+ ExpenseEntity expense
+});
+
+
+$ExpenseEntityCopyWith<$Res> get expense;
+
+}
+/// @nodoc
+class _$DeleteExpenseEventCopyWithImpl<$Res>
+    implements $DeleteExpenseEventCopyWith<$Res> {
+  _$DeleteExpenseEventCopyWithImpl(this._self, this._then);
+
+  final DeleteExpenseEvent _self;
+  final $Res Function(DeleteExpenseEvent) _then;
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? expense = null,}) {
+  return _then(DeleteExpenseEvent(
+null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
+as ExpenseEntity,
+  ));
+}
+
+/// Create a copy of AddExpenseEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExpenseEntityCopyWith<$Res> get expense {
+
   return $ExpenseEntityCopyWith<$Res>(_self.expense, (value) {
     return _then(_self.copyWith(expense: value));
   });
@@ -475,7 +620,7 @@ return error(_that.message);case _:
 
 class AddExpenseInitial with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseInitial();
-  
+
 
 
 
@@ -513,7 +658,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseLoading with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseLoading();
-  
+
 
 
 
@@ -551,7 +696,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseSuccess with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseSuccess();
-  
+
 
 
 
@@ -589,7 +734,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseError with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseError(this.message);
-  
+
 
  final  String message;
 

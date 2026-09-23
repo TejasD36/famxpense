@@ -27,5 +27,6 @@ sealed class ExpenseRemoteDto with _$ExpenseRemoteDto {
     double? longitude,
   }) = _ExpenseRemoteDto;
 
-  factory ExpenseRemoteDto.fromJson(Map<String, dynamic> json) => _$ExpenseRemoteDtoFromJson(json);
+  factory ExpenseRemoteDto.fromJson(Map<String, dynamic> json) =>
+      _$ExpenseRemoteDtoFromJson(json);
 }

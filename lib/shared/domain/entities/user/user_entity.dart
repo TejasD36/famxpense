@@ -16,5 +16,6 @@ sealed class UserEntity with _$UserEntity {
     @Default(true) bool isActive,
   }) = _UserEntity;
 
-  factory UserEntity.fromJson(Map<String, dynamic> json) => _$UserEntityFromJson(json);
+  factory UserEntity.fromJson(Map<String, dynamic> json) =>
+      _$UserEntityFromJson(json);
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "238098914441",
+    "project_id": "famxpense-tp-dev",
+    "storage_bucket": "famxpense-tp-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238098914441:android:a7ab69f8de0a66a39eba58",
+        "android_client_info": {
+          "package_name": "com.tejasd.famxpense.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCi4LQ0cLJzkuHM4kRQ-OUlmJcqqs75-d0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

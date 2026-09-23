@@ -9,12 +9,22 @@ extension DebtLedgerDtoMapper on DebtLedgerDto {
       netBalance: netBalance,
       updatedAt: updatedAt,
       participantIds: [userA, userB],
+      pendingMutations: pendingMutations,
+      appliedMutationIds: appliedMutationIds,
     );
   }
 }
 
 extension DebtLedgerEntityMapper on DebtLedgerEntity {
   DebtLedgerDto toDto() {
-    return DebtLedgerDto(id: id, userA: userA, userB: userB, netBalance: netBalance, updatedAt: updatedAt);
+    return DebtLedgerDto(
+      id: id,
+      userA: userA,
+      userB: userB,
+      netBalance: netBalance,
+      updatedAt: updatedAt,
+      pendingMutations: pendingMutations,
+      appliedMutationIds: appliedMutationIds,
+    );
   }
 }

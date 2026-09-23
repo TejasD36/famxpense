@@ -1,13 +1,16 @@
 import '../../../../core.dart';
 
-class UserLocalDatasourceImpl extends BaseHiveService<UserDto> implements UserLocalDatasource {
+class UserLocalDatasourceImpl extends BaseHiveService<UserDto>
+    implements UserLocalDatasource {
   final Box _authBox;
 
-  UserLocalDatasourceImpl() : _authBox = Hive.box(HiveBoxes.auth), super(Hive.box<UserDto>(HiveBoxes.users));
+  UserLocalDatasourceImpl()
+    : _authBox = Hive.box(HiveBoxes.auth),
+      super(Hive.box<UserDto>(HiveBoxes.users));
 
   @override
   UserDto? getCurrentUser() {
-    final userId = _authBox.get('user_id');
+    final userId = _authBox.get('userId');
 
     if (userId == null) {
       return null;

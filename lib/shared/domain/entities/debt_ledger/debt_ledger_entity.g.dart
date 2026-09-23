@@ -18,6 +18,16 @@ _DebtLedgerEntity _$DebtLedgerEntityFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      pendingMutations:
+          (json['pendingMutations'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, (e as num).toDouble()),
+          ) ??
+          const {},
+      appliedMutationIds:
+          (json['appliedMutationIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$DebtLedgerEntityToJson(_DebtLedgerEntity instance) =>
@@ -28,4 +38,6 @@ Map<String, dynamic> _$DebtLedgerEntityToJson(_DebtLedgerEntity instance) =>
       'netBalance': instance.netBalance,
       'updatedAt': instance.updatedAt.toIso8601String(),
       'participantIds': instance.participantIds,
+      'pendingMutations': instance.pendingMutations,
+      'appliedMutationIds': instance.appliedMutationIds,
     };

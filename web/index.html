@@ -32,8 +32,110 @@
   <title>famxpense</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqUS5K1VBlc-kuNOlElXN5_mvs5KASI3w"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #F8FAF8;
+    }
+
+    .app-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, rgba(27, 94, 84, 0.12), rgba(100, 181, 246, 0.10)),
+        #F8FAF8;
+      font-family: Arial, sans-serif;
+      transition: opacity 220ms ease;
+      z-index: 9999;
+    }
+
+    .app-loader.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .app-loader__panel {
+      width: min(320px, calc(100vw - 48px));
+      padding: 28px;
+      border: 1px solid rgba(27, 94, 84, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 18px 48px rgba(20, 40, 36, 0.12);
+      text-align: center;
+    }
+
+    .app-loader__logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      margin-bottom: 14px;
+    }
+
+    .app-loader__title {
+      margin: 0;
+      color: #173C36;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .app-loader__text {
+      margin: 6px 0 18px;
+      color: #60716D;
+      font-size: 14px;
+    }
+
+    .app-loader__bar {
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(27, 94, 84, 0.14);
+    }
+
+    .app-loader__bar::before {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: #1B5E54;
+      animation: app-loader-slide 1s ease-in-out infinite;
+    }
+
+    @keyframes app-loader-slide {
+      0% { transform: translateX(-110%); }
+      100% { transform: translateX(260%); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #101615; }
+      .app-loader {
+        background:
+          linear-gradient(135deg, rgba(27, 94, 84, 0.24), rgba(100, 181, 246, 0.12)),
+          #101615;
+      }
+      .app-loader__panel {
+        background: rgba(24, 34, 32, 0.88);
+        border-color: rgba(255, 255, 255, 0.10);
+      }
+      .app-loader__title { color: #F5FFFC; }
+      .app-loader__text { color: #B9C7C3; }
+    }
+  </style>
 </head>
 <body>
+  <div id="app-loader" class="app-loader" role="status" aria-live="polite">
+    <div class="app-loader__panel">
+      <img class="app-loader__logo" src="icons/Icon-192.png" alt="FamXpense">
+      <h1 class="app-loader__title">FamXpense</h1>
+      <p class="app-loader__text">Preparing your expense dashboard</p>
+      <div class="app-loader__bar" aria-hidden="true"></div>
+    </div>
+  </div>
+  <noscript>FamXpense requires JavaScript to run.</noscript>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

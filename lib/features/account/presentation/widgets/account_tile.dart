@@ -10,18 +10,50 @@ class AccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ListTile(
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: CircleAvatar(
+          radius: 20,
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(_iconForType(account.accountType), color: Theme.of(context).colorScheme.primary),
+          child: account.isSavings
+              ? const Icon(Icons.savings_rounded, color: Colors.amber)
+              : Icon(
+                  _iconForType(account.accountType),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
         ),
-        title: Text(account.accountName, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                account.accountName,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            if (account.isSavings) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Savings',
+                  style: TextStyle(fontSize: 10, color: Colors.amber),
+                ),
+              ),
+            ],
+          ],
+        ),
         subtitle: Text(
           formatIndianRupee(account.currentBalance),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
       ),

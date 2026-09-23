@@ -12,7 +12,10 @@ sealed class DebtLedgerDto with _$DebtLedgerDto {
     @HiveField(2) required String userB,
     @HiveField(3) required double netBalance,
     @HiveField(4) required DateTime updatedAt,
+    @HiveField(5) @Default({}) Map<String, double> pendingMutations,
+    @HiveField(6) @Default([]) List<String> appliedMutationIds,
   }) = _DebtLedgerDto;
 
-  factory DebtLedgerDto.fromJson(Map<String, dynamic> json) => _$DebtLedgerDtoFromJson(json);
+  factory DebtLedgerDto.fromJson(Map<String, dynamic> json) =>
+      _$DebtLedgerDtoFromJson(json);
 }

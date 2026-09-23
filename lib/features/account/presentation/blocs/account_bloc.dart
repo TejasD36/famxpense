@@ -29,7 +29,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
   String? get _userId => _authLocalDatasource.getUserId();
 
-  Future<void> _onLoadAccounts(_LoadAccounts event, Emitter<AccountState> emit) async {
+  Future<void> _onLoadAccounts(
+    _LoadAccounts event,
+    Emitter<AccountState> emit,
+  ) async {
     try {
       emit(const AccountState.loading());
       final userId = _userId;
@@ -41,7 +44,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Future<void> _onSaveAccount(_SaveAccount event, Emitter<AccountState> emit) async {
+  Future<void> _onSaveAccount(
+    _SaveAccount event,
+    Emitter<AccountState> emit,
+  ) async {
     try {
       await _saveAccountUsecase(event.account);
       add(const AccountEvent.loadAccounts());
@@ -50,7 +56,10 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Future<void> _onDeleteAccount(_DeleteAccount event, Emitter<AccountState> emit) async {
+  Future<void> _onDeleteAccount(
+    _DeleteAccount event,
+    Emitter<AccountState> emit,
+  ) async {
     try {
       await _deleteAccountUsecase(event.accountId);
       add(const AccountEvent.loadAccounts());
@@ -59,17 +68,31 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Future<void> _onUpdateBalance(_UpdateBalance event, Emitter<AccountState> emit) async {
+  Future<void> _onUpdateBalance(
+    _UpdateBalance event,
+    Emitter<AccountState> emit,
+  ) async {
     try {
       final currentState = state;
-      final accounts = currentState is _Loaded ? currentState.accounts : <AccountEntity>[];
-      final updated = accounts.map((a) {
-        if (a.id == event.accountId) {
-          return a.copyWith(currentBalance: event.newBalance, updatedAt: DateTime.now().toUtc());
-        }
-        return a;
-      }).toList();
-      emit(AccountState.loaded(accounts: updated));
+      final accounts = currentState is _Loaded
+          ? currentState.accounts
+          : <AccountEntity>[];
+      final account = accounts
+          .where((item) => item.id == event.accountId)
+          .firstOrNull;
+      if (account == null) throw StateError('Account not loaded');
+      final updatedAccount = account.copyWith(
+        currentBalance: event.newBalance,
+        updatedAt: DateTime.now().toUtc(),
+      );
+      await _saveAccountUsecase(updatedAccount);
+      emit(
+        AccountState.loaded(
+          accounts: accounts
+              .map((item) => item.id == event.accountId ? updatedAccount : item)
+              .toList(),
+        ),
+      );
     } catch (e) {
       emit(AccountState.error(message: e.toString()));
     }

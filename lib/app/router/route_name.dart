@@ -4,7 +4,6 @@ enum AppRoute {
   register('/register', 'register'),
   forgotPassword('/forgotPassword', 'forgotPassword'),
   home('/home', 'home'),
-  groups('/groups', 'groups'),
   activity('/activity', 'activity'),
   profile('/profile', 'profile'),
   addExpense('/addExpense', 'addExpense'),
@@ -15,7 +14,10 @@ enum AppRoute {
   statistics('/statistics', 'statistics'),
   searchActivity('/searchActivity', 'searchActivity'),
   notifications('/notifications', 'notifications'),
-  settlements('/settlements', 'settlements');
+  settlements('/settlements', 'settlements'),
+  income('/income', 'income'),
+  savings('/savings', 'savings'),
+  reconciliation('/reconciliation', 'reconciliation');
 
   final String path;
 

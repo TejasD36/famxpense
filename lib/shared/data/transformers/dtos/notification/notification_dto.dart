@@ -17,5 +17,6 @@ sealed class NotificationDto with _$NotificationDto {
     @HiveField(7) @Default(false) bool isRead,
   }) = _NotificationDto;
 
-  factory NotificationDto.fromJson(Map<String, dynamic> json) => _$NotificationDtoFromJson(json);
+  factory NotificationDto.fromJson(Map<String, dynamic> json) =>
+      _$NotificationDtoFromJson(json);
 }

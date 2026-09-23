@@ -6,17 +6,19 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:famxpense/shared/data/transformers/dtos/account/account_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/account/manual_deposit_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/debt_ledger/debt_ledger_dto.dart';
-import 'package:famxpense/shared/data/transformers/dtos/expense/draft_expense_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/expense/expense_participant_dto.dart';
-import 'package:famxpense/shared/data/transformers/dtos/group/group_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/income/income_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/notification/notification_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/partnership/partnership_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/savings/monthly_saving_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/settlement/settlement_dto.dart';
+import 'package:famxpense/shared/data/transformers/dtos/transfer/transfer_dto.dart';
 import 'package:famxpense/shared/data/transformers/dtos/user/user_dto.dart';
 import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_category.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
+import 'package:famxpense/shared/enums/income_source.dart';
 import 'package:famxpense/shared/enums/notification_type.dart';
 import 'package:famxpense/shared/enums/partnership_status.dart';
 import 'package:famxpense/shared/enums/settlement_status.dart';
@@ -28,13 +30,14 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(AccountDtoAdapter());
     registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
-    registerAdapter(DraftExpenseDtoAdapter());
     registerAdapter(ExpenseCategoryAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());
-    registerAdapter(GroupDtoAdapter());
+    registerAdapter(IncomeDtoAdapter());
+    registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
+    registerAdapter(MonthlySavingDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
@@ -43,6 +46,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
     registerAdapter(SyncStatusAdapter());
+    registerAdapter(TransferDtoAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }
@@ -52,13 +56,14 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(AccountDtoAdapter());
     registerAdapter(AccountTypeAdapter());
     registerAdapter(DebtLedgerDtoAdapter());
-    registerAdapter(DraftExpenseDtoAdapter());
     registerAdapter(ExpenseCategoryAdapter());
     registerAdapter(ExpenseDtoAdapter());
     registerAdapter(ExpenseParticipantDtoAdapter());
     registerAdapter(ExpenseTypeAdapter());
-    registerAdapter(GroupDtoAdapter());
+    registerAdapter(IncomeDtoAdapter());
+    registerAdapter(IncomeSourceAdapter());
     registerAdapter(ManualDepositDtoAdapter());
+    registerAdapter(MonthlySavingDtoAdapter());
     registerAdapter(NotificationDtoAdapter());
     registerAdapter(NotificationTypeAdapter());
     registerAdapter(PartnershipDtoAdapter());
@@ -67,6 +72,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(SettlementStatusAdapter());
     registerAdapter(SplitTypeAdapter());
     registerAdapter(SyncStatusAdapter());
+    registerAdapter(TransferDtoAdapter());
     registerAdapter(UserDtoAdapter());
   }
 }

@@ -18,6 +18,10 @@ abstract final class HiveTypeIds {
   static const int partnershipStatus = 16;
   static const int manualDeposit = 17;
   static const int expenseCategory = 18;
+  static const int incomeSource = 19;
+  static const int income = 20;
+  static const int monthlySaving = 21;
+  static const int transfer = 22;
 }
 
 // @HiveType(typeId: HiveTypeIds.user)

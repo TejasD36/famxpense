@@ -1,4 +1,5 @@
 import '../../../core.dart';
+import '../../../hive_registrar.g.dart';
 
 abstract final class HiveInitializer {
   static Future<void> initialize() async {
@@ -10,26 +11,7 @@ abstract final class HiveInitializer {
   }
 
   static void _registerAdapters() {
-    Hive
-      ..registerAdapter(UserDtoAdapter())
-      ..registerAdapter(AccountDtoAdapter())
-      ..registerAdapter(ExpenseParticipantDtoAdapter())
-      ..registerAdapter(ExpenseDtoAdapter())
-      ..registerAdapter(GroupDtoAdapter())
-      ..registerAdapter(SettlementDtoAdapter())
-      ..registerAdapter(PartnershipDtoAdapter())
-      ..registerAdapter(DebtLedgerDtoAdapter())
-      ..registerAdapter(NotificationDtoAdapter())
-      ..registerAdapter(ExpenseTypeAdapter())
-      ..registerAdapter(SplitTypeAdapter())
-      ..registerAdapter(SyncStatusAdapter())
-      ..registerAdapter(AccountTypeAdapter())
-      ..registerAdapter(SettlementStatusAdapter())
-      ..registerAdapter(PartnershipStatusAdapter())
-      ..registerAdapter(NotificationTypeAdapter())
-      ..registerAdapter(DraftExpenseDtoAdapter())
-      ..registerAdapter(ManualDepositDtoAdapter())
-      ..registerAdapter(ExpenseCategoryAdapter());
+    Hive.registerAdapters();
   }
 
   static Future<void> _openBoxes() async {
@@ -39,8 +21,6 @@ abstract final class HiveInitializer {
       Hive.openBox<ExpenseDto>(HiveBoxes.expenses),
 
       Hive.openBox<AccountDto>(HiveBoxes.accounts),
-
-      Hive.openBox<GroupDto>(HiveBoxes.groups),
 
       Hive.openBox<SettlementDto>(HiveBoxes.settlements),
 
@@ -52,11 +32,13 @@ abstract final class HiveInitializer {
 
       Hive.openBox(HiveBoxes.auth),
 
-      Hive.openBox<DraftExpenseDto>(HiveBoxes.draftExpenses),
-
       Hive.openBox(HiveBoxes.settings),
 
       Hive.openBox<ManualDepositDto>(HiveBoxes.manualDeposits),
+
+      Hive.openBox<IncomeDto>(HiveBoxes.incomes),
+      Hive.openBox<MonthlySavingDto>(HiveBoxes.monthlySavings),
+      Hive.openBox<TransferDto>(HiveBoxes.transfers),
     ]);
   }
 }
