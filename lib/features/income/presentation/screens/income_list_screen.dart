@@ -173,6 +173,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
     var transferToSavings = false;
     var selectedSavingsId = <String>{};
     var accountsLoadStarted = false;
+    var isSubmitting = false;
+    String? pendingIncomeId;
+    String? pendingTransferId;
 
     showModalBottomSheet(
       context: context,
@@ -465,68 +468,97 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                     const SizedBox(height: 16),
 
                     FilledButton.icon(
-                      onPressed: () async {
-                        if (!formKey.currentState!.validate()) return;
-                        if (selectedAccountId == null) return;
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              if (!formKey.currentState!.validate()) return;
+                              if (selectedAccountId == null) return;
 
-                        final raw = amountCtl.text.trim();
-                        final cleaned = raw.replaceAll(RegExp(r'[^0-9.]'), '');
-                        final amount = double.tryParse(cleaned)!;
+                              setVal(() => isSubmitting = true);
 
-                        final desc = descCtl.text.trim().isEmpty
-                            ? 'Income: ${selectedSource.label}'
-                            : descCtl.text.trim();
+                              final raw = amountCtl.text.trim();
+                              final cleaned = raw.replaceAll(
+                                RegExp(r'[^0-9.]'),
+                                '',
+                              );
+                              final amount = double.tryParse(cleaned)!;
 
-                        final now = DateTime.now().toUtc();
-                        final incomeId = const Uuid().v4();
-                        final income = IncomeEntity(
-                          id: incomeId,
-                          userId: userId,
-                          accountId: selectedAccountId!,
-                          amount: amount,
-                          source: selectedSource,
-                          description: desc,
-                          createdAt: selectedDate.toUtc(),
-                          updatedAt: now,
-                        );
+                              final desc = descCtl.text.trim().isEmpty
+                                  ? 'Income: ${selectedSource.label}'
+                                  : descCtl.text.trim();
 
-                        final transferAmount =
-                            transferToSavings && selectedSavingsId.isNotEmpty
-                            ? (double.tryParse(
-                                        savingsAmountCtl.text.replaceAll(
-                                          RegExp(r'[^0-9.]'),
-                                          '',
-                                        ),
-                                      ) ??
-                                      0)
-                                  .clamp(0.0, amount)
-                            : 0.0;
+                              final now = DateTime.now().toUtc();
+                              pendingIncomeId ??= const Uuid().v4();
+                              final income = IncomeEntity(
+                                id: pendingIncomeId!,
+                                userId: userId,
+                                accountId: selectedAccountId!,
+                                amount: amount,
+                                source: selectedSource,
+                                description: desc,
+                                createdAt: selectedDate.toUtc(),
+                                updatedAt: now,
+                              );
 
-                        await _addIncome(income);
+                              final transferAmount =
+                                  transferToSavings &&
+                                      selectedSavingsId.isNotEmpty
+                                  ? (double.tryParse(
+                                              savingsAmountCtl.text.replaceAll(
+                                                RegExp(r'[^0-9.]'),
+                                                '',
+                                              ),
+                                            ) ??
+                                            0)
+                                        .clamp(0.0, amount)
+                                  : 0.0;
 
-                        if (transferAmount > 0) {
-                          final toSavingsId = selectedSavingsId.first;
-                          await sl<TransferRepository>().saveTransfer(
-                            TransferDto(
-                              id: const Uuid().v4(),
-                              fromAccountId: selectedAccountId!,
-                              toAccountId: toSavingsId,
-                              fromUserId: userId,
-                              toUserId: userId,
-                              amount: transferAmount,
-                              description:
-                                  'Savings allocation from ${desc.isNotEmpty ? desc : selectedSource.label}',
-                              createdAt: now,
-                              updatedAt: now,
-                            ),
-                          );
-                          sl<RefreshNotifier>().notifyDataChanged();
-                        }
+                              try {
+                                await _addIncome(income);
 
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Add Income'),
+                                if (transferAmount > 0) {
+                                  pendingTransferId ??= const Uuid().v4();
+                                  final toSavingsId = selectedSavingsId.first;
+                                  await sl<TransferRepository>().saveTransfer(
+                                    TransferDto(
+                                      id: pendingTransferId!,
+                                      fromAccountId: selectedAccountId!,
+                                      toAccountId: toSavingsId,
+                                      fromUserId: userId,
+                                      toUserId: userId,
+                                      amount: transferAmount,
+                                      description:
+                                          'Savings allocation from ${desc.isNotEmpty ? desc : selectedSource.label}',
+                                      createdAt: now,
+                                      updatedAt: now,
+                                    ),
+                                  );
+                                  sl<RefreshNotifier>().notifyDataChanged();
+                                }
+
+                                if (ctx.mounted) Navigator.pop(ctx);
+                              } catch (error, stackTrace) {
+                                AppLogger.error(
+                                  'Income save failed',
+                                  error,
+                                  stackTrace,
+                                );
+                                if (ctx.mounted) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Could not save income. Try again.',
+                                      ),
+                                    ),
+                                  );
+                                  setVal(() => isSubmitting = false);
+                                }
+                              }
+                            },
+                      icon: isSubmitting
+                          ? const FinanceLoadingIndicator.compact(size: 18)
+                          : const Icon(Icons.add_rounded),
+                      label: Text(isSubmitting ? 'Saving...' : 'Add Income'),
                     ),
                   ],
                 ),

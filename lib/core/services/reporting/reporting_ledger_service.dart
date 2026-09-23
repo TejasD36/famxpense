@@ -345,7 +345,6 @@ class ReportingLedgerService {
             description: transfer.description,
             accountId: transfer.fromAccountId,
             transferAccountId: transfer.toAccountId,
-            isOutflow: true,
             transfer: transfer,
           ),
         );
@@ -361,7 +360,6 @@ class ReportingLedgerService {
             description: transfer.description,
             accountId: transfer.toAccountId,
             transferAccountId: transfer.fromAccountId,
-            isInflow: true,
             transfer: transfer,
           ),
         );

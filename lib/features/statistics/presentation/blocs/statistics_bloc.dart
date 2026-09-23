@@ -71,8 +71,8 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
           accountName: summary.account.accountName,
           endBalance: summary.account.currentBalance,
           startBalance: summary.account.currentBalance - summary.netChange,
-          totalDeposited: summary.inflowTotal,
-          totalSpent: summary.outflowTotal,
+          totalDeposited: summary.deposited,
+          totalSpent: summary.spent,
         );
       }).toList();
 

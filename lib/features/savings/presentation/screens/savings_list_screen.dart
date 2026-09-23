@@ -32,10 +32,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
     try {
       final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
       final dtos = await sl<AccountLocalDatasource>().getAccounts();
-      final accounts = dtos
-          .where((a) => a.userId == userId && a.isSavings)
-          .map((d) => d.toEntity())
-          .toList();
+      final accounts = dtos.where((a) => a.userId == userId && a.isSavings).map((d) => d.toEntity()).toList();
 
       final repo = sl<SavingsRepository>();
       final now = DateTime.now();
@@ -47,11 +44,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
         if (snap == null ||
             (snap.closingBalance - a.currentBalance).abs() > 0.001 ||
             (snap.goalAmount - a.monthlySavingsGoal).abs() > 0.001) {
-          snap = await repo.computeCurrentMonth(
-            a.id,
-            a.currentBalance,
-            a.monthlySavingsGoal,
-          );
+          snap = await repo.computeCurrentMonth(a.id, a.currentBalance, a.monthlySavingsGoal);
         }
         snapshots[a.id] = snap;
         final history = await repo.getAccountHistory(a.id);
@@ -61,18 +54,14 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       final grouped = <int, Map<int, double>>{};
       for (final h in allHistory) {
         grouped.putIfAbsent(h.year, () => {});
-        grouped[h.year]![h.month] =
-            (grouped[h.year]![h.month] ?? 0) + h.savedAmount;
+        grouped[h.year]![h.month] = (grouped[h.year]![h.month] ?? 0) + h.savedAmount;
       }
 
       final timeline = <_MonthSummary>[];
       final yearData = grouped[now.year] ?? {};
-      final sortedMonths = yearData.keys.toList()
-        ..sort((a, b) => b.compareTo(a));
+      final sortedMonths = yearData.keys.toList()..sort((a, b) => b.compareTo(a));
       for (final m in sortedMonths) {
-        timeline.add(
-          _MonthSummary(year: now.year, month: m, totalSaved: yearData[m]!),
-        );
+        timeline.add(_MonthSummary(year: now.year, month: m, totalSaved: yearData[m]!));
       }
 
       if (mounted) {
@@ -98,8 +87,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
           ? FinanceEmptyState(
               icon: Icons.savings_rounded,
               title: 'No savings accounts yet',
-              subtitle:
-                  'Mark an account as savings to track monthly goals and progress.',
+              subtitle: 'Mark an account as savings to track monthly goals and progress.',
               action: OutlinedButton.icon(
                 onPressed: () => context.pushNamed(AppRoute.addAccount.name),
                 icon: const Icon(Icons.add_rounded),
@@ -113,12 +101,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                 children: [
                   _buildSummaryCard(),
                   const SizedBox(height: 14),
-                  ..._savingsAccounts.map(
-                    (a) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _buildAccountCard(a),
-                    ),
-                  ),
+                  ..._savingsAccounts.map((a) => Padding(padding: const EdgeInsets.only(bottom: 8), child: _buildAccountCard(a))),
                   if (_timeline.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     const CompactSectionHeader(title: 'Monthly History'),
@@ -139,9 +122,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       totalSaved += snap?.savedAmount ?? 0;
     }
 
-    final percent = totalGoal > 0
-        ? (totalSaved / totalGoal * 100).clamp(-999.0, 999.0)
-        : 0.0;
+    final percent = totalGoal > 0 ? (totalSaved / totalGoal * 100).clamp(-999.0, 999.0) : 0.0;
 
     Color barColor;
     if (totalSaved < 0) {
@@ -163,12 +144,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
             children: [
               Icon(Icons.savings_rounded, color: barColor, size: 22),
               const SizedBox(width: 8),
-              Text(
-                'This Month',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
+              Text('This Month', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
               const Spacer(),
               Text(
                 '${percent.toStringAsFixed(1)}%',
@@ -179,30 +155,17 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
           const SizedBox(height: 12),
           MoneyMetricStrip(
             metrics: [
-              MoneyMetric(
-                label: 'Goal',
-                value: formatIndianRupee(totalGoal),
-                icon: Icons.flag_rounded,
-              ),
-              MoneyMetric(
-                label: 'Saved',
-                value: formatIndianRupee(totalSaved),
-                color: barColor,
-                icon: Icons.trending_up_rounded,
-              ),
+              MoneyMetric(label: 'Goal', value: formatIndianRupee(totalGoal), icon: Icons.flag_rounded),
+              MoneyMetric(label: 'Saved', value: formatIndianRupee(totalSaved), color: barColor, icon: Icons.trending_up_rounded),
             ],
           ),
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: totalGoal > 0
-                  ? (totalSaved / totalGoal).clamp(0.0, 1.0)
-                  : 0,
+              value: totalGoal > 0 ? (totalSaved / totalGoal).clamp(0.0, 1.0) : 0,
               minHeight: 8,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(barColor),
             ),
           ),
@@ -233,8 +196,7 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
-        onTap: () =>
-            context.pushNamed(AppRoute.accountDetail.name, extra: account),
+        onTap: () => context.pushNamed(AppRoute.accountDetail.name, extra: account),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -245,42 +207,24 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                   CircleAvatar(
                     backgroundColor: Colors.amber.withValues(alpha: 0.12),
                     radius: 18,
-                    child: const Icon(
-                      Icons.savings_rounded,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.savings_rounded, color: Colors.amber, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          account.accountName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
+                        Text(account.accountName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                         Text(
                           formatIndianRupee(account.currentBalance),
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                            fontSize: 13,
-                          ),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
                         ),
                       ],
                     ),
                   ),
                   Text(
                     '${percent.toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: barColor,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: barColor),
                   ),
                 ],
               ),
@@ -291,19 +235,14 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
                   child: LinearProgressIndicator(
                     value: (saved / goal).clamp(0.0, 1.0),
                     minHeight: 6,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation(barColor),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${formatIndianRupee(saved)} / ${formatIndianRupee(goal)}',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ],
@@ -322,59 +261,31 @@ class _SavingsListScreenState extends State<SavingsListScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
-        side: isNegative
-            ? BorderSide(color: Colors.red.shade200)
-            : BorderSide.none,
+        side: isNegative ? BorderSide(color: Colors.red.shade200) : BorderSide.none,
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isNegative
-              ? Colors.red.withValues(alpha: 0.1)
-              : Colors.green.withValues(alpha: 0.1),
+          backgroundColor: isNegative ? Colors.red.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
           child: Icon(
-            isNegative
-                ? Icons.warning_amber_rounded
-                : Icons.check_circle_outline_rounded,
+            isNegative ? Icons.warning_amber_rounded : Icons.check_circle_outline_rounded,
             color: isNegative ? Colors.red : Colors.green,
             size: 20,
           ),
         ),
         title: Text(
           label,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: isNegative ? Colors.red.shade700 : null,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, color: isNegative ? Colors.red.shade700 : null),
         ),
         trailing: Text(
-          isNegative
-              ? '-${formatIndianRupee(month.totalSaved.abs())}'
-              : formatIndianRupee(month.totalSaved),
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: isNegative ? Colors.red : Colors.green.shade700,
-          ),
+          isNegative ? '-${formatIndianRupee(month.totalSaved.abs())}' : formatIndianRupee(month.totalSaved),
+          style: TextStyle(fontWeight: FontWeight.w600, color: isNegative ? Colors.red : Colors.green.shade700),
         ),
       ),
     );
   }
 
   String _monthName(int m) {
-    const names = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
+    const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return names[m];
   }
 }
@@ -383,9 +294,5 @@ class _MonthSummary {
   final int year;
   final int month;
   final double totalSaved;
-  const _MonthSummary({
-    required this.year,
-    required this.month,
-    required this.totalSaved,
-  });
+  const _MonthSummary({required this.year, required this.month, required this.totalSaved});
 }

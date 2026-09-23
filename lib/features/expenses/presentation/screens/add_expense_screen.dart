@@ -159,9 +159,42 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
     if (pickedDate != null) {
       setState(() {
-        _selectedDate = pickedDate;
+        _selectedDate = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          _selectedDate.hour,
+          _selectedDate.minute,
+          _selectedDate.second,
+        );
       });
     }
+  }
+
+  Future<void> _selectTime() async {
+    if (!_canEditFinancialFields) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDate),
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+      });
+    }
+  }
+
+  String _formatTime12Hour(DateTime dateTime) {
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = dateTime.hour < 12 ? 'AM' : 'PM';
+    return '$hour:$minute $period';
   }
 
   void _checkBalance() {
@@ -699,24 +732,56 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Widget _dateField() {
-    return InkWell(
-      onTap: _canEditFinancialFields ? _selectDate : null,
-      borderRadius: BorderRadius.circular(6),
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Date',
-          suffixIcon: Icon(Icons.keyboard_arrow_down_rounded),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_month_rounded),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(DateFormat('dd MMM yyyy').format(_selectedDate)),
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: InkWell(
+            onTap: _canEditFinancialFields ? _selectDate : null,
+            borderRadius: BorderRadius.circular(6),
+            child: InputDecorator(
+              decoration: const InputDecoration(labelText: 'Date'),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_month_rounded),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      DateFormat('dd MMM yyyy').format(_selectedDate),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: InkWell(
+            onTap: _canEditFinancialFields ? _selectTime : null,
+            borderRadius: BorderRadius.circular(6),
+            child: InputDecorator(
+              decoration: const InputDecoration(labelText: 'Time'),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule_rounded),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _formatTime12Hour(_selectedDate),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1453,29 +1518,29 @@ class _SharedSplitSection extends StatelessWidget {
               }).toList(),
             ),
           ],
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<SplitType>(
-              selected: {splitType},
-              onSelectionChanged: enabled
-                  ? (value) => onSplitTypeChanged(value.first)
-                  : null,
-              segments: const [
-                ButtonSegment(
-                  value: SplitType.equal,
-                  icon: Icon(Icons.balance_rounded),
-                  label: Text('Equal'),
-                ),
-                ButtonSegment(
-                  value: SplitType.manual,
-                  icon: Icon(Icons.edit_note_rounded),
-                  label: Text('Manual'),
-                ),
-              ],
-            ),
-          ),
           if (selectedPartners.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<SplitType>(
+                selected: {splitType},
+                onSelectionChanged: enabled
+                    ? (value) => onSplitTypeChanged(value.first)
+                    : null,
+                segments: const [
+                  ButtonSegment(
+                    value: SplitType.equal,
+                    icon: Icon(Icons.balance_rounded),
+                    label: Text('Equal'),
+                  ),
+                  ButtonSegment(
+                    value: SplitType.manual,
+                    icon: Icon(Icons.edit_note_rounded),
+                    label: Text('Manual'),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 12),
             DecoratedBox(
               decoration: BoxDecoration(
