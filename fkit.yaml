@@ -1,0 +1,79 @@
+fkit:
+  version: 0.1.4
+
+project_name: famxpense
+
+tooling:
+  use_fvm: false
+
+platforms:
+  android: true
+  ios: true
+  web: true
+
+build:
+  debug_info: ./debug-info
+  obfuscate: true
+
+entry:
+  main: lib/main.dart
+
+flavoring:
+  enabled: true
+  default: dev
+
+flavors:
+  - dev
+  - prod
+
+environment:
+  enabled: true
+
+  configurations:
+    dev:
+      file: env/dev.json
+    prod:
+      file: env/prod.json
+
+localization:
+  enabled: false
+
+  arb_dir: lib/l10n
+  template: app_en.arb
+  output_dir: lib/gen/l10n
+  output_file: app_localizations.dart
+  default_locale: en
+
+  locales:
+    - en
+
+firebase:
+  enabled: true
+  tester_group: internal-testers
+
+  configurations:
+    dev:
+      android:
+        app_id: 1:238098914441:android:a7ab69f8de0a66a39eba58
+        options: lib/firebase_options_dev.dart
+      ios:
+        app_id: 1:238098914441:ios:f7e4a8a27cfdf8599eba58
+        options: lib/firebase_options_dev.dart
+      web:
+        app_id: 1:238098914441:web:a42798b2069326a79eba58
+        options: lib/firebase_options_dev.dart
+    prod:
+      android:
+        app_id: 1:909503381680:android:603a018fca0493fe7cfb75
+        options: lib/firebase_options.dart
+      ios:
+        app_id: 1:909503381680:ios:0fb68849e40532a97cfb75
+        options: lib/firebase_options.dart
+      web:
+        app_id: 1:909503381680:web:efaa3330e674932f7cfb75
+        options: lib/firebase_options.dart
+
+generator:
+  feature_dir: lib/features
+  default_template: bloc_clean
+
