@@ -137,10 +137,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     _,
                     incomingPendingSettlements,
                     outgoingPendingSettlements,
+                    categoryTotals,
                   ) {
                     final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
                     final userName = context.read<AuthBloc>().state.maybeWhen(authenticated: (user) => user.nickname, orElse: () => '');
-                    String inr(double v) => formatIndianRupee(v);
+                    final hasCategorySpend = categoryTotals.values.any(
+                      (amount) => amount > 0,
+                    );
                     return RefreshIndicator(
                       onRefresh: () async {
                         final authState = context.read<AuthBloc>().state;
@@ -201,24 +204,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          /// Total Spend Card
-                          _SummaryCard(title: 'Total Spend', value: inr(totalSpend), icon: Icons.account_balance_wallet),
-                          const SizedBox(height: 16),
-
-                          /// Split cards
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _MiniCard(title: 'Personal', value: inr(personalSpend), icon: Icons.person_rounded),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _MiniCard(title: 'Shared', value: inr(sharedSpend), icon: Icons.groups_rounded),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          _PendingSyncStrip(count: pendingSyncCount),
+                          if (hasCategorySpend) ...[
+                            _HomeCategoryBreakdown(categoryTotals: categoryTotals),
+                            const SizedBox(height: 20),
+                          ],
+                          if (pendingSyncCount > 0) ...[
+                            const SizedBox(height: 12),
+                            _PendingSyncStrip(count: pendingSyncCount),
+                          ],
                           const SizedBox(height: 8),
                         ],
                       ),
@@ -358,35 +351,32 @@ class _PendingSyncStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasPending = count > 0;
     return InkWell(
       borderRadius: BorderRadius.circular(6),
       onTap: () => context.pushNamed(AppRoute.reconciliation.name),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: hasPending
-              ? theme.colorScheme.errorContainer.withValues(alpha: 0.50)
-              : theme.colorScheme.primaryContainer.withValues(alpha: 0.30),
+          color: theme.colorScheme.errorContainer.withValues(alpha: 0.50),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           children: [
             Icon(
-              hasPending ? Icons.sync_problem_rounded : Icons.cloud_done_rounded,
+              Icons.sync_problem_rounded,
               size: 18,
-              color: hasPending ? theme.colorScheme.error : theme.colorScheme.primary,
+              color: theme.colorScheme.error,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                hasPending ? '$count item${count == 1 ? '' : 's'} waiting to sync' : 'Everything is synced',
+                '$count item${count == 1 ? '' : 's'} waiting to sync',
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
             Text(
               count.toString(),
-              style: TextStyle(color: hasPending ? theme.colorScheme.error : theme.colorScheme.primary, fontWeight: FontWeight.bold),
+              style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -395,69 +385,104 @@ class _PendingSyncStrip extends StatelessWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  const _SummaryCard({required this.title, required this.value, required this.icon});
+class _HomeCategoryBreakdown extends StatelessWidget {
+  final Map<String, double> categoryTotals;
+
+  const _HomeCategoryBreakdown({required this.categoryTotals});
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
+    final theme = Theme.of(context);
+    final sortedCategories = categoryTotals.entries
+        .where((entry) => entry.key != ExpenseCategory.other.name)
+        .toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final visibleCategories = sortedCategories.take(4).toList();
+    final otherTotal =
+        (categoryTotals[ExpenseCategory.other.name] ?? 0) +
+        sortedCategories.skip(4).fold<double>(
+          0,
+          (accumulator, entry) => accumulator + entry.value,
+        );
+    if (otherTotal > 0) {
+      visibleCategories.add(
+        MapEntry(ExpenseCategory.other.name, otherTotal),
+      );
+    }
+    final totalSpend = categoryTotals.values.fold<double>(
+      0,
+      (accumulator, amount) => accumulator + amount,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Container(
-              height: 56,
-              width: 56,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+            Expanded(
+              child: Text(
+                'Spending by category',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              child: Icon(icon),
             ),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            TextButton.icon(
+              onPressed: () => context.pushNamed(AppRoute.statistics.name),
+              icon: const Icon(Icons.bar_chart_rounded, size: 18),
+              label: const Text('View more stats'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final entry in visibleCategories) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
               children: [
-                Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(
+                    _categoryLabel(entry.key),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ),
+                Text(
+                  formatIndianRupee(entry.value),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (entry.value / totalSpend).clamp(0.0, 1.0),
+              minHeight: 6,
+              color: _categoryColor(entry.key),
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
     );
   }
-}
 
-class _MiniCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  const _MiniCard({required this.title, required this.value, required this.icon});
+  String _categoryLabel(String key) => ExpenseCategory.values
+      .where((category) => category.name == key)
+      .firstOrNull
+      ?.label ?? key;
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon),
-            const SizedBox(height: 16),
-            Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 6),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
-    );
-  }
+  Color _categoryColor(String key) => ExpenseCategory.values
+      .where((category) => category.name == key)
+      .firstOrNull
+      ?.color ?? Colors.grey;
 }
 
 class _PendingConfirmations extends StatefulWidget {

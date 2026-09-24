@@ -332,12 +332,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements)?  loaded,TResult Function()?  empty,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements,  Map<String, double> categoryTotals)?  loaded,TResult Function()?  empty,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case HomeInitial() when initial != null:
 return initial();case HomeLoading() when loading != null:
 return loading();case HomeLoaded() when loaded != null:
-return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements);case HomeEmpty() when empty != null:
+return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements,_that.categoryTotals);case HomeEmpty() when empty != null:
 return empty();case HomeError() when error != null:
 return error(_that.message);case _:
   return orElse();
@@ -357,12 +357,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements)  loaded,required TResult Function()  empty,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements,  Map<String, double> categoryTotals)  loaded,required TResult Function()  empty,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case HomeInitial():
 return initial();case HomeLoading():
 return loading();case HomeLoaded():
-return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements);case HomeEmpty():
+return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements,_that.categoryTotals);case HomeEmpty():
 return empty();case HomeError():
 return error(_that.message);}
 }
@@ -378,12 +378,12 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements)?  loaded,TResult? Function()?  empty,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( double totalSpend,  double personalSpend,  double sharedSpend,  int pendingSyncCount,  List<ExpenseEntity> recentExpenses,  List<DebtLedgerEntity> debts,  Map<String, String> accountNames,  List<SettlementEntity> incomingPendingSettlements,  List<SettlementEntity> outgoingPendingSettlements,  Map<String, double> categoryTotals)?  loaded,TResult? Function()?  empty,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case HomeInitial() when initial != null:
 return initial();case HomeLoading() when loading != null:
 return loading();case HomeLoaded() when loaded != null:
-return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements);case HomeEmpty() when empty != null:
+return loaded(_that.totalSpend,_that.personalSpend,_that.sharedSpend,_that.pendingSyncCount,_that.recentExpenses,_that.debts,_that.accountNames,_that.incomingPendingSettlements,_that.outgoingPendingSettlements,_that.categoryTotals);case HomeEmpty() when empty != null:
 return empty();case HomeError() when error != null:
 return error(_that.message);case _:
   return null;
@@ -473,7 +473,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 
 class HomeLoaded with DiagnosticableTreeMixin implements HomeState {
-  const HomeLoaded({required this.totalSpend, required this.personalSpend, required this.sharedSpend, required this.pendingSyncCount, required final  List<ExpenseEntity> recentExpenses, final  List<DebtLedgerEntity> debts = const [], final  Map<String, String> accountNames = const {}, final  List<SettlementEntity> incomingPendingSettlements = const [], final  List<SettlementEntity> outgoingPendingSettlements = const []}): _recentExpenses = recentExpenses,_debts = debts,_accountNames = accountNames,_incomingPendingSettlements = incomingPendingSettlements,_outgoingPendingSettlements = outgoingPendingSettlements;
+  const HomeLoaded({required this.totalSpend, required this.personalSpend, required this.sharedSpend, required this.pendingSyncCount, required final  List<ExpenseEntity> recentExpenses, final  List<DebtLedgerEntity> debts = const [], final  Map<String, String> accountNames = const {}, final  List<SettlementEntity> incomingPendingSettlements = const [], final  List<SettlementEntity> outgoingPendingSettlements = const [], final  Map<String, double> categoryTotals = const {}}): _recentExpenses = recentExpenses,_debts = debts,_accountNames = accountNames,_incomingPendingSettlements = incomingPendingSettlements,_outgoingPendingSettlements = outgoingPendingSettlements,_categoryTotals = categoryTotals;
   
 
  final  double totalSpend;
@@ -515,6 +515,13 @@ class HomeLoaded with DiagnosticableTreeMixin implements HomeState {
   return EqualUnmodifiableListView(_outgoingPendingSettlements);
 }
 
+ final  Map<String, double> _categoryTotals;
+@JsonKey() Map<String, double> get categoryTotals {
+  if (_categoryTotals is EqualUnmodifiableMapView) return _categoryTotals;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_categoryTotals);
+}
+
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -527,21 +534,21 @@ $HomeLoadedCopyWith<HomeLoaded> get copyWith => _$HomeLoadedCopyWithImpl<HomeLoa
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'HomeState.loaded'))
-    ..add(DiagnosticsProperty('totalSpend', totalSpend))..add(DiagnosticsProperty('personalSpend', personalSpend))..add(DiagnosticsProperty('sharedSpend', sharedSpend))..add(DiagnosticsProperty('pendingSyncCount', pendingSyncCount))..add(DiagnosticsProperty('recentExpenses', recentExpenses))..add(DiagnosticsProperty('debts', debts))..add(DiagnosticsProperty('accountNames', accountNames))..add(DiagnosticsProperty('incomingPendingSettlements', incomingPendingSettlements))..add(DiagnosticsProperty('outgoingPendingSettlements', outgoingPendingSettlements));
+    ..add(DiagnosticsProperty('totalSpend', totalSpend))..add(DiagnosticsProperty('personalSpend', personalSpend))..add(DiagnosticsProperty('sharedSpend', sharedSpend))..add(DiagnosticsProperty('pendingSyncCount', pendingSyncCount))..add(DiagnosticsProperty('recentExpenses', recentExpenses))..add(DiagnosticsProperty('debts', debts))..add(DiagnosticsProperty('accountNames', accountNames))..add(DiagnosticsProperty('incomingPendingSettlements', incomingPendingSettlements))..add(DiagnosticsProperty('outgoingPendingSettlements', outgoingPendingSettlements))..add(DiagnosticsProperty('categoryTotals', categoryTotals));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeLoaded&&(identical(other.totalSpend, totalSpend) || other.totalSpend == totalSpend)&&(identical(other.personalSpend, personalSpend) || other.personalSpend == personalSpend)&&(identical(other.sharedSpend, sharedSpend) || other.sharedSpend == sharedSpend)&&(identical(other.pendingSyncCount, pendingSyncCount) || other.pendingSyncCount == pendingSyncCount)&&const DeepCollectionEquality().equals(other._recentExpenses, _recentExpenses)&&const DeepCollectionEquality().equals(other._debts, _debts)&&const DeepCollectionEquality().equals(other._accountNames, _accountNames)&&const DeepCollectionEquality().equals(other._incomingPendingSettlements, _incomingPendingSettlements)&&const DeepCollectionEquality().equals(other._outgoingPendingSettlements, _outgoingPendingSettlements));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeLoaded&&(identical(other.totalSpend, totalSpend) || other.totalSpend == totalSpend)&&(identical(other.personalSpend, personalSpend) || other.personalSpend == personalSpend)&&(identical(other.sharedSpend, sharedSpend) || other.sharedSpend == sharedSpend)&&(identical(other.pendingSyncCount, pendingSyncCount) || other.pendingSyncCount == pendingSyncCount)&&const DeepCollectionEquality().equals(other._recentExpenses, _recentExpenses)&&const DeepCollectionEquality().equals(other._debts, _debts)&&const DeepCollectionEquality().equals(other._accountNames, _accountNames)&&const DeepCollectionEquality().equals(other._incomingPendingSettlements, _incomingPendingSettlements)&&const DeepCollectionEquality().equals(other._outgoingPendingSettlements, _outgoingPendingSettlements)&&const DeepCollectionEquality().equals(other._categoryTotals, _categoryTotals));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalSpend,personalSpend,sharedSpend,pendingSyncCount,const DeepCollectionEquality().hash(_recentExpenses),const DeepCollectionEquality().hash(_debts),const DeepCollectionEquality().hash(_accountNames),const DeepCollectionEquality().hash(_incomingPendingSettlements),const DeepCollectionEquality().hash(_outgoingPendingSettlements));
+int get hashCode => Object.hash(runtimeType,totalSpend,personalSpend,sharedSpend,pendingSyncCount,const DeepCollectionEquality().hash(_recentExpenses),const DeepCollectionEquality().hash(_debts),const DeepCollectionEquality().hash(_accountNames),const DeepCollectionEquality().hash(_incomingPendingSettlements),const DeepCollectionEquality().hash(_outgoingPendingSettlements),const DeepCollectionEquality().hash(_categoryTotals));
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'HomeState.loaded(totalSpend: $totalSpend, personalSpend: $personalSpend, sharedSpend: $sharedSpend, pendingSyncCount: $pendingSyncCount, recentExpenses: $recentExpenses, debts: $debts, accountNames: $accountNames, incomingPendingSettlements: $incomingPendingSettlements, outgoingPendingSettlements: $outgoingPendingSettlements)';
+  return 'HomeState.loaded(totalSpend: $totalSpend, personalSpend: $personalSpend, sharedSpend: $sharedSpend, pendingSyncCount: $pendingSyncCount, recentExpenses: $recentExpenses, debts: $debts, accountNames: $accountNames, incomingPendingSettlements: $incomingPendingSettlements, outgoingPendingSettlements: $outgoingPendingSettlements, categoryTotals: $categoryTotals)';
 }
 
 
@@ -552,7 +559,7 @@ abstract mixin class $HomeLoadedCopyWith<$Res> implements $HomeStateCopyWith<$Re
   factory $HomeLoadedCopyWith(HomeLoaded value, $Res Function(HomeLoaded) _then) = _$HomeLoadedCopyWithImpl;
 @useResult
 $Res call({
- double totalSpend, double personalSpend, double sharedSpend, int pendingSyncCount, List<ExpenseEntity> recentExpenses, List<DebtLedgerEntity> debts, Map<String, String> accountNames, List<SettlementEntity> incomingPendingSettlements, List<SettlementEntity> outgoingPendingSettlements
+ double totalSpend, double personalSpend, double sharedSpend, int pendingSyncCount, List<ExpenseEntity> recentExpenses, List<DebtLedgerEntity> debts, Map<String, String> accountNames, List<SettlementEntity> incomingPendingSettlements, List<SettlementEntity> outgoingPendingSettlements, Map<String, double> categoryTotals
 });
 
 
@@ -569,7 +576,7 @@ class _$HomeLoadedCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? totalSpend = null,Object? personalSpend = null,Object? sharedSpend = null,Object? pendingSyncCount = null,Object? recentExpenses = null,Object? debts = null,Object? accountNames = null,Object? incomingPendingSettlements = null,Object? outgoingPendingSettlements = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? totalSpend = null,Object? personalSpend = null,Object? sharedSpend = null,Object? pendingSyncCount = null,Object? recentExpenses = null,Object? debts = null,Object? accountNames = null,Object? incomingPendingSettlements = null,Object? outgoingPendingSettlements = null,Object? categoryTotals = null,}) {
   return _then(HomeLoaded(
 totalSpend: null == totalSpend ? _self.totalSpend : totalSpend // ignore: cast_nullable_to_non_nullable
 as double,personalSpend: null == personalSpend ? _self.personalSpend : personalSpend // ignore: cast_nullable_to_non_nullable
@@ -580,7 +587,8 @@ as List<ExpenseEntity>,debts: null == debts ? _self._debts : debts // ignore: ca
 as List<DebtLedgerEntity>,accountNames: null == accountNames ? _self._accountNames : accountNames // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,incomingPendingSettlements: null == incomingPendingSettlements ? _self._incomingPendingSettlements : incomingPendingSettlements // ignore: cast_nullable_to_non_nullable
 as List<SettlementEntity>,outgoingPendingSettlements: null == outgoingPendingSettlements ? _self._outgoingPendingSettlements : outgoingPendingSettlements // ignore: cast_nullable_to_non_nullable
-as List<SettlementEntity>,
+as List<SettlementEntity>,categoryTotals: null == categoryTotals ? _self._categoryTotals : categoryTotals // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,
   ));
 }
 

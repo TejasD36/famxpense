@@ -16,6 +16,7 @@ sealed class HomeState with _$HomeState {
     @Default({}) Map<String, String> accountNames,
     @Default([]) List<SettlementEntity> incomingPendingSettlements,
     @Default([]) List<SettlementEntity> outgoingPendingSettlements,
+    @Default({}) Map<String, double> categoryTotals,
   }) = HomeLoaded;
 
   const factory HomeState.empty() = HomeEmpty;

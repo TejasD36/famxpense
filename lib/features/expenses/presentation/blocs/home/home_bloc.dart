@@ -75,6 +75,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final sharedSpend = sumShare(
         expenses.where((e) => e.expenseType == ExpenseType.shared),
       );
+      final categoryTotals = <String, double>{};
+      for (final expense in expenses) {
+        final share = userShare(expense);
+        if (share <= 0) continue;
+
+        final category =
+            ExpenseCategory.values.any(
+              (value) => value.name == expense.category,
+            )
+            ? expense.category!
+            : ExpenseCategory.other.name;
+        categoryTotals.update(
+          category,
+          (total) => total + share,
+          ifAbsent: () => share,
+        );
+      }
 
       final pendingSyncCount = userId == null
           ? 0
@@ -93,6 +110,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           accountNames: accountNames,
           incomingPendingSettlements: incomingPending,
           outgoingPendingSettlements: outgoingPending,
+          categoryTotals: categoryTotals,
         ),
       );
     } catch (e) {
