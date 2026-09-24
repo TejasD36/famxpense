@@ -18,6 +18,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
   _ExpenseTypeFilter _expenseTypeFilter = _ExpenseTypeFilter.all;
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
   DateTimeRange? _dateRange;
+  int _activeTabIndex = 1;
+  bool _detailSheetOpen = false;
 
   @override
   void initState() {
@@ -27,17 +29,29 @@ class _ActivityScreenState extends State<ActivityScreen> {
     if (notifier.hasData) {
       _load();
     }
+    _activeTabIndex = sl<TabNavigationNotifier>().activeIndex;
     notifier.addListener(_onDataChanged);
+    sl<TabNavigationNotifier>().addListener(_onTabChanged);
   }
 
   @override
   void dispose() {
     sl<RefreshNotifier>().removeListener(_onDataChanged);
+    sl<TabNavigationNotifier>().removeListener(_onTabChanged);
     super.dispose();
   }
 
   void _onDataChanged() {
     if (mounted) _load();
+  }
+
+  void _onTabChanged() {
+    final index = sl<TabNavigationNotifier>().activeIndex;
+    if (index == _activeTabIndex) return;
+    _activeTabIndex = index;
+    if (index != 1 && _detailSheetOpen && mounted) {
+      Navigator.of(context).maybePop();
+    }
   }
 
   void _load() {
@@ -335,7 +349,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                   padding: EdgeInsets.only(
                                     left: 16,
                                     right: 16,
-                                    bottom: index == grouped[sortedKeys[i]]!.length - 1 ? 0 : 12,
+                                    bottom: index == grouped[sortedKeys[i]]!.length - 1 ? 0 : 6,
                                   ),
                                   child: card,
                                 );
@@ -465,7 +479,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(expense.id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -559,7 +573,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(s.id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -627,7 +641,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(income.id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -692,7 +706,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(deposit.id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -739,7 +753,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -780,7 +794,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: InkWell(
         onTap: () => setState(() => _expandedIds.toggle(deposit.id)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -859,11 +873,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   void _showTransactionDetail(ExpenseEntity expense) {
+    _detailSheetOpen = true;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       builder: (_) => TransactionDetailSheet(expense: expense),
-    );
+    ).whenComplete(() => _detailSheetOpen = false);
   }
 
   Widget _cardHeader({

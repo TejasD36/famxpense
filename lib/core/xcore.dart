@@ -17,3 +17,4 @@ export 'services/reporting/reporting_ledger_service.dart';
 export 'services/sync/sync_service.dart';
 export 'services/sync/reconciliation_service.dart';
 export 'services/location/location_service.dart';
+export 'services/navigation/tab_navigation_notifier.dart';

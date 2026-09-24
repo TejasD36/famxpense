@@ -208,12 +208,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   Future<void> _openMapPicker() async {
     if (!_canEditFinancialFields) return;
+    var initialLatitude = _latitude;
+    var initialLongitude = _longitude;
+    if (initialLatitude == null || initialLongitude == null) {
+      final currentPosition = await sl<LocationService>().getCurrentPosition();
+      initialLatitude ??= currentPosition?.latitude;
+      initialLongitude ??= currentPosition?.longitude;
+    }
+    if (!mounted) return;
+
     final position = await Navigator.push<LatLng>(
       context,
       MaterialPageRoute(
         builder: (_) => MapPickerScreen(
-          initialLatitude: _latitude,
-          initialLongitude: _longitude,
+          initialLatitude: initialLatitude,
+          initialLongitude: initialLongitude,
         ),
       ),
     );

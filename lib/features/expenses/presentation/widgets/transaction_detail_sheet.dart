@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' show min;
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../xcore.dart';
 
@@ -15,9 +17,26 @@ class TransactionDetailSheet extends StatefulWidget {
 
 class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
   GoogleMapController? _mapController;
+  Timer? _deleteWindowTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = sl<AuthLocalDatasource>().getUserId();
+    final expiresAt = sl<ExpenseRepository>().canEditExpense(widget.expense).fullEditExpiresAt;
+    if (userId != widget.expense.paidByUserId || expiresAt == null) return;
+
+    final delay = expiresAt.difference(DateTime.now().toUtc());
+    if (!delay.isNegative) {
+      _deleteWindowTimer = Timer(delay + const Duration(milliseconds: 1), () {
+        if (mounted) setState(() {});
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _deleteWindowTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
@@ -32,18 +51,14 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
 
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-        ),
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
         child: ListView(
+          physics: NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
           children: [
             const SheetGrabber(),
             const SizedBox(height: 12),
-            if (canShowActions) ...[
-              _editActions(context, expense, policy),
-              const SizedBox(height: 12),
-            ],
+            if (canShowActions) ...[_editActions(context, expense, policy), const SizedBox(height: 12)],
             GradientPatternPanel(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
@@ -53,9 +68,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                       CircleAvatar(
                         backgroundColor: theme.colorScheme.primaryContainer,
                         child: Icon(
-                          expense.expenseType == ExpenseType.shared
-                              ? Icons.groups_rounded
-                              : Icons.person_rounded,
+                          expense.expenseType == ExpenseType.shared ? Icons.groups_rounded : Icons.person_rounded,
                           color: theme.colorScheme.primary,
                         ),
                       ),
@@ -63,20 +76,14 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                       Expanded(
                         child: Text(
                           expense.title,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Icon(
-                        expense.syncStatus == SyncStatus.synced
-                            ? Icons.cloud_done_rounded
-                            : Icons.cloud_upload_rounded,
-                        color: expense.syncStatus == SyncStatus.synced
-                            ? Colors.green
-                            : theme.colorScheme.tertiary,
+                        expense.syncStatus == SyncStatus.synced ? Icons.cloud_done_rounded : Icons.cloud_upload_rounded,
+                        color: expense.syncStatus == SyncStatus.synced ? Colors.green : theme.colorScheme.tertiary,
                         size: 20,
                       ),
                     ],
@@ -86,9 +93,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       formatIndianRupee(expense.amount),
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -103,28 +108,10 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                 child: Column(
                   children: [
                     _infoRow(context, 'Category', _categoryLabel(expense)),
-                    if (expense.note?.trim().isNotEmpty == true)
-                      _infoRow(context, 'Note', expense.note!.trim()),
-                    _infoRow(
-                      context,
-                      'Date',
-                      DateFormat(
-                        'dd MMM yyyy · h:mm a',
-                      ).format(expense.expenseDate),
-                    ),
-                    _infoRow(
-                      context,
-                      'Type',
-                      expense.expenseType == ExpenseType.personal
-                          ? 'Personal'
-                          : 'Shared',
-                    ),
-                    if (expense.accountId != null)
-                      _infoRow(
-                        context,
-                        'Account',
-                        _resolveAccountName(expense.accountId!),
-                      ),
+                    if (expense.note?.trim().isNotEmpty == true) _infoRow(context, 'Note', expense.note!.trim()),
+                    _infoRow(context, 'Date', DateFormat('dd MMM yyyy · h:mm a').format(expense.expenseDate)),
+                    _infoRow(context, 'Type', expense.expenseType == ExpenseType.personal ? 'Personal' : 'Shared'),
+                    if (expense.accountId != null) _infoRow(context, 'Account', _resolveAccountName(expense.accountId!)),
                   ],
                 ),
               ),
@@ -142,34 +129,19 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-                      child: Text(
-                        'Location',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      child: Text('Location', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
                     ),
                     SizedBox(
                       height: 180,
                       child: GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: LatLng(expense.latitude!, expense.longitude!),
-                          zoom: 15,
-                        ),
+                        initialCameraPosition: CameraPosition(target: LatLng(expense.latitude!, expense.longitude!), zoom: 15),
                         markers: {
-                          Marker(
-                            markerId: const MarkerId('expense_location'),
-                            position: LatLng(
-                              expense.latitude!,
-                              expense.longitude!,
-                            ),
-                          ),
+                          Marker(markerId: const MarkerId('expense_location'), position: LatLng(expense.latitude!, expense.longitude!)),
                         },
                         zoomControlsEnabled: false,
                         scrollGesturesEnabled: false,
                         zoomGesturesEnabled: false,
-                        onMapCreated: (controller) =>
-                            _mapController = controller,
+                        onMapCreated: (controller) => _mapController = controller,
                       ),
                     ),
                   ],
@@ -180,9 +152,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
             Center(
               child: Text(
                 'Expense ID: ${expense.id}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             ),
           ],
@@ -192,26 +162,14 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
   }
 
   String _categoryLabel(ExpenseEntity expense) {
-    return ExpenseCategory.values
-            .where((item) => item.name == expense.category)
-            .firstOrNull
-            ?.label ??
-        expense.category ??
-        '—';
+    return ExpenseCategory.values.where((item) => item.name == expense.category).firstOrNull?.label ?? expense.category ?? '—';
   }
 
-  Widget _editActions(
-    BuildContext context,
-    ExpenseEntity expense,
-    ExpenseEditPolicyResult policy,
-  ) {
+  Widget _editActions(BuildContext context, ExpenseEntity expense, ExpenseEditPolicyResult policy) {
     final theme = Theme.of(context);
 
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(8)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Column(
@@ -219,9 +177,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
             Row(
               children: [
                 Icon(
-                  policy.canFullEdit
-                      ? Icons.edit_calendar_rounded
-                      : Icons.lock_outline_rounded,
+                  policy.canFullEdit ? Icons.edit_calendar_rounded : Icons.lock_outline_rounded,
                   size: 18,
                   color: theme.colorScheme.primary,
                 ),
@@ -229,10 +185,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                 Expanded(
                   child: Text(
                     policy.message,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -244,25 +197,22 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      context.pushNamed(
-                        AppRoute.addExpense.name,
-                        extra: expense,
-                      );
+                      context.pushNamed(AppRoute.addExpense.name, extra: expense);
                     },
                     icon: const Icon(Icons.edit_rounded),
                     label: const Text('Edit'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: policy.canDelete
-                        ? () => _confirmDelete(context, expense)
-                        : null,
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    label: const Text('Delete'),
+                if (policy.canDelete) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _confirmDelete(context, expense),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Delete'),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
@@ -271,10 +221,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    ExpenseEntity expense,
-  ) async {
+  Future<void> _confirmDelete(BuildContext context, ExpenseEntity expense) async {
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -286,12 +233,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
             children: [
               const SheetGrabber(),
               const SizedBox(height: 12),
-              Text(
-                'Delete expense?',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
+              Text('Delete expense?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               Text(
                 'This is only available inside the 1-hour correction window. The expense will be hidden and its balance/debt effects reversed.',
@@ -301,10 +243,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(sheetContext, false),
-                      child: const Text('Cancel'),
-                    ),
+                    child: OutlinedButton(onPressed: () => Navigator.pop(sheetContext, false), child: const Text('Cancel')),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -330,9 +269,7 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
       sl<SyncService>().syncAll(userId: expense.paidByUserId).then((_) {
         sl<RefreshNotifier>().notifyDataChanged();
       });
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Expense deleted successfully')),
-      );
+      messenger.showSnackBar(const SnackBar(content: Text('Expense deleted successfully')));
       navigator.pop();
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.toString())));
@@ -347,22 +284,11 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
         children: [
           SizedBox(
             width: 80,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 13,
-              ),
-            ),
+            child: Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(value, style: const TextStyle(fontSize: 14), maxLines: 4, overflow: TextOverflow.ellipsis),
           ),
         ],
       ),
@@ -373,59 +299,33 @@ class _TransactionDetailSheetState extends State<TransactionDetailSheet> {
     final accounts = Hive.box<AccountDto>(HiveBoxes.accounts).values.toList();
     final match = accounts.where((a) => a.id == accountId).firstOrNull;
     if (match == null) return accountId;
-    return match.isDeleted
-        ? '${match.accountName} (Deleted)'
-        : match.accountName;
+    return match.isDeleted ? '${match.accountName} (Deleted)' : match.accountName;
   }
 
-  Widget _participantsSection(
-    BuildContext context,
-    ExpenseEntity expense,
-    String? userId,
-  ) {
+  Widget _participantsSection(BuildContext context, ExpenseEntity expense, String? userId) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Participants',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
+          const Text('Participants', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 8),
           ...expense.participants.map(
             (p) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  Icon(
-                    p.userId == userId
-                        ? Icons.person_rounded
-                        : Icons.person_outline_rounded,
-                    size: 16,
-                  ),
+                  Icon(p.userId == userId ? Icons.person_rounded : Icons.person_outline_rounded, size: 16),
                   const SizedBox(width: 8),
                   Text(
                     p.userId == userId
                         ? 'You'
-                        : sl<UserLocalDatasource>()
-                                  .getUser(p.userId)
-                                  ?.nickname ??
-                              p.userId.substring(0, min(8, p.userId.length)),
+                        : sl<UserLocalDatasource>().getUser(p.userId)?.nickname ?? p.userId.substring(0, min(8, p.userId.length)),
                     style: const TextStyle(fontSize: 13),
                   ),
                   const Spacer(),
-                  Text(
-                    formatIndianRupee(p.amount),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(formatIndianRupee(p.amount), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),

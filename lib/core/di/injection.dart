@@ -272,6 +272,7 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton(() => RefreshNotifier());
+  sl.registerLazySingleton(() => TabNavigationNotifier());
   sl.registerLazySingleton(() => ConnectivityService());
   sl.registerLazySingleton(() => LocationService());
 

@@ -18,6 +18,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   StreamSubscription<bool>? _connectivitySub;
   late final RefreshNotifier _refreshNotifier;
+  late final TabNavigationNotifier _tabNavigationNotifier;
   bool _isOnline = true;
 
   @override
@@ -31,6 +32,8 @@ class _MainNavigationState extends State<MainNavigation> {
 
     _refreshNotifier = sl<RefreshNotifier>();
     _refreshNotifier.addListener(_onRefresh);
+    _tabNavigationNotifier = sl<TabNavigationNotifier>();
+    _tabNavigationNotifier.setActiveIndex(widget.shell.currentIndex);
   }
 
   @override
@@ -130,10 +133,13 @@ class _MainNavigationState extends State<MainNavigation> {
           activeIndex: widget.shell.currentIndex,
           gapLocation: GapLocation.center,
           notchSmoothness: NotchSmoothness.softEdge,
-          onTap: (index) => widget.shell.goBranch(
-            index,
-            initialLocation: index != widget.shell.currentIndex,
-          ),
+          onTap: (index) {
+            _tabNavigationNotifier.setActiveIndex(index);
+            widget.shell.goBranch(
+              index,
+              initialLocation: index != widget.shell.currentIndex,
+            );
+          },
           activeColor: Theme.of(context).colorScheme.primary,
           inactiveColor: Theme.of(context).colorScheme.onSurfaceVariant,
           iconSize: 24,
