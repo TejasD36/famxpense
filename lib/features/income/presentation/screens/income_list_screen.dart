@@ -192,7 +192,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                   accountList = list
                       .where((a) => !a.isArchived && !a.isSavings)
                       .toList();
-                  savingsAccounts = list.where((a) => a.isSavings).toList();
+                  savingsAccounts = list
+                      .where((a) => a.isSavings && !a.isArchived)
+                      .toList();
                   if (savingsAccounts.length == 1 &&
                       selectedSavingsId.isEmpty) {
                     selectedSavingsId = {savingsAccounts.first.id};
@@ -544,12 +546,11 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                                   stackTrace,
                                 );
                                 if (ctx.mounted) {
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
+                                  AppFlushbar.show(
+                                    context: ctx,
+                                    message:
                                         'Could not save income. Try again.',
-                                      ),
-                                    ),
+                                    type: AppFlushbarType.error,
                                   );
                                   setVal(() => isSubmitting = false);
                                 }

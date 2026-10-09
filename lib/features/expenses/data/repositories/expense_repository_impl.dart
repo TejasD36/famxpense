@@ -272,10 +272,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         userId: expense.paidByUserId,
       );
       final account = accounts.firstWhere((a) => a.id == expense.accountId);
+      if (account.currentBalance < expense.amount) {
+        throw StateError(
+          'Insufficient balance. Add a deposit before adding this expense.',
+        );
+      }
       final updatedAccount = await _accountRepository.adjustBalance(
         expense.accountId!,
         -expense.amount,
         mutationId: 'expense-balance-${expense.id}',
+        preventNegativeBalance: true,
       );
       AppLogger.success(
         'Account balance deducted: ${account.accountName} → ₹${updatedAccount.currentBalance}',

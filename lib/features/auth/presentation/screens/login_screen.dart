@@ -48,9 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
           error: (message) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(message)));
+            AppFlushbar.show(
+              context: context,
+              message: message,
+              type: AppFlushbarType.error,
+            );
           },
         );
       },

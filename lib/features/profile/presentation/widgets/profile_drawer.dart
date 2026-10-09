@@ -253,8 +253,10 @@ class ProfileDrawer extends StatelessWidget {
                   context.read<AuthBloc>().add(
                     AuthEvent.forgotPassword(email: user.email),
                   );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reset email sent')),
+                  AppFlushbar.show(
+                    context: context,
+                    message: 'Reset email sent',
+                    type: AppFlushbarType.success,
                   );
                 }
               },

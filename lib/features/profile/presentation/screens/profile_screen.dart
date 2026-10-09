@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../../../core.dart';
 import '../../../account/data/datasources/account_local_datasource.dart';
+import '../../../account/domain/repositories/account_repository.dart';
 import '../../../account/presentation/blocs/account_bloc.dart';
 import '../../../account/presentation/widgets/account_tile.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
@@ -132,8 +133,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 context.pop();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Reset email sent')),
+                AppFlushbar.show(
+                  context: context,
+                  message: 'Reset email sent',
+                  type: AppFlushbarType.success,
                 );
               },
 
@@ -541,6 +544,54 @@ class _AccountsSectionState extends State<_AccountsSection> {
 
   void _refresh() => _accountBloc.add(const AccountEvent.loadAccounts());
 
+  Future<void> _confirmActivate(AccountEntity account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Activate account?'),
+        content: Text(
+          'Activate "${account.accountName}"? It will be available for expenses and deposits.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Activate'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await sl<AccountRepository>().saveAccount(
+        account.copyWith(
+          isArchived: false,
+          isSavings: false,
+          monthlySavingsGoal: 0,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      sl<RefreshNotifier>().notifyDataChanged();
+      _refresh();
+      if (!mounted) return;
+      await AppFlushbar.show(
+        context: context,
+        message: 'Account activated',
+        type: AppFlushbarType.success,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      await AppFlushbar.show(
+        context: context,
+        message: 'Could not activate account: $error',
+        type: AppFlushbarType.error,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AccountBloc>.value(
@@ -595,6 +646,9 @@ class _AccountsSectionState extends State<_AccountsSection> {
                 ...accounts.map(
                   (account) => AccountTile(
                     account: account,
+                    onActivate: account.isArchived
+                        ? (_) => _confirmActivate(account)
+                        : null,
                     onTap: () async {
                       await context.pushNamed(
                         AppRoute.accountDetail.name,

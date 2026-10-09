@@ -68,9 +68,11 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
       Navigator.of(context).pop(account);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not save account: $error')));
+      AppFlushbar.show(
+        context: context,
+        message: 'Could not save account: $error',
+        type: AppFlushbarType.error,
+      );
       setState(() => _saving = false);
     }
   }

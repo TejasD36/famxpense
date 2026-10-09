@@ -46,13 +46,10 @@ class _MainNavigationState extends State<MainNavigation> {
   void _onRefresh() {
     final error = _refreshNotifier.lastSyncError;
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          backgroundColor: Colors.orange.shade700,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
+      AppFlushbar.show(
+        context: context,
+        message: error,
+        type: AppFlushbarType.error,
       );
       _refreshNotifier.clearSyncError();
     }

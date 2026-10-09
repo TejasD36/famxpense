@@ -190,13 +190,20 @@ class AccountRepositoryImpl implements AccountRepository {
     String accountId,
     double delta, {
     String? mutationId,
-  }) => _adjustBalance(accountId, delta, mutationId: mutationId);
+    bool preventNegativeBalance = false,
+  }) => _adjustBalance(
+    accountId,
+    delta,
+    mutationId: mutationId,
+    preventNegativeBalance: preventNegativeBalance,
+  );
 
   Future<AccountEntity> _adjustBalance(
     String accountId,
     double delta, {
     String? mutationId,
     ManualDepositDto? accountEntry,
+    bool preventNegativeBalance = false,
   }) async {
     if (!delta.isFinite || delta == 0) {
       throw ArgumentError.value(
@@ -214,6 +221,17 @@ class AccountRepositoryImpl implements AccountRepository {
       final account = dtos.firstWhere((a) => a.id == accountId);
       if (account.isDeleted) {
         throw StateError('Cannot adjust an account queued for deletion');
+      }
+      if (account.isArchived && (accountEntry != null || delta < 0)) {
+        throw StateError(
+          'Cannot add deposits or expenses to a deactivated account',
+        );
+      }
+      if (preventNegativeBalance &&
+          accountEntry == null &&
+          delta < 0 &&
+          account.currentBalance + delta < 0) {
+        throw StateError('Insufficient balance');
       }
       if (account.appliedBalanceMutationIds.contains(resolvedMutationId)) {
         requiresRemote = false;
@@ -251,6 +269,7 @@ class AccountRepositoryImpl implements AccountRepository {
           delta: delta,
           mutationId: resolvedMutationId,
           updatedAt: updated.updatedAt,
+          preventNegativeBalance: preventNegativeBalance,
         );
       } else {
         await _remoteDatasource.adjustBalance(
@@ -259,6 +278,7 @@ class AccountRepositoryImpl implements AccountRepository {
           mutationId: resolvedMutationId,
           updatedAt: updated.updatedAt,
           accountEntry: accountEntry,
+          preventNegativeBalance: preventNegativeBalance,
         );
       }
       await _markMutationApplied(accountId, resolvedMutationId);
@@ -273,11 +293,41 @@ class AccountRepositoryImpl implements AccountRepository {
         ],
       );
     } catch (e, stackTrace) {
+      if (preventNegativeBalance &&
+          e is StateError &&
+          e.message == 'Insufficient balance') {
+        await _rollbackPendingMutation(
+          accountId,
+          mutationId: resolvedMutationId,
+          delta: delta,
+        );
+        rethrow;
+      }
       AppLogger.warning('Account balance adjustment queued for sync');
       AppLogger.error('Account balance adjustment remote error', e, stackTrace);
     }
 
     return updated.toEntity();
+  }
+
+  Future<void> _rollbackPendingMutation(
+    String accountId, {
+    required String mutationId,
+    required double delta,
+  }) async {
+    await _mutateLocal(() async {
+      final accounts = await _localDatasource.getAccounts();
+      final account = accounts.firstWhere((a) => a.id == accountId);
+      final pending = Map<String, double>.of(account.pendingBalanceMutations)
+        ..remove(mutationId);
+      await _localDatasource.saveAccount(
+        account.copyWith(
+          currentBalance: account.currentBalance - delta,
+          pendingBalanceMutations: pending,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+    });
   }
 
   @override
@@ -313,10 +363,8 @@ class AccountRepositoryImpl implements AccountRepository {
       final to = accounts.firstWhere(
         (a) => a.id == toAccountId && a.userId == userId,
       );
-      if (from.isDeleted || to.isDeleted) {
-        throw StateError(
-          'Cannot transfer using an account queued for deletion',
-        );
+      if (from.isDeleted || to.isDeleted || from.isArchived || to.isArchived) {
+        throw StateError('Cannot transfer using a deactivated account');
       }
       final fromKnown =
           from.pendingBalanceMutations.containsKey(fromMutationId) ||

@@ -37,7 +37,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final Map<String, TextEditingController> _manualControllers = {};
 
   bool _amountExceedsBalance = false;
-  bool _forceSubmit = false;
 
   double? _latitude;
   double? _longitude;
@@ -87,7 +86,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
     final userAccounts = accountDtos
-        .where((a) => a.userId == userId && !a.isArchived)
+        .where((a) => a.userId == userId && !a.isArchived && !a.isSavings)
         .map((d) => d.toEntity())
         .toList();
 
@@ -199,7 +198,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   void _checkBalance() {
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
-    if (_selectedAccount != null && amount > _selectedAccount!.currentBalance) {
+    final availableBalance = _selectedAccount == null
+        ? null
+        : _selectedAccount!.currentBalance +
+              (widget.editExpense?.accountId == _selectedAccount!.id
+                  ? widget.editExpense!.amount
+                  : 0);
+    if (availableBalance != null && amount > availableBalance) {
       setState(() => _amountExceedsBalance = true);
     } else {
       setState(() => _amountExceedsBalance = false);
@@ -245,16 +250,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Please fill all required fields (Title and Amount)',
-          ),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.1,
-          ),
-        ),
+      AppFlushbar.show(
+        context: context,
+        message: 'Please fill all required fields (Title and Amount)',
+        type: AppFlushbarType.error,
       );
       return;
     }
@@ -268,14 +267,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('User not found'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.1,
-          ),
-        ),
+      AppFlushbar.show(
+        context: context,
+        message: 'User not found',
+        type: AppFlushbarType.error,
       );
       return;
     }
@@ -302,35 +297,37 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     /// Shared expense with no partners
     if (_expenseType == ExpenseType.shared && _selectedPartners.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
+      AppFlushbar.show(
+        context: context,
+        message:
             'No partner selected for shared expense. Switch to Personal or add a partner.',
-          ),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.1,
-          ),
-        ),
+        type: AppFlushbarType.error,
+      );
+      return;
+    }
+
+    if (_selectedAccount == null) {
+      AppFlushbar.show(
+        context: context,
+        message:
+            'Select an account and add a deposit before adding an expense.',
+        type: AppFlushbarType.error,
       );
       return;
     }
 
     /// Balance check
-    if (_selectedAccount != null &&
-        amount > _selectedAccount!.currentBalance &&
-        !_forceSubmit) {
+    final availableBalance =
+        _selectedAccount!.currentBalance +
+        (widget.editExpense?.accountId == _selectedAccount!.id
+            ? widget.editExpense!.amount
+            : 0);
+    if (amount > availableBalance) {
       setState(() => _amountExceedsBalance = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Insufficient balance. Tick "Add anyway" to proceed.',
-          ),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height * 0.1,
-          ),
-        ),
+      AppFlushbar.show(
+        context: context,
+        message: 'Insufficient balance. Add a deposit to this account first.',
+        type: AppFlushbarType.error,
       );
       return;
     }
@@ -350,43 +347,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       }
       final manualTotal = _manualAmounts.values.fold(0.0, (a, b) => a + b);
       if ((manualTotal - amount).abs() > 0.01) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
+        AppFlushbar.show(
+          context: context,
+          message:
               'Total shares ${formatIndianRupee(manualTotal)} ≠ ${formatIndianRupee(amount)}',
-            ),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * 0.1,
-            ),
-          ),
+          type: AppFlushbarType.error,
         );
         return;
       }
       for (final entry in _manualAmounts.entries) {
         if (entry.value < 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Shares cannot be negative'),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height * 0.1,
-              ),
-            ),
+          AppFlushbar.show(
+            context: context,
+            message: 'Shares cannot be negative',
+            type: AppFlushbarType.error,
           );
           return;
         }
         if (entry.value > amount) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'A participant share cannot exceed the total amount',
-              ),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height * 0.1,
-              ),
-            ),
+          AppFlushbar.show(
+            context: context,
+            message: 'A participant share cannot exceed the total amount',
+            type: AppFlushbarType.error,
           );
           return;
         }
@@ -528,7 +510,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 setState(() {
                   _selectedAccount = account;
                   _amountExceedsBalance = false;
-                  _forceSubmit = false;
                 });
                 _checkBalance();
               }
@@ -537,7 +518,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             setState(() {
               _selectedAccount = account;
               _amountExceedsBalance = false;
-              _forceSubmit = false;
             });
             _checkBalance();
           }
@@ -845,30 +825,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       listener: (context, state) {
         state.whenOrNull(
           success: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  _isEditMode
-                      ? 'Expense updated successfully'
-                      : 'Expense added successfully',
-                ),
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height * 0.1,
-                ),
-              ),
+            AppFlushbar.show(
+              context: context,
+              message: _isEditMode
+                  ? 'Expense updated successfully'
+                  : 'Expense added successfully',
+              type: AppFlushbarType.success,
             );
             context.goNamed(AppRoute.home.name);
           },
           error: (message) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height * 0.1,
-                ),
-              ),
+            AppFlushbar.show(
+              context: context,
+              message: message,
+              type: AppFlushbarType.error,
             );
           },
         );
@@ -911,11 +881,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       ),
                       if (_amountExceedsBalance) ...[
                         const SizedBox(height: 12),
-                        _BalanceWarning(
-                          forceSubmit: _forceSubmit,
-                          onChanged: (v) =>
-                              setState(() => _forceSubmit = v ?? false),
-                        ),
+                        _BalanceWarning(),
                       ],
                       const SizedBox(height: 16),
                       if (policy != null) ...[
@@ -1315,10 +1281,7 @@ class _AmountComposer extends StatelessWidget {
 }
 
 class _BalanceWarning extends StatelessWidget {
-  final bool forceSubmit;
-  final ValueChanged<bool?> onChanged;
-
-  const _BalanceWarning({required this.forceSubmit, required this.onChanged});
+  const _BalanceWarning();
 
   @override
   Widget build(BuildContext context) {
@@ -1347,13 +1310,16 @@ class _BalanceWarning extends StatelessWidget {
                 ),
               ],
             ),
-            CheckboxListTile(
-              value: forceSubmit,
-              onChanged: onChanged,
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: const Text('Add anyway', style: TextStyle(fontSize: 13)),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Add a deposit to this account before saving the expense.',
+                style: TextStyle(
+                  color: theme.colorScheme.onErrorContainer,
+                  fontSize: 13,
+                ),
+              ),
             ),
           ],
         ),

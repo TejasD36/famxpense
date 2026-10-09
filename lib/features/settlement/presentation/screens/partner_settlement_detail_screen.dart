@@ -119,7 +119,6 @@ class _PartnerSettlementDetailScreenState
   Future<void> _handleSettle() async {
     final userId = _userId;
     if (userId == null || _partnerBalance <= 0) return;
-    final messenger = ScaffoldMessenger.of(context);
 
     /// Pick an account to deduct from
     final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
@@ -185,25 +184,27 @@ class _PartnerSettlementDetailScreenState
         amount: _partnerBalance,
         fromAccountId: selectedAccount?.id,
       );
+      if (!mounted) return;
       if (error != null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(error), behavior: SnackBarBehavior.floating),
+        AppFlushbar.show(
+          context: context,
+          message: error,
+          type: AppFlushbarType.error,
         );
       } else {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Settlement request sent to @${widget.partnerName}'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppFlushbar.show(
+          context: context,
+          message: 'Settlement request sent to @${widget.partnerName}',
+          type: AppFlushbarType.success,
         );
         await _loadData();
       }
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Failed to create settlement: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Failed to create settlement: $e',
+        type: AppFlushbarType.error,
       );
     } finally {
       if (mounted) setState(() => _settling = false);
@@ -212,22 +213,21 @@ class _PartnerSettlementDetailScreenState
 
   Future<void> _handleCancel(SettlementEntity settlement) async {
     setState(() => _settling = true);
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await sl<SettleDebtUsecase>().cancel(settlement.id);
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Settlement request cancelled'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Settlement request cancelled',
+        type: AppFlushbarType.success,
       );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Failed to cancel: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Failed to cancel: $e',
+        type: AppFlushbarType.error,
       );
     } finally {
       if (mounted) setState(() => _settling = false);
@@ -235,46 +235,44 @@ class _PartnerSettlementDetailScreenState
   }
 
   Future<void> _handleConfirm(SettlementEntity settlement) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await sl<ProcessSettlementUsecase>().confirm(
         settlementId: settlement.id,
         toAccountId: null,
       );
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Settlement confirmed'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Settlement confirmed',
+        type: AppFlushbarType.success,
       );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Failed to confirm: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Failed to confirm: $e',
+        type: AppFlushbarType.error,
       );
     }
   }
 
   Future<void> _handleReject(SettlementEntity settlement) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await sl<ProcessSettlementUsecase>().reject(settlementId: settlement.id);
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Settlement rejected'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Settlement rejected',
+        type: AppFlushbarType.general,
       );
       await _loadData();
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Failed to reject: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      if (!mounted) return;
+      AppFlushbar.show(
+        context: context,
+        message: 'Failed to reject: $e',
+        type: AppFlushbarType.error,
       );
     }
   }

@@ -528,20 +528,20 @@ class _SettlementScreenState extends State<SettlementScreen> {
                         onPressed: isRejecting || isConfirming
                             ? null
                             : () async {
-                                final messenger = ScaffoldMessenger.of(context);
                                 setState(() => _rejectingIds.add(s.id));
                                 try {
                                   await sl<ProcessSettlementUsecase>().reject(
                                     settlementId: s.id,
                                   );
+                                  if (!context.mounted) return;
                                   sl<RefreshNotifier>().notifyDataChanged();
                                   await _loadData();
                                 } catch (e) {
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text('Failed to reject: $e'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
+                                  if (!context.mounted) return;
+                                  AppFlushbar.show(
+                                    context: context,
+                                    message: 'Failed to reject: $e',
+                                    type: AppFlushbarType.error,
                                   );
                                 } finally {
                                   if (mounted) {
@@ -556,21 +556,21 @@ class _SettlementScreenState extends State<SettlementScreen> {
                         onPressed: isConfirming || isRejecting
                             ? null
                             : () async {
-                                final messenger = ScaffoldMessenger.of(context);
                                 setState(() => _confirmingIds.add(s.id));
                                 try {
                                   await sl<ProcessSettlementUsecase>().confirm(
                                     settlementId: s.id,
                                     toAccountId: null,
                                   );
+                                  if (!context.mounted) return;
                                   sl<RefreshNotifier>().notifyDataChanged();
                                   await _loadData();
                                 } catch (e) {
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text('Failed to confirm: $e'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
+                                  if (!context.mounted) return;
+                                  AppFlushbar.show(
+                                    context: context,
+                                    message: 'Failed to confirm: $e',
+                                    type: AppFlushbarType.error,
                                   );
                                 } finally {
                                   if (mounted) {

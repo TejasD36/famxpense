@@ -167,6 +167,31 @@ void main() {
   );
 
   test(
+    'rejects a protected balance adjustment that would go negative',
+    () async {
+      when(() => local.getAccounts()).thenAnswer((_) async => [checking]);
+
+      await expectLater(
+        repository.adjustBalance(
+          'checking',
+          -1001,
+          preventNegativeBalance: true,
+        ),
+        throwsStateError,
+      );
+      verifyNever(() => local.saveAccount(any()));
+      verifyNever(
+        () => remote.adjustBalance(
+          accountId: any(named: 'accountId'),
+          delta: any(named: 'delta'),
+          mutationId: any(named: 'mutationId'),
+          updatedAt: any(named: 'updatedAt'),
+        ),
+      );
+    },
+  );
+
+  test(
     'transferBalance saves both local balances together and batches remote deltas',
     () async {
       when(

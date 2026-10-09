@@ -214,6 +214,7 @@ class SyncService {
               delta: -entity.amount,
               mutationId: 'expense-balance-${entity.id}',
               updatedAt: entity.updatedAt,
+              preventNegativeBalance: true,
             );
           }
           if (shouldApplyAddEffects &&
@@ -595,6 +596,7 @@ class SyncService {
     required String mutationId,
     required DateTime updatedAt,
     ManualDepositDto? accountEntry,
+    bool preventNegativeBalance = false,
   }) async {
     final accounts = await _accountLocal.getAccounts();
     final account = accounts
@@ -610,6 +612,12 @@ class SyncService {
       throw StateError('Balance mutation $mutationId has a different amount');
     }
     if (existingDelta == null) {
+      if (preventNegativeBalance &&
+          accountEntry == null &&
+          delta < 0 &&
+          account.currentBalance + delta < 0) {
+        throw StateError('Insufficient balance');
+      }
       await _accountLocal.saveAccount(
         account.copyWith(
           currentBalance: account.currentBalance + delta,
@@ -628,6 +636,7 @@ class SyncService {
           delta: delta,
           mutationId: mutationId,
           updatedAt: updatedAt,
+          preventNegativeBalance: preventNegativeBalance,
         );
       } else {
         await _accountRemote.adjustBalance(
@@ -636,6 +645,7 @@ class SyncService {
           mutationId: mutationId,
           updatedAt: updatedAt,
           accountEntry: accountEntry,
+          preventNegativeBalance: preventNegativeBalance,
         );
       }
       await _acknowledgeAccountChanges(
@@ -643,6 +653,25 @@ class SyncService {
         mutationIds: {mutationId},
       );
     } catch (e, stackTrace) {
+      if (preventNegativeBalance &&
+          e is StateError &&
+          e.message == 'Insufficient balance') {
+        final current = (await _accountLocal.getAccounts())
+            .where((item) => item.id == accountId)
+            .firstOrNull;
+        if (current != null) {
+          await _accountLocal.saveAccount(
+            current.copyWith(
+              currentBalance: current.currentBalance - delta,
+              pendingBalanceMutations: Map<String, double>.of(
+                current.pendingBalanceMutations,
+              )..remove(mutationId),
+              updatedAt: DateTime.now().toUtc(),
+            ),
+          );
+        }
+        rethrow;
+      }
       AppLogger.warning('Balance mutation $mutationId queued for retry');
       AppLogger.error('Balance mutation sync error', e, stackTrace);
     }

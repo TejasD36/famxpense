@@ -10,6 +10,7 @@ abstract interface class AccountRepository {
     String accountId,
     double delta, {
     String? mutationId,
+    bool preventNegativeBalance = false,
   });
   Future<({AccountEntity fromAccount, AccountEntity toAccount})>
   transferBalance({

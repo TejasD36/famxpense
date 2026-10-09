@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  another_flushbar: ^2.2.4
   animated_bottom_navigation_bar: ^1.4.0
   cached_network_image: ^3.4.1
   cloud_firestore: ^6.4.0

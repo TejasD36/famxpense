@@ -168,13 +168,11 @@ class _ConnectedTabState extends State<_ConnectedTab> {
       if (!context.mounted) return;
 
       if (!canRemove) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
+        AppFlushbar.show(
+          context: context,
+          message:
               'Cannot remove partner. Outstanding settlements or debts exist.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+          type: AppFlushbarType.error,
         );
         return;
       }

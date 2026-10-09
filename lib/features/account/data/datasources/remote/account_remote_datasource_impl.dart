@@ -33,6 +33,7 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
     required String mutationId,
     required DateTime updatedAt,
     ManualDepositDto? accountEntry,
+    bool preventNegativeBalance = false,
   }) async {
     final accountRef = _firestore.collection(_collection).doc(accountId);
     final mutationRef = _firestore
@@ -60,6 +61,9 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
           ? accountEntry!.newBalance!
           : remoteBalance + delta;
       final effectiveDelta = targetBalance - remoteBalance;
+      if (preventNegativeBalance && targetBalance < 0) {
+        throw StateError('Insufficient balance');
+      }
 
       transaction.update(accountRef, {
         'currentBalance': accountEntry?.isBalanceEdit == true

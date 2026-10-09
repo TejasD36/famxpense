@@ -34,8 +34,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         state.whenOrNull(
           passwordResetSent: () {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Password reset email sent')),
+            AppFlushbar.show(
+              context: context,
+              message: 'Password reset email sent',
+              type: AppFlushbarType.success,
             );
 
             context.go(AppRoute.login.path);
@@ -43,9 +45,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           error: (message) {
             if (!context.mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(message)));
+            AppFlushbar.show(
+              context: context,
+              message: message,
+              type: AppFlushbarType.error,
+            );
           },
         );
       },

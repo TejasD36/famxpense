@@ -9,6 +9,7 @@ abstract interface class AccountRemoteDatasource {
     required String mutationId,
     required DateTime updatedAt,
     ManualDepositDto? accountEntry,
+    bool preventNegativeBalance = false,
   });
   Future<void> transferBalance({
     required String fromAccountId,

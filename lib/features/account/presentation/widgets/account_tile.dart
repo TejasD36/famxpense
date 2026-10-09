@@ -3,8 +3,14 @@ import '../../xcore.dart';
 class AccountTile extends StatelessWidget {
   final AccountEntity account;
   final VoidCallback onTap;
+  final ValueChanged<bool>? onActivate;
 
-  const AccountTile({super.key, required this.account, required this.onTap});
+  const AccountTile({
+    super.key,
+    required this.account,
+    required this.onTap,
+    this.onActivate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +19,7 @@ class AccountTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ListTile(
-        onTap: onTap,
+        onTap: account.isArchived ? null : onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: CircleAvatar(
           radius: 20,
@@ -47,6 +53,20 @@ class AccountTile extends StatelessWidget {
                 ),
               ),
             ],
+            if (account.isArchived) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Deactivated',
+                  style: TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
           ],
         ),
         subtitle: Text(
@@ -55,7 +75,13 @@ class AccountTile extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right_rounded),
+        trailing: account.isArchived
+            ? Switch(
+                value: false,
+                onChanged: onActivate,
+                activeThumbColor: Theme.of(context).colorScheme.primary,
+              )
+            : const Icon(Icons.chevron_right_rounded),
       ),
     );
   }

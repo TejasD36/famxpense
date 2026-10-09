@@ -6,6 +6,8 @@ import 'package:famxpense/features/expenses/data/datasources/remote/expense_remo
 import 'package:famxpense/features/expenses/data/repositories/expense_repository_impl.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_entity.dart';
 import 'package:famxpense/shared/domain/entities/expense/expense_participant_entity.dart';
+import 'package:famxpense/shared/domain/entities/account/account_entity.dart';
+import 'package:famxpense/shared/enums/account_type.dart';
 import 'package:famxpense/shared/enums/expense_type.dart';
 import 'package:famxpense/shared/enums/split_type.dart';
 import 'package:famxpense/shared/enums/sync_status.dart';
@@ -25,6 +27,7 @@ class _MockAccountRepository extends Mock implements AccountRepository {}
 void main() {
   late _MockExpenseLocal local;
   late _MockAuthLocal auth;
+  late _MockAccountRepository accountRepository;
   late ExpenseRepositoryImpl repository;
 
   final now = DateTime(2026, 7, 31).toUtc();
@@ -59,13 +62,14 @@ void main() {
   setUp(() {
     local = _MockExpenseLocal();
     auth = _MockAuthLocal();
+    accountRepository = _MockAccountRepository();
     when(() => auth.getUserId()).thenReturn('user-a');
     repository = ExpenseRepositoryImpl(
       localDatasource: local,
       authLocalDatasource: auth,
       remoteDatasource: _MockExpenseRemote(),
       computeDebtUsecase: _MockComputeDebt(),
-      accountRepository: _MockAccountRepository(),
+      accountRepository: accountRepository,
     );
   });
 
@@ -126,5 +130,38 @@ void main() {
 
     await expectLater(repository.addExpense(expense), throwsArgumentError);
     verifyZeroInteractions(local);
+  });
+
+  test('rejects an expense when its account has insufficient funds', () async {
+    final account = AccountEntity(
+      id: 'checking',
+      userId: 'user-a',
+      accountName: 'Checking',
+      accountType: AccountType.bank,
+      currentBalance: 99,
+      createdAt: now,
+      updatedAt: now,
+    );
+    when(
+      () => accountRepository.getAccounts(userId: 'user-a'),
+    ).thenAnswer((_) async => [account]);
+    when(
+      () => local.getExpenses(ownerUserId: 'user-a'),
+    ).thenAnswer((_) async => []);
+
+    await expectLater(
+      repository.addExpense(
+        shared(amount: 100).copyWith(accountId: 'checking'),
+      ),
+      throwsStateError,
+    );
+    verifyNever(
+      () => accountRepository.adjustBalance(
+        any(),
+        any(),
+        mutationId: any(named: 'mutationId'),
+        preventNegativeBalance: any(named: 'preventNegativeBalance'),
+      ),
+    );
   });
 }
