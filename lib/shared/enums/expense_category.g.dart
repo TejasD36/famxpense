@@ -49,6 +49,18 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
         return ExpenseCategory.household;
       case 17:
         return ExpenseCategory.other;
+      case 18:
+        return ExpenseCategory.foodAndGroceries;
+      case 19:
+        return ExpenseCategory.transportAndVehicle;
+      case 20:
+        return ExpenseCategory.healthAndFitness;
+      case 21:
+        return ExpenseCategory.billsAndRecharge;
+      case 22:
+        return ExpenseCategory.personalCareAndShopping;
+      case 23:
+        return ExpenseCategory.familySupport;
       default:
         return ExpenseCategory.food;
     }
@@ -93,6 +105,18 @@ class ExpenseCategoryAdapter extends TypeAdapter<ExpenseCategory> {
         writer.writeByte(16);
       case ExpenseCategory.other:
         writer.writeByte(17);
+      case ExpenseCategory.foodAndGroceries:
+        writer.writeByte(18);
+      case ExpenseCategory.transportAndVehicle:
+        writer.writeByte(19);
+      case ExpenseCategory.healthAndFitness:
+        writer.writeByte(20);
+      case ExpenseCategory.billsAndRecharge:
+        writer.writeByte(21);
+      case ExpenseCategory.personalCareAndShopping:
+        writer.writeByte(22);
+      case ExpenseCategory.familySupport:
+        writer.writeByte(23);
     }
   }
 

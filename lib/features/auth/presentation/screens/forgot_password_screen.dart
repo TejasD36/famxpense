@@ -9,22 +9,17 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _emailController.dispose();
-
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-
-    context.read<AuthBloc>().add(
-      AuthEvent.forgotPassword(email: _emailController.text.trim()),
-    );
+    context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: _emailController.text.trim()));
   }
 
   @override
@@ -34,93 +29,49 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         state.whenOrNull(
           passwordResetSent: () {
             if (!context.mounted) return;
-            AppFlushbar.show(
-              context: context,
-              message: 'Password reset email sent',
-              type: AppFlushbarType.success,
-            );
-
-            context.go(AppRoute.login.path);
+            AppFlushbar.show(context: context, message: 'Password reset email sent', type: AppFlushbarType.success);
+            context.pop();
           },
-
           error: (message) {
             if (!context.mounted) return;
-            AppFlushbar.show(
-              context: context,
-              message: message,
-              type: AppFlushbarType.error,
-            );
+            AppFlushbar.show(context: context, message: message, type: AppFlushbarType.error);
           },
         );
       },
 
       child: Scaffold(
         appBar: AppBar(title: const Text('Forgot Password')),
-
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
-
             child: Form(
               key: _formKey,
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-
                 children: [
-                  const AuthBrandPanel(
-                    title: 'Reset Password',
-                    subtitle: 'Get back to your expense records securely.',
-                  ),
-
+                  const AuthBrandPanel(title: 'Reset Password', subtitle: 'Get back to your expense records securely.'),
                   const SizedBox(height: 16),
-
-                  const Text(
-                    'Enter your email address and we will send you a password reset link.',
-                  ),
-
+                  const Text('Enter your email address and we will send you a password reset link.'),
                   const SizedBox(height: 32),
-
                   TextFormField(
                     controller: _emailController,
-
                     keyboardType: TextInputType.emailAddress,
-
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-
+                    decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter email';
-                      }
-                      if (!RegExp(
-                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                      ).hasMatch(value.trim())) {
-                        return 'Enter a valid email address';
-                      }
+                      if (value == null || value.isEmpty) return 'Please enter email';
+                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) return 'Enter a valid email address';
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 24),
-
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       final isLoading = state is AuthLoading;
-
                       return ElevatedButton(
                         onPressed: isLoading ? null : _submit,
-
                         child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: FinanceLoadingIndicator(),
-                              )
+                            ? const SizedBox(height: 20, width: 20, child: FinanceLoadingIndicator())
                             : const Text('Send Reset Link'),
                       );
                     },

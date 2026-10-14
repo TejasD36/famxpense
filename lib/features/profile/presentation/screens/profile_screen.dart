@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:package_info_plus/package_info_plus.dart';
+
 import '../../../../core.dart';
 import '../../../account/data/datasources/account_local_datasource.dart';
 import '../../../account/domain/repositories/account_repository.dart';
@@ -7,7 +9,6 @@ import '../../../account/presentation/blocs/account_bloc.dart';
 import '../../../account/presentation/widgets/account_tile.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-
 import '../../../debt_ledger/data/datasources/debt_ledger_local_datasource.dart';
 import '../../../notification/presentation/blocs/notification_bloc.dart';
 import '../../../savings/domain/repositories/savings_repository.dart';
@@ -36,9 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _onRefresh() {
     if (mounted) {
       if (context.mounted) {
-        context.read<NotificationBloc>().add(
-          const NotificationEvent.loadNotifications(),
-        );
+        context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
       }
     }
   }
@@ -56,10 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
 
               children: [
-                const Text(
-                  'Choose Theme',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                const Text('Choose Theme', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
 
                 const SizedBox(height: 20),
 
@@ -127,17 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             FilledButton(
               onPressed: () {
-                context.read<AuthBloc>().add(
-                  AuthEvent.forgotPassword(email: email),
-                );
+                context.read<AuthBloc>().add(AuthEvent.forgotPassword(email: email));
 
                 context.pop();
 
-                AppFlushbar.show(
-                  context: context,
-                  message: 'Reset email sent',
-                  type: AppFlushbarType.success,
-                );
+                AppFlushbar.show(context: context, message: 'Reset email sent', type: AppFlushbarType.success);
               },
 
               child: const Text('Send'),
@@ -195,10 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       child: Scaffold(
         appBar: AppBar(
-          title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13.0),
-            child: const Text('Profile'),
-          ),
+          title: Padding(padding: const EdgeInsets.symmetric(horizontal: 13.0), child: const Text('Profile')),
         ),
         body: SafeArea(
           child: BlocBuilder<AuthBloc, AuthState>(
@@ -219,14 +206,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 authenticated: (user) {
                   return RefreshIndicator(
                     onRefresh: () async {
-                      final userId =
-                          sl<AuthLocalDatasource>().getUserId() ?? '';
+                      final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
                       if (userId.isNotEmpty) {
                         await sl<SyncService>().syncAll(userId: userId);
                         if (context.mounted) {
-                          context.read<NotificationBloc>().add(
-                            const NotificationEvent.loadNotifications(),
-                          );
+                          context.read<NotificationBloc>().add(const NotificationEvent.loadNotifications());
                         }
                       }
                     },
@@ -237,33 +221,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Card(
                           elevation: 0,
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             leading: CircleAvatar(
                               radius: 24,
                               child: Text(
                                 user.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                             ),
                             title: Text(
                               user.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            subtitle: Text(
-                              '@${user.nickname} • ${user.email}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            subtitle: Text('@${user.nickname} • ${user.email}', maxLines: 1, overflow: TextOverflow.ellipsis),
                           ),
                         ),
 
@@ -277,57 +249,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         /// Notifications
                         BlocBuilder<NotificationBloc, NotificationState>(
                           builder: (context, state) {
-                            final unread =
-                                state.whenOrNull(
-                                  loaded: (n) =>
-                                      n.where((n) => !n.isRead).length,
-                                ) ??
-                                0;
+                            final unread = state.whenOrNull(loaded: (n) => n.where((n) => !n.isRead).length) ?? 0;
                             return Card(
                               elevation: 0,
                               margin: const EdgeInsets.only(bottom: 12),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.12),
-                                  child: const Icon(
-                                    Icons.notifications_outlined,
-                                  ),
+                                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                  child: const Icon(Icons.notifications_outlined),
                                 ),
-                                title: const Text(
-                                  'Notifications',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                ),
+                                title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w600)),
                                 trailing: unread > 0
                                     ? Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.error,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          color: Theme.of(context).colorScheme.error,
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          unread > 99
-                                              ? '99+'
-                                              : unread.toString(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          unread > 99 ? '99+' : unread.toString(),
+                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                                         ),
                                       )
                                     : const Icon(Icons.chevron_right_rounded),
-                                onTap: () => context.pushNamed(
-                                  AppRoute.notifications.name,
-                                ),
+                                onTap: () => context.pushNamed(AppRoute.notifications.name),
                               ),
                             );
                           },
@@ -343,18 +288,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.12),
+                              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                               child: const Icon(Icons.account_balance_rounded),
                             ),
-                            title: const Text(
-                              'Income',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
+                            title: const Text('Income', style: TextStyle(fontWeight: FontWeight.w600)),
                             trailing: const Icon(Icons.chevron_right_rounded),
-                            onTap: () =>
-                                context.pushNamed(AppRoute.income.name),
+                            onTap: () => context.pushNamed(AppRoute.income.name),
                           ),
                         ),
 
@@ -364,13 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         /// Settings Header
                         const SizedBox(height: 8),
-                        const Text(
-                          'Settings',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
 
                         const SizedBox(height: 14),
 
@@ -426,28 +359,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Center(
                           child: Column(
                             children: [
-                              Text(
-                                'FamXpense',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-
+                              Text('FamXpense', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                               const SizedBox(height: 4),
-
-                              Text(
-                                'Version 1.0.0',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                              FutureBuilder<PackageInfo>(
+                                future: PackageInfo.fromPlatform(),
+                                builder: (context, snapshot) {
+                                  final version = snapshot.data?.version;
+                                  return Text(
+                                    version == null ? 'Version' : 'Version $version',
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
+                        const SizedBox(height: 28),
                       ],
                     ),
                   );
@@ -468,13 +395,7 @@ class _SettingTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool isDestructive;
 
-  const _SettingTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.isDestructive = false,
-  });
+  const _SettingTile({required this.icon, required this.title, required this.subtitle, required this.onTap, this.isDestructive = false});
 
   @override
   Widget build(BuildContext context) {
@@ -493,21 +414,13 @@ class _SettingTile extends StatelessWidget {
               ? destructiveColor.withValues(alpha: 0.12)
               : Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
 
-          child: Icon(
-            icon,
-            color: isDestructive
-                ? destructiveColor
-                : Theme.of(context).colorScheme.primary,
-          ),
+          child: Icon(icon, color: isDestructive ? destructiveColor : Theme.of(context).colorScheme.primary),
         ),
 
         title: Text(
           title,
 
-          style: TextStyle(
-            color: isDestructive ? destructiveColor : null,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: isDestructive ? destructiveColor : null, fontWeight: FontWeight.w600),
         ),
 
         subtitle: Text(subtitle),
@@ -549,46 +462,25 @@ class _AccountsSectionState extends State<_AccountsSection> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Activate account?'),
-        content: Text(
-          'Activate "${account.accountName}"? It will be available for expenses and deposits.',
-        ),
+        content: Text('Activate "${account.accountName}"? It will be available for expenses and deposits.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Activate'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Activate')),
         ],
       ),
     );
     if (confirmed != true || !mounted) return;
     try {
       await sl<AccountRepository>().saveAccount(
-        account.copyWith(
-          isArchived: false,
-          isSavings: false,
-          monthlySavingsGoal: 0,
-          updatedAt: DateTime.now().toUtc(),
-        ),
+        account.copyWith(isArchived: false, isSavings: false, monthlySavingsGoal: 0, updatedAt: DateTime.now().toUtc()),
       );
       sl<RefreshNotifier>().notifyDataChanged();
       _refresh();
       if (!mounted) return;
-      await AppFlushbar.show(
-        context: context,
-        message: 'Account activated',
-        type: AppFlushbarType.success,
-      );
+      await AppFlushbar.show(context: context, message: 'Account activated', type: AppFlushbarType.success);
     } catch (error) {
       if (!mounted) return;
-      await AppFlushbar.show(
-        context: context,
-        message: 'Could not activate account: $error',
-        type: AppFlushbarType.error,
-      );
+      await AppFlushbar.show(context: context, message: 'Could not activate account: $error', type: AppFlushbarType.error);
     }
   }
 
@@ -598,19 +490,13 @@ class _AccountsSectionState extends State<_AccountsSection> {
       value: _accountBloc,
       child: BlocBuilder<AccountBloc, AccountState>(
         builder: (context, state) {
-          final accounts = state.maybeWhen(
-            loaded: (a) => a,
-            orElse: () => <AccountEntity>[],
-          );
+          final accounts = state.maybeWhen(loaded: (a) => a, orElse: () => <AccountEntity>[]);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Accounts',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Accounts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: () async {
@@ -625,35 +511,22 @@ class _AccountsSectionState extends State<_AccountsSection> {
               const SizedBox(height: 14),
               if (state.maybeWhen(loading: () => true, orElse: () => false))
                 const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: FinanceLoadingIndicator(),
-                  ),
+                  child: Padding(padding: EdgeInsets.all(24), child: FinanceLoadingIndicator()),
                 )
               else if (accounts.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: Text(
-                      'No accounts yet',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    child: Text('No accounts yet', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ),
                 )
               else
                 ...accounts.map(
                   (account) => AccountTile(
                     account: account,
-                    onActivate: account.isArchived
-                        ? (_) => _confirmActivate(account)
-                        : null,
+                    onActivate: account.isArchived ? (_) => _confirmActivate(account) : null,
                     onTap: () async {
-                      await context.pushNamed(
-                        AppRoute.accountDetail.name,
-                        extra: account,
-                      );
+                      await context.pushNamed(AppRoute.accountDetail.name, extra: account);
                       _refresh();
                     },
                   ),
@@ -680,9 +553,7 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
   void initState() {
     super.initState();
     sl<RefreshNotifier>().addListener(_load);
-    _accountBoxSub = Hive.box<AccountDto>(
-      HiveBoxes.accounts,
-    ).watch().listen((_) => _load());
+    _accountBoxSub = Hive.box<AccountDto>(HiveBoxes.accounts).watch().listen((_) => _load());
     _load();
   }
 
@@ -697,23 +568,13 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos
-        .where(
-          (account) =>
-              account.userId == userId &&
-              !account.isSavings &&
-              !account.isArchived,
-        )
-        .toList();
+    final accounts = dtos.where((account) => account.userId == userId && !account.isSavings && !account.isArchived).toList();
     String? id = await AppSettings.getDefaultAccountId(userId: userId);
     if (!accounts.any((account) => account.id == id)) {
       id = accounts.firstOrNull?.id;
       await AppSettings.setDefaultAccountId(userId: userId, accountId: id);
     }
-    final name = accounts
-        .where((account) => account.id == id)
-        .firstOrNull
-        ?.accountName;
+    final name = accounts.where((account) => account.id == id).firstOrNull?.accountName;
     if (mounted) {
       setState(() {
         _defaultAccountId = id;
@@ -726,10 +587,7 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
     final userId = sl<AuthLocalDatasource>().getUserId();
     if (userId == null) return;
     final dtos = await sl<AccountLocalDatasource>().getAccounts();
-    final accounts = dtos
-        .where((d) => d.userId == userId && !d.isSavings && !d.isArchived)
-        .map((d) => d.toEntity())
-        .toList();
+    final accounts = dtos.where((d) => d.userId == userId && !d.isSavings && !d.isArchived).map((d) => d.toEntity()).toList();
 
     if (!mounted) return;
 
@@ -742,40 +600,26 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Default Account',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              const Text('Default Account', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               const Text('Settlement amounts will be deposited here'),
               const SizedBox(height: 16),
               if (accounts.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: Text('No accounts yet. Create one first.'),
-                  ),
+                  child: Center(child: Text('No accounts yet. Create one first.')),
                 )
               else
                 ...accounts.map(
                   (a) => ListTile(
                     leading: CircleAvatar(
-                      child: Icon(
-                        a.accountType == AccountType.cash
-                            ? Icons.money_rounded
-                            : Icons.account_balance_rounded,
-                      ),
+                      child: Icon(a.accountType == AccountType.cash ? Icons.money_rounded : Icons.account_balance_rounded),
                     ),
                     title: Text(a.accountName),
                     subtitle: Text(formatIndianRupee(a.currentBalance)),
-                    trailing: _defaultAccountId == a.id
-                        ? const Icon(Icons.check_circle, color: Colors.green)
-                        : null,
+                    trailing: _defaultAccountId == a.id ? const Icon(Icons.check_circle, color: Colors.green) : null,
                     onTap: () async {
-                      await AppSettings.setDefaultAccountId(
-                        userId: userId,
-                        accountId: a.id,
-                      );
+                      await AppSettings.setDefaultAccountId(userId: userId, accountId: a.id);
                       if (!mounted) return;
                       Navigator.pop(context);
                       _load();
@@ -785,15 +629,10 @@ class _DefaultAccountTileState extends State<_DefaultAccountTile> {
               const Divider(),
               if (_defaultAccountId != null)
                 ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.remove_circle_outline_rounded),
-                  ),
+                  leading: const CircleAvatar(child: Icon(Icons.remove_circle_outline_rounded)),
                   title: const Text('None'),
                   onTap: () async {
-                    await AppSettings.setDefaultAccountId(
-                      userId: userId,
-                      accountId: null,
-                    );
+                    await AppSettings.setDefaultAccountId(userId: userId, accountId: null);
                     if (!mounted) return;
                     Navigator.pop(context);
                     _load();
@@ -842,15 +681,10 @@ class _SettlementsTileState extends State<_SettlementsTile> {
   Future<void> _load() async {
     final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
     try {
-      final results = await Future.wait([
-        sl<SettlementLocalDatasource>().getSettlements(),
-        sl<DebtLedgerLocalDatasource>().getLedgers(),
-      ]);
+      final results = await Future.wait([sl<SettlementLocalDatasource>().getSettlements(), sl<DebtLedgerLocalDatasource>().getLedgers()]);
       if (mounted) {
         setState(() {
-          _settlementDtos = (results[0] as List<SettlementDto>)
-              .where((d) => d.fromUserId == userId || d.toUserId == userId)
-              .toList();
+          _settlementDtos = (results[0] as List<SettlementDto>).where((d) => d.fromUserId == userId || d.toUserId == userId).toList();
           _debtLedgerDtos = results[1] as List<DebtLedgerDto>;
         });
       }
@@ -863,16 +697,8 @@ class _SettlementsTileState extends State<_SettlementsTile> {
     final settlements = _settlementDtos.map((d) => d.toEntity()).toList();
     final debtDtos = _debtLedgerDtos;
 
-    final pendingIncoming = settlements
-        .where(
-          (s) => s.toUserId == userId && s.status == SettlementStatus.pending,
-        )
-        .length;
-    final pendingOutgoing = settlements
-        .where(
-          (s) => s.fromUserId == userId && s.status == SettlementStatus.pending,
-        )
-        .length;
+    final pendingIncoming = settlements.where((s) => s.toUserId == userId && s.status == SettlementStatus.pending).length;
+    final pendingOutgoing = settlements.where((s) => s.fromUserId == userId && s.status == SettlementStatus.pending).length;
     double iAmOwed = 0;
     double iOwe = 0;
     for (final d in debtDtos) {
@@ -893,14 +719,10 @@ class _SettlementsTileState extends State<_SettlementsTile> {
 
     final subtitleParts = <String>[];
     if (pendingIncoming > 0) {
-      subtitleParts.add(
-        '$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}',
-      );
+      subtitleParts.add('$pendingIncoming pending confirmation${pendingIncoming > 1 ? 's' : ''}');
     }
     if (pendingOutgoing > 0) {
-      subtitleParts.add(
-        '$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}',
-      );
+      subtitleParts.add('$pendingOutgoing awaiting response${pendingOutgoing > 1 ? 's' : ''}');
     }
     if (iAmOwed > 0) {
       subtitleParts.add('${formatIndianRupee(iAmOwed)} owed to you');
@@ -916,16 +738,8 @@ class _SettlementsTileState extends State<_SettlementsTile> {
           backgroundColor: Colors.green.withValues(alpha: 0.12),
           child: const Icon(Icons.account_balance_rounded, color: Colors.green),
         ),
-        title: const Text(
-          'Settlements & Balance',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          subtitleParts.join(' • '),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12),
-        ),
+        title: const Text('Settlements & Balance', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(subtitleParts.join(' • '), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => context.pushNamed(AppRoute.settlements.name),
       ),
@@ -959,11 +773,7 @@ class _SavingsTileState extends State<_SavingsTile> {
     try {
       final userId = sl<AuthLocalDatasource>().getUserId() ?? '';
       final now = DateTime.now();
-      final total = await sl<SavingsRepository>().getTotalSavedForMonth(
-        userId,
-        now.year,
-        now.month,
-      );
+      final total = await sl<SavingsRepository>().getTotalSavedForMonth(userId, now.year, now.month);
       if (mounted) {
         setState(() {
           _currentMonthTotal = total;
@@ -985,13 +795,8 @@ class _SavingsTileState extends State<_SavingsTile> {
           backgroundColor: Colors.amber.withValues(alpha: 0.12),
           child: const Icon(Icons.savings_rounded, color: Colors.amber),
         ),
-        title: const Text(
-          'Savings',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: _loading
-            ? const Text('Loading...')
-            : Text('This month: ${formatIndianRupee(_currentMonthTotal)}'),
+        title: const Text('Savings', style: TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: _loading ? const Text('Loading...') : Text('This month: ${formatIndianRupee(_currentMonthTotal)}'),
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => context.pushNamed(AppRoute.savings.name),
       ),

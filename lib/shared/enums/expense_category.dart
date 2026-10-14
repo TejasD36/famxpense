@@ -56,7 +56,39 @@ enum ExpenseCategory {
   household,
 
   @HiveField(17)
-  other;
+  other,
+
+  @HiveField(18)
+  foodAndGroceries,
+
+  @HiveField(19)
+  transportAndVehicle,
+
+  @HiveField(20)
+  healthAndFitness,
+
+  @HiveField(21)
+  billsAndRecharge,
+
+  @HiveField(22)
+  personalCareAndShopping,
+
+  @HiveField(23)
+  familySupport;
+
+  static const List<ExpenseCategory> selectableCategories = [
+    ExpenseCategory.foodAndGroceries,
+    ExpenseCategory.transportAndVehicle,
+    ExpenseCategory.shopping,
+    ExpenseCategory.healthAndFitness,
+    ExpenseCategory.billsAndRecharge,
+    ExpenseCategory.rentHousing,
+    ExpenseCategory.travel,
+    ExpenseCategory.gifts,
+    ExpenseCategory.personalCareAndShopping,
+    ExpenseCategory.familySupport,
+    ExpenseCategory.other,
+  ];
 
   String get label {
     return switch (this) {
@@ -78,6 +110,12 @@ enum ExpenseCategory {
       ExpenseCategory.investments => 'Investments',
       ExpenseCategory.household => 'Household',
       ExpenseCategory.other => 'Other',
+      ExpenseCategory.foodAndGroceries => 'Food & Groceries',
+      ExpenseCategory.transportAndVehicle => 'Transport & Vehicle',
+      ExpenseCategory.healthAndFitness => 'Health & Fitness',
+      ExpenseCategory.billsAndRecharge => 'Bills & Recharge',
+      ExpenseCategory.personalCareAndShopping => 'Personal Care & Shopping',
+      ExpenseCategory.familySupport => 'Family Support',
     };
   }
 
@@ -101,6 +139,12 @@ enum ExpenseCategory {
       ExpenseCategory.investments => Icons.trending_up_rounded,
       ExpenseCategory.household => Icons.cleaning_services_rounded,
       ExpenseCategory.other => Icons.more_horiz_rounded,
+      ExpenseCategory.foodAndGroceries => Icons.restaurant_rounded,
+      ExpenseCategory.transportAndVehicle => Icons.directions_car_rounded,
+      ExpenseCategory.healthAndFitness => Icons.favorite_rounded,
+      ExpenseCategory.billsAndRecharge => Icons.receipt_rounded,
+      ExpenseCategory.personalCareAndShopping => Icons.shopping_bag_rounded,
+      ExpenseCategory.familySupport => Icons.family_restroom_rounded,
     };
   }
 
@@ -124,6 +168,12 @@ enum ExpenseCategory {
       ExpenseCategory.investments => Colors.lightGreen.shade600,
       ExpenseCategory.household => Colors.yellow.shade700,
       ExpenseCategory.other => Colors.grey.shade400,
+      ExpenseCategory.foodAndGroceries => Colors.red.shade400,
+      ExpenseCategory.transportAndVehicle => Colors.blue.shade400,
+      ExpenseCategory.healthAndFitness => Colors.pink.shade400,
+      ExpenseCategory.billsAndRecharge => Colors.orange.shade400,
+      ExpenseCategory.personalCareAndShopping => Colors.purple.shade400,
+      ExpenseCategory.familySupport => Colors.teal.shade400,
     };
   }
 }

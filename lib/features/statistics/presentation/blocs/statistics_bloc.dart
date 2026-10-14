@@ -2,8 +2,8 @@ import '../../../../core.dart';
 import '../../../auth/data/datasources/local/auth_local_datasource.dart';
 import '../../presentation/models/statistics_models.dart';
 
-part 'statistics_event.dart';
 part 'statistics_bloc.freezed.dart';
+part 'statistics_event.dart';
 part 'statistics_state.dart';
 
 class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
@@ -11,10 +11,7 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
     on<LoadStatisticsEvent>(_onLoad);
   }
 
-  Future<void> _onLoad(
-    LoadStatisticsEvent event,
-    Emitter<StatisticsState> emit,
-  ) async {
+  Future<void> _onLoad(LoadStatisticsEvent event, Emitter<StatisticsState> emit) async {
     emit(const StatisticsState.loading());
     try {
       final userId = sl<AuthLocalDatasource>().getUserId();
@@ -27,14 +24,9 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       final year = now.year;
       final month = now.month;
       final hasRange = event.rangeStart != null && event.rangeEnd != null;
-      final period = hasRange
-          ? ReportingPeriod.range(event.rangeStart!, event.rangeEnd!)
-          : ReportingPeriod.month(now);
+      final period = hasRange ? ReportingPeriod.range(event.rangeStart!, event.rangeEnd!) : ReportingPeriod.month(now);
 
-      final ledger = await sl<ReportingLedgerService>().load(
-        userId: userId,
-        period: period,
-      );
+      final ledger = await sl<ReportingLedgerService>().load(userId: userId, period: period);
       final categoryTotals = <String, double>{};
       final dailyTotals = <int, double>{};
       final expenseTypeTotals = <String, double>{};
@@ -43,24 +35,12 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
       for (final row in ledger.rows) {
         if (row.type == ReportingLedgerRowType.expense && row.expense != null) {
           final category = row.category ?? ExpenseCategory.other.name;
-          categoryTotals.update(
-            category,
-            (v) => v + row.amount,
-            ifAbsent: () => row.amount,
-          );
-          expenseTypeTotals.update(
-            row.expense!.expenseType.name,
-            (v) => v + row.amount,
-            ifAbsent: () => row.amount,
-          );
+          categoryTotals.update(category, (v) => v + row.amount, ifAbsent: () => row.amount);
+          expenseTypeTotals.update(row.expense!.expenseType.name, (v) => v + row.amount, ifAbsent: () => row.amount);
         }
         if (row.isOutflow && !row.isAuditOnly) {
           final day = row.date.toLocal().day;
-          dailyTotals.update(
-            day,
-            (v) => v + row.amount,
-            ifAbsent: () => row.amount,
-          );
+          dailyTotals.update(day, (v) => v + row.amount, ifAbsent: () => row.amount);
         }
         transactions.add(_toTransaction(row));
       }
@@ -76,18 +56,14 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
         );
       }).toList();
 
-      final sortedCategories = categoryTotals.entries.toList()
+      final sortedCategories = categoryTotals.entries.where((entry) => entry.value > 0).toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      final sortedDaily = dailyTotals.entries.toList()
-        ..sort((a, b) => a.key.compareTo(b.key));
+      final sortedDaily = dailyTotals.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
       final monthComparisons = <MonthComparison>[];
       for (int i = 1; i <= 3; i++) {
         final prev = DateTime(year, month - i, 1);
-        final previousLedger = await sl<ReportingLedgerService>().load(
-          userId: userId,
-          period: ReportingPeriod.month(prev),
-        );
+        final previousLedger = await sl<ReportingLedgerService>().load(userId: userId, period: ReportingPeriod.month(prev));
         if (previousLedger.financialRows.isEmpty) continue;
         monthComparisons.add(
           MonthComparison(
@@ -133,23 +109,10 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
           paidByUserId: expense.paidByUserId,
         );
       case ReportingLedgerRowType.income:
-        return IncomeTxn(
-          id: row.id,
-          amount: row.amount,
-          date: row.date,
-          description: row.description,
-          accountId: row.accountId ?? '',
-        );
+        return IncomeTxn(id: row.id, amount: row.amount, date: row.date, description: row.description, accountId: row.accountId ?? '');
       case ReportingLedgerRowType.manualDeposit:
-        return DepositTxn(
-          id: row.id,
-          amount: row.amount,
-          date: row.date,
-          description: row.description,
-          accountId: row.accountId ?? '',
-        );
-      case ReportingLedgerRowType.settlementIn ||
-          ReportingLedgerRowType.settlementOut:
+        return DepositTxn(id: row.id, amount: row.amount, date: row.date, description: row.description, accountId: row.accountId ?? '');
+      case ReportingLedgerRowType.settlementIn || ReportingLedgerRowType.settlementOut:
         return SettlementTxn(
           id: row.id,
           amount: row.amount,
@@ -157,8 +120,7 @@ class StatisticsBloc extends Bloc<StatisticsEvent, StatisticsState> {
           accountId: row.accountId ?? '',
           isIncoming: row.type == ReportingLedgerRowType.settlementIn,
         );
-      case ReportingLedgerRowType.transferIn ||
-          ReportingLedgerRowType.transferOut:
+      case ReportingLedgerRowType.transferIn || ReportingLedgerRowType.transferOut:
         return TransferTxn(
           id: row.id,
           amount: row.amount,

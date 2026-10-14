@@ -188,7 +188,7 @@ return delete(_that.expense);case _:
 
 class SubmitExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
   const SubmitExpenseEvent(this.expense);
-
+  
 
  final  ExpenseEntity expense;
 
@@ -257,7 +257,7 @@ as ExpenseEntity,
 @override
 @pragma('vm:prefer-inline')
 $ExpenseEntityCopyWith<$Res> get expense {
-
+  
   return $ExpenseEntityCopyWith<$Res>(_self.expense, (value) {
     return _then(_self.copyWith(expense: value));
   });
@@ -269,7 +269,7 @@ $ExpenseEntityCopyWith<$Res> get expense {
 
 class UpdateExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
   const UpdateExpenseEvent({required this.original, required this.edited});
-
+  
 
  final  ExpenseEntity original;
  final  ExpenseEntity edited;
@@ -340,7 +340,7 @@ as ExpenseEntity,
 @override
 @pragma('vm:prefer-inline')
 $ExpenseEntityCopyWith<$Res> get original {
-
+  
   return $ExpenseEntityCopyWith<$Res>(_self.original, (value) {
     return _then(_self.copyWith(original: value));
   });
@@ -349,7 +349,7 @@ $ExpenseEntityCopyWith<$Res> get original {
 @override
 @pragma('vm:prefer-inline')
 $ExpenseEntityCopyWith<$Res> get edited {
-
+  
   return $ExpenseEntityCopyWith<$Res>(_self.edited, (value) {
     return _then(_self.copyWith(edited: value));
   });
@@ -361,7 +361,7 @@ $ExpenseEntityCopyWith<$Res> get edited {
 
 class DeleteExpenseEvent with DiagnosticableTreeMixin implements AddExpenseEvent {
   const DeleteExpenseEvent(this.expense);
-
+  
 
  final  ExpenseEntity expense;
 
@@ -430,7 +430,7 @@ as ExpenseEntity,
 @override
 @pragma('vm:prefer-inline')
 $ExpenseEntityCopyWith<$Res> get expense {
-
+  
   return $ExpenseEntityCopyWith<$Res>(_self.expense, (value) {
     return _then(_self.copyWith(expense: value));
   });
@@ -620,7 +620,7 @@ return error(_that.message);case _:
 
 class AddExpenseInitial with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseInitial();
-
+  
 
 
 
@@ -658,7 +658,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseLoading with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseLoading();
-
+  
 
 
 
@@ -696,7 +696,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseSuccess with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseSuccess();
-
+  
 
 
 
@@ -734,7 +734,7 @@ String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
 
 class AddExpenseError with DiagnosticableTreeMixin implements AddExpenseState {
   const AddExpenseError(this.message);
-
+  
 
  final  String message;
 
