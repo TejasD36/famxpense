@@ -82,7 +82,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (userId == null) return;
 
     final accountDtos = await sl<AccountLocalDatasource>().getAccounts();
-    final userAccounts = accountDtos.where((a) => a.userId == userId && !a.isArchived && !a.isSavings).map((d) => d.toEntity()).toList();
+    final userAccounts = accountDtos.where((a) => a.userId == userId && !a.isArchived).map((d) => d.toEntity()).toList();
 
     final partnershipDtos = await sl<PartnershipRemoteDatasource>().getPartnerships(userId: userId);
     final connected = partnershipDtos
@@ -673,7 +673,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               message: _isEditMode ? 'Expense updated successfully' : 'Expense added successfully',
               type: AppFlushbarType.success,
             );
-            context.goNamed(AppRoute.home.name);
+            context.pop();
           },
           error: (message) {
             AppFlushbar.show(context: context, message: message, type: AppFlushbarType.error);
